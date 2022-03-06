@@ -37,6 +37,16 @@
 
 (pprint (second (decode-v jsontags)))
 
+(defn parse-file [typ]
+  (let [slurped (slurp (str "/home/tommy/programming/dtorter/src/dtorter/data/" typ ".json"))]
+       (-> slurped
+           (parse-string true)
+           :lines
+           ffirst
+           decode-v)))
+
+(second (parse-file "users"))
+
 
 
 
