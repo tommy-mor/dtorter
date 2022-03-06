@@ -1,5 +1,6 @@
 (ns dtorter.data
-  (:require [cheshire.core :refer :all]))
+  (:require [cheshire.core :refer :all]
+            [datomic.client.api :as d]))
 
 (def tags (slurp "/home/tommy/programming/dtorter/src/dtorter/data/tags.json"))
 
@@ -45,8 +46,49 @@
            ffirst
            decode-v)))
 
-(second (parse-file "users"))
+(def users (parse-file "users"))
+(def id->name (into {} (for [user users] [(:id user) (:username user) ])))
 
+(pprint (second (parse-file "users")))
+
+(def cfg {:server-type :peer-server
+          :access-key "myaccesskey"
+          :secret "mysecret"
+          :endpoint "localhost:8998"
+          :validate-hostnames false})
+
+(def client (d/client cfg))
+
+(def conn (d/connect client {:db-name "hello"}))
+
+;; https://gist.github.com/a2ndrade/5651419
+ 
+(def user-schema [{:db/ident :user/name
+                   :db/valueType :db.type/string
+                   :db/cardinality :db.cardinality/one
+                   :db/unique :db.unique/identity}
+                  
+                  {:db/ident :user/password-hash
+                   :db/valueType :db.type/string
+                   :db/cardinality :db.cardinality/one}
+                  ])
+
+(d/transact conn {:tx-data user-schema})
+
+(def users-tx
+  (vec (for [user users]
+         {:user/name (:username user)
+          :user/password-hash (:password_hash user)})))
+
+(d/transact conn {:tx-data users-tx})
+
+(def db (d/db conn))
+
+(d/q '[:find ?hash
+       :where
+       [?e :user/name "tommy"]
+       [?e :user/password-hash ?hash]]
+     db)
 
 
 
