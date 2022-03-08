@@ -64,30 +64,15 @@
                    :db/cardinality :db.cardinality/one}
                   ])
 
-(d/transact conn {:tx-data user-schema})
-
 (def users-tx
   (vec (for [user users]
-         {:user/name (:username user)
+         {:db/id (:id user)
+          :user/name (:username user)
           :user/password-hash (:password_hash user)})))
 
-(d/transact conn {:tx-data users-tx})
-
-(def db (d/db conn))
-
-(defn hash-by-name [name]
-  (ffirst (d/q '[:find ?hash
-                 :in $ ?name
-                 :where
-                 
-                 [?e :user/name ?name]
-                 [?e :user/password-hash ?hash]]
-               db
-               name)))
-
-(hash-by-name "tommy")
-
-(def tags (parse-file "tags"))
+(def tags (->>
+           (parse-file "tags")
+           (filter #(not (= "porter test" (:title %))))))
 
 (def id->tag (into {} (for [tag tags] [(:id tag) tag])))
 
@@ -106,30 +91,11 @@
                   :db/valueType :db.type/ref
                   :db/cardinality :db.cardinality/many}])
 
-(d/transact conn {:tx-data tag-schema})
-
-(defn user-by-id [id]
-  (ffirst (d/q
-           '[:find ?e
-             :in $ ?username
-             :where [?e :user/name ?username]]
-           db
-           (:username (id->username id)))))
-
 (def tag-data (for [tag tags]
-                {:tag/name (:title tag)
+                {:db/id (:id tag)
+                 :tag/name (:title tag)
                  :tag/description (:description tag)
-                 :tag/owner (user-by-id (:user_id tag))}))
-
-(d/transact conn {:tx-data tag-data})
-
-(def db (d/db conn))
-
-
-(def tag-names (d/q '[:find ?e ?name
-                      :where [?e :tag/name ?name]]
-                    db))
-tag-names
+                 :tag/owner (:user_id tag)}))
 
 (defn duplicates [col]
   (filter (fn [[k v]] (> v 1)) (frequencies col)))
@@ -137,8 +103,6 @@ tag-names
 (duplicates (map :title tags))
 
 (def items-in-tags (parse-file "items_in_tag"))
-(first items-in-tags)
-
 (def item->tag (into {} (for [row items-in-tags]
                           [(:item_id row) (:tag_id row)])))
 
@@ -147,8 +111,6 @@ tag-names
             (filter #(item->tag (:id %)))
             (filter #(nil? (:github_id (:content %))))))
 
-
-(count items)
 
 (def item-schema
   (vec (concat [{:db/ident :item/name
@@ -163,59 +125,84 @@ tag-names
                 {:db/ident :item/url
                  :db/valueType :db.type/string
                  :db/cardinality :db.cardinality/one}
+                
+                {:db/ident :item/owner
+                 :db/valueType :db.type/ref
+                 :db/cardinality :db.cardinality/one}
 
                 
                 
                 ])))
 
-(d/transact conn {:tx-data item-schema})
-(count items)
-
 (distinct (map (comp keys :content) items))
-
-(defn item->tagparent [item]
-  (let [tagid (item->tag (:id item))
-        tags (first (filter #(= (:id %) tagid) tags))]
-    (ffirst (d/q '[:find ?e
-                   :in $ ?nme
-                   :where
-                   [?e :tag/name ?nme]]
-                 db
-                 (:title tags)))))
-
-(item->tagparent (first items))
-
 (def item-tx
   (apply concat
          (for [item items]
-           (let [ownerid (item->tagparent item)
+           (let [ownerid (item->tag (:id item))
                  itemid (:id item)]
              (filter boolean
                      [[:db/add itemid :item/name (:name item)]
+                      [:db/add itemid :item/owner (:user_id item)]
                       (when-let [pgraph (get-in item [:content :paragraph])]
                         [:db/add itemid :item/paragraph pgraph])
                       (when-let [url (get-in item [:content :url])]
                         [:db/add itemid :item/url url])
                       [:db/add ownerid :tag/member itemid]])))))
 
-(first item-tx)
 
-(d/transact conn {:tx-data item-tx})
+(def votes (parse-file "votes"))
+(pprint (first votes))
 
-(def db (d/db conn))
+(def item-schema
+  [{:db/ident :vote/owner
+    :db/valueType :db.type/ref
+    :db/cardinality :db.cardinality/one}
+   
+   {:db/ident :vote/magnitude
+    :db/valueType :db.type/long
+    :db/cardinality :db.cardinality/one}
 
-(map :title tags)
-(distinct (map first (d/q '[:find ?hash
-                   :where
-                   [?e :item/name ?hash]]
-                 db)))
+   {:db/ident :vote/left-item
+    :db/valueType :db.type/ref
+    :db/cardinality :db.cardinality/one}
+   {:db/ident :vote/right-item
+    :db/valueType :db.type/ref
+    :db/cardinality :db.cardinality/one}
 
-(d/q '[:find ?thing
-       :where
-       [?tag :tag/name "Fruits"]
-       [?tag :tag/member ?item]
-       [?item :item/name ?thing]
-       ] db)
+   {:db/ident :vote/attribute
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one}
+   
+   {:db/ident :vote/tag
+    :db/valueType :db.type/ref
+    :db/cardinality :db.cardinality/one}])
+
+(def votes-tx
+  (filter identity
+          (for [vote votes]
+            (when (:user_id vote)
+              (merge
+               {:db/id (:id vote)
+                :vote/left-item (:item_a vote)
+                :vote/right-item (:item_b vote)
+                :vote/tag (:tag_id vote)
+                :vote/magnitude (:magnitude vote)
+                :vote/owner (:user_id vote)}
+               (when-let [atr (:attribute vote)] {:vote/attribute atr}))))))
+
+(nth votes-tx 100) 
+
+(pprint (duplicates (map keys votes)))
+
+;; TODO SYMEX, something that jumps toplevel blocks.
+;; TODO UNIXWIKI: site that shows every TODO i have, scans all gh repos and wiki/keep?
+
+
+
+
+
+;; TODO use URI attribute type for urls..
+;; PROBLEM: not all image urls have a valid extension..., in particular twitter
 
 ;; just have url field, let clients decide (even for links)
 ;; in tags, have "restrictions" field, which restrict/allow types of links
