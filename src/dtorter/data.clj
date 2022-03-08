@@ -186,25 +186,36 @@ tag-names
 (item->tagparent (first items))
 
 (def item-tx
-  (for [item items]
-    (let [ownerid (item->tagparent item)]
-      (filter boolean
-              [[:db/add "item" :item/name (:name item)]
-               (when-let [pgraph (get-in item [:content :paragraph])]
-                 [:db/add "item" :item/paragraph pgraph])
-               (when-let [url (get-in item [:content :url])]
-                 [:db/add "item" :item/url url])
-               [:db/add ownerid :tag/member "item"]]))))
+  (apply concat
+         (for [item items]
+           (let [ownerid (item->tagparent item)
+                 itemid (:id item)]
+             (filter boolean
+                     [[:db/add itemid :item/name (:name item)]
+                      (when-let [pgraph (get-in item [:content :paragraph])]
+                        [:db/add itemid :item/paragraph pgraph])
+                      (when-let [url (get-in item [:content :url])]
+                        [:db/add itemid :item/url url])
+                      [:db/add ownerid :tag/member itemid]])))))
 
-(frequencies (map keys item-tx))
+(first item-tx)
 
 (d/transact conn {:tx-data item-tx})
 
 (def db (d/db conn))
+
+(map :title tags)
 (distinct (map first (d/q '[:find ?hash
                    :where
                    [?e :item/name ?hash]]
                  db)))
+
+(d/q '[:find ?thing
+       :where
+       [?tag :tag/name "Fruits"]
+       [?tag :tag/member ?item]
+       [?item :item/name ?thing]
+       ] db)
 
 ;; just have url field, let clients decide (even for links)
 ;; in tags, have "restrictions" field, which restrict/allow types of links
@@ -245,3 +256,4 @@ tag-names
 ;; items in tags
 ;; permissions / schema.
 
+;; user ownership
