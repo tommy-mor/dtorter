@@ -42,16 +42,6 @@
 
 (pprint (second (parse-file "users")))
 
-(def cfg {:server-type :peer-server
-          :access-key "myaccesskey"
-          :secret "mysecret"
-          :endpoint "localhost:8998"
-          :validate-hostnames false})
-
-(def client (d/client cfg))
-
-(def conn (d/connect client {:db-name "hello"}))
-
 ;; https://gist.github.com/a2ndrade/5651419
  
 (def user-schema [{:db/ident :user/name
@@ -62,6 +52,10 @@
                   {:db/ident :user/password-hash
                    :db/valueType :db.type/string
                    :db/cardinality :db.cardinality/one}
+
+                  {:db/ident :user/owns
+                   :db/valueType :db.type/ref
+                   :db/cardinality :db.cardinality/many}
                   ])
 
 (def users-tx
@@ -83,19 +77,19 @@
                  {:db/ident :tag/description
                   :db/valueType :db.type/string
                   :db/cardinality :db.cardinality/one}
-                 {:db/ident :tag/owner
-                  :db/valueType :db.type/ref
-                  :db/cardinality :db.cardinality/one}
-
+                 
                  {:db/ident :tag/member
                   :db/valueType :db.type/ref
                   :db/cardinality :db.cardinality/many}])
 
-(def tag-data (for [tag tags]
+(def tags-tx (concat
+              (for [tag tags]
                 {:db/id (:id tag)
                  :tag/name (:title tag)
-                 :tag/description (:description tag)
-                 :tag/owner (:user_id tag)}))
+                 :tag/description (:description tag)})
+              (for [tag tags]
+                {:db/id (:user_id tag)
+                 :user/owns (:id tag)})))
 
 (defn duplicates [col]
   (filter (fn [[k v]] (> v 1)) (frequencies col)))
@@ -124,41 +118,28 @@
                 
                 {:db/ident :item/url
                  :db/valueType :db.type/string
-                 :db/cardinality :db.cardinality/one}
-                
-                {:db/ident :item/owner
-                 :db/valueType :db.type/ref
-                 :db/cardinality :db.cardinality/one}
-
-                
-                
-                ])))
+                 :db/cardinality :db.cardinality/one}])))
 
 (distinct (map (comp keys :content) items))
-(def item-tx
+(def items-tx
   (apply concat
          (for [item items]
            (let [ownerid (item->tag (:id item))
                  itemid (:id item)]
-             (filter boolean
-                     [[:db/add itemid :item/name (:name item)]
-                      [:db/add itemid :item/owner (:user_id item)]
-                      (when-let [pgraph (get-in item [:content :paragraph])]
-                        [:db/add itemid :item/paragraph pgraph])
-                      (when-let [url (get-in item [:content :url])]
-                        [:db/add itemid :item/url url])
-                      [:db/add ownerid :tag/member itemid]])))))
-
+             [(merge {:db/id itemid
+                      :item/name (:name item)}
+                     (when-let [pgraph (get-in item [:content :paragraph])]
+                       {:item/paragraph pgraph})
+                     (when-let [url (get-in item [:content :url])]
+                       {:item/url url}))
+              {:db/id (:user_id item) :user/owns itemid}
+              {:db/id ownerid :tag/member itemid}]))))
 
 (def votes (parse-file "votes"))
 (pprint (first votes))
 
-(def item-schema
-  [{:db/ident :vote/owner
-    :db/valueType :db.type/ref
-    :db/cardinality :db.cardinality/one}
-   
-   {:db/ident :vote/magnitude
+(def vote-schema
+  [{:db/ident :vote/magnitude
     :db/valueType :db.type/long
     :db/cardinality :db.cardinality/one}
 
@@ -178,26 +159,82 @@
     :db/cardinality :db.cardinality/one}])
 
 (def votes-tx
-  (filter identity
-          (for [vote votes]
-            (when (:user_id vote)
-              (merge
-               {:db/id (:id vote)
-                :vote/left-item (:item_a vote)
-                :vote/right-item (:item_b vote)
-                :vote/tag (:tag_id vote)
-                :vote/magnitude (:magnitude vote)
-                :vote/owner (:user_id vote)}
-               (when-let [atr (:attribute vote)] {:vote/attribute atr}))))))
+  (apply concat
+         (filter identity
+                 (for [vote votes]
+                   (when (:user_id vote)
+                     [(merge
+                       {:db/id (:id vote)
+                        :vote/left-item (:item_a vote)
+                        :vote/right-item (:item_b vote)
+                        :vote/tag (:tag_id vote)
+                        :vote/magnitude (:magnitude vote)}
+                       (when-let [atr (:attribute vote)] {:vote/attribute atr}))
+                      {:db/id (:user_id vote)
+                       :user/owns (:id vote)}])))))
 
-(nth votes-tx 100) 
+;; TODO change to user/owns for every attr...
+(def all-schema
+  (concat user-schema tag-schema item-schema vote-schema))
+(def all-data
+  (concat users-tx tags-tx items-tx votes-tx))
+
+(defn file-pprint [thing fname]
+  (pprint (sort-by first thing) (clojure.java.io/writer (str "/home/tommy/Desktop/" fname ".txt"))))
+
+(def cfg {:server-type :peer-server
+          :access-key "myaccesskey"
+          :secret "mysecret"
+          :endpoint "localhost:8998"
+          :validate-hostnames false})
+
+(def client (d/client cfg))
+
+(def conn (d/connect client {:db-name "hello"}))
+
+(d/transact conn {:tx-data all-schema})
+
+(def real-ids (set (map :db/id all-data)))
+
+(defn has-ids [tx]
+  (select-keys tx [:vote/left-item :vote/right-item :vote/tag :user/owns :tag/member])
+  
+  
+  )
+
+(def garbage (clojure.set/difference (set (apply concat (for [tx all-data]
+                                                       (vals (has-ids tx))))) real-ids))
+(count garbage)
+
+(defn which-is-garbage [mp]
+  (filter boolean (for [[k v] mp]
+     (if (contains? garbage v)
+       [k v]))))
+
+(def hasgarbage
+  (set (map :db/id (filter boolean (for [tx all-data]
+                          (if (not (empty? (clojure.set/intersection garbage (set (vals (has-ids tx))))))
+                            tx
+                            nil))))))
+;; they are all votes..
+(def clean-data (->> all-data
+                     (filter #(not (contains? hasgarbage (:db/id %))))
+                     (filter #(not (contains? hasgarbage (:user/owns %))))
+                     
+                     ))
+;; TODO clean {:user}
+
+(file-pprint clean-data "clean")
+(file-pprint all-data "all")
+;; garbage collect data. thing sthat don't reference good things are killed.
+(d/transact conn {:tx-data clean-data})
 
 (pprint (duplicates (map keys votes)))
 
 ;; TODO SYMEX, something that jumps toplevel blocks.
 ;; TODO UNIXWIKI: site that shows every TODO i have, scans all gh repos and wiki/keep?
 
-
+;; TODO
 
 
 
