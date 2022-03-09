@@ -197,19 +197,18 @@
 (def real-ids (set (map :db/id all-data)))
 
 (defn has-ids [tx]
-  (select-keys tx [:vote/left-item :vote/right-item :vote/tag :user/owns :tag/member])
-  
-  
-  )
+  (select-keys tx [:vote/left-item
+                   :vote/right-item
+                   :vote/tag
+                   :user/owns
+                   :tag/member]))
 
 (def garbage (clojure.set/difference (set (apply concat (for [tx all-data]
                                                        (vals (has-ids tx))))) real-ids))
-(count garbage)
-
 (defn which-is-garbage [mp]
   (filter boolean (for [[k v] mp]
-     (if (contains? garbage v)
-       [k v]))))
+                    (if (contains? garbage v)
+                      [k v]))))
 
 (def hasgarbage
   (set (map :db/id (filter boolean (for [tx all-data]
@@ -219,13 +218,9 @@
 ;; they are all votes..
 (def clean-data (->> all-data
                      (filter #(not (contains? hasgarbage (:db/id %))))
-                     (filter #(not (contains? hasgarbage (:user/owns %))))
-                     
-                     ))
+                     (filter #(not (contains? hasgarbage (:user/owns %))))))
 ;; TODO clean {:user}
 
-(file-pprint clean-data "clean")
-(file-pprint all-data "all")
 ;; garbage collect data. thing sthat don't reference good things are killed.
 (d/transact conn {:tx-data clean-data})
 
