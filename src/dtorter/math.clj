@@ -15,8 +15,7 @@
   
   (while (not (m/equals col oldcol *epsilon*))
     (m/assign! oldcol col)
-    (m/assign! col (m/inner-product arr col))
-    (m/pm col))
+    (m/assign! col (m/inner-product arr col)))
 
   col)
 
@@ -84,10 +83,11 @@
                         item])))
 
 (comment
-  (def tid (first test-tag))
-  (def items (itemsfortag tid))
-  (def votes (votesfortag tid))
+  (def alltags dtorter.queries/alltags)
   (def test-tag (first (filter #(= "ASCII smiley" (second %)) (alltags))))
+  (def tid (first test-tag))
+  (def items (dtorter.queries/itemsfortag tid))
+  (def votes (dtorter.queries/votesfortag tid))
   (count votes)
 
   (binding [*epsilon* 0.000001]
