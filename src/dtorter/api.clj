@@ -5,8 +5,10 @@
             [com.walmartlabs.lacinia.schema :as schema]
             [clojure.edn  :as edn]))
 
-(def resolver-map {:query/tag-by-id (fn [context args value]
-                                      nil)})
+(def resolver-map
+  {:query/tag-by-id
+   (fn [{:keys [db]} {:keys [id]} value]
+     4)})
 
 (defn load-schema []
   (-> (io/resource "schema.edn")

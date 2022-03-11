@@ -182,15 +182,7 @@
 (defn file-pprint [thing fname]
   (pprint (sort-by first thing) (clojure.java.io/writer (str "/home/tommy/Desktop/" fname ".txt"))))
 
-(def cfg {:server-type :peer-server
-          :access-key "myaccesskey"
-          :secret "mysecret"
-          :endpoint "localhost:8998"
-          :validate-hostnames false})
-
-(def client (d/client cfg))
-
-(def conn (d/connect client {:db-name "hello"}))
+(def conn (dtorter.queries/get-conn))
 
 (d/transact conn {:tx-data all-schema})
 

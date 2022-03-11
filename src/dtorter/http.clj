@@ -3,17 +3,22 @@
             [io.pedestal.http.route :as route]
             [io.pedestal.test :as test]
             [com.walmartlabs.lacinia.pedestal2 :as lp]
-            [dtorter.api :as api]))
+            [dtorter.api :as api]
+            [dtorter.queries :as queries]))
 
 (def schema (api/load-schema))
 
-(defn enable-graphql [service-map]
-  (let [interceptors (lp/default-interceptors schema {:this-is-the-app-context true})]
+;; database stuff
+
+(def conn (dtorter.queries/get-conn))
+
+(defn enable-graphql [service-map schema]
+  (let [interceptors (lp/default-interceptors schema {:conn true})]
     (-> service-map
         (update ::server/routes conj
                 ["/api" :post interceptors :route-name ::graphql-api]))))
 
-(defn enable-ide [service-map]
+(defn enable-ide [service-map schema]
   (-> service-map
       (update ::server/routes conj
               ["/ide" :get (lp/graphiql-ide-handler {}) :route-name ::graphql-ide])
@@ -21,28 +26,30 @@
               (lp/graphiql-asset-routes "/assets/graphiql"))
       (assoc ::server/secure-headers nil)))
 
-(def routes #{["/test" :get (fn [r] {:status 200 :body (str "hssellos world")}) :route-name :bingus]})
+(def routes #{["/test" :get
+               (fn [r] {:status 200 :body (str "hssellos world")})
+               :route-name :bingus]})
 (def service
   (-> {:env :prod
        ::server/type :jetty
-       ::server/port 8080
-       
-       }
-      enable-graphql))
+       ::server/port 8080}
+      (enable-graphql schema)))
 
 (defn refresh-routes []
   "regather routes for dev thing"
-  (route/expand-routes
-   (::server/routes (-> {::server/routes routes}
-                        enable-graphql
-                        enable-ide))))
+  (let [schema (api/load-schema)]
+    
+    (route/expand-routes
+     (::server/routes (-> {::server/routes routes}
+                          (enable-graphql schema)
+                          (enable-ide schema))))))
 
 ;; taken from https://github.com/pedestal/pedestal/blob/50fe5ea89108998ac5a79a02a44432fd111ea6f8/samples/json-api/src/json_api/server.clj#L11
 (defn run-dev
   "runs a service for the terminal"
   []
   (-> service
-      enable-ide
+      (enable-ide schema)
       (merge {:env :dev
               ::server/join? false
               ::server/routes refresh-routes
@@ -63,13 +70,11 @@
 (defn start [] (swap! server start-server))
 (defn stop [] (swap! server stop-server))
 
-@server
-
 (start)
-(stop)
 
-((::server/routes @server))
+(comment 
 
+  @server
 
-(defonce runnable-service (http/create-server service))
-
+  (stop)
+  (start))

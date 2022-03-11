@@ -1,18 +1,26 @@
 (ns dtorter.queries
   (:require [datomic.client.api :as d]))
 
-(def conn dtorter.data/conn)
+(defn get-conn []
+  (def cfg {:server-type :peer-server
+            :access-key "myaccesskey"
+            :secret "mysecret"
+            :endpoint "localhost:8998"
+            :validate-hostnames false})
 
-(def db (d/db conn))
+  (def client (d/client cfg))
+  (def conn (d/connect client {:db-name "hello"}))
+  conn)
 
-(defn alltags []
+
+(defn alltags [db]
   (d/q '[:find ?e ?name ?description
          :where
          [?e :tag/name ?name]
          [?e :tag/description ?description]]
        db))
 
-(defn itemsfortag [tid]
+(defn itemsfortag [db tid]
   (d/q '[:find ?e ?name ?description
          :in $ ?tid
          :where
@@ -22,7 +30,7 @@
        db
        tid))
 
-(defn votesfortag [tid]
+(defn votesfortag [db tid]
   (d/q '[:find ?vote ?i1 ?i2 ?mag
          :in $ ?tid
          :where
