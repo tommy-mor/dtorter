@@ -1,0 +1,22 @@
+{:objects
+ {:Tag
+  {:description "a collection of items"
+   :fields
+   {:id {:type (non-null ID)}
+    :name {:type (non-null String)}
+    :description {:type String}
+    :members {:type (list :Item)}}}
+  
+  :Item
+  {:description "a named url/link/item in the system that can be voted on"
+   :fields
+   {:id {:type (non-null ID)}
+    :name {:type (non-null String)}
+    :paragraph {:type String}}}}
+
+ :queries
+ {:tag_by_id
+  {:type :Tag
+   :description "return a tag based on its unique id, if it exists"
+   :args {:id {:type ID}}
+   :resolve :query/tag-by-id}}}
