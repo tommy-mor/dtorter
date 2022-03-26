@@ -52,12 +52,16 @@
   (clojure.pprint/pprint a)
   a)
 
-(defn sorted [db tag]
-  (clojure.pprint/pprint tag)
+(defn sorted [db tag attribute]
   (def items (items-for-tag db (:id tag)))
-  (def votes (votes-for-tag db (:id tag)))
-  (reverse (for [[elo item]  (math/getranking (vec items) (vec votes))]
+  (def votes (filter #(= (:attribute %) attribute)
+                     (votes-for-tag db (:id tag))))
+  (reverse (for [[elo item] (math/getranking (vec items) (vec votes))]
              (assoc item :elo elo))))
+
+(defn attributes [db tag]
+  (def votes (votes-for-tag db (:id tag)))
+  (distinct (map :vote/attribute votes)))
 
 ;; (def db dtorter.http/db)
 ;; (def tag {:id "1a260ec6-9580-4dec-ab44-256a9c5c43b1"})

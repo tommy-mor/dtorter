@@ -100,7 +100,7 @@
                               :vote/owner (:user_id vote)}
                              (if-let [atr (:attribute vote)]
                                {:vote/attribute atr}
-                               {:vote/attribute :default}))))))
+                               {:vote/attribute "default"}))))))
 
   (def all-data (concat users-tx tags-tx items-tx votes-tx))
   (def real-ids (set (map :xt/id all-data)))
