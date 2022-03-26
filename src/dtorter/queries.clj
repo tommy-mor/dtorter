@@ -3,12 +3,20 @@
             [dtorter.main :as main]))
 
 (defn tag-by-id [db e]
-  (first (xt/q db
+  (ffirst (xt/q db
                '[:find (pull e [*])
                  :in e
                  :where
                  [e :tag/owner _]]
                e)))
+
+(defn item-by-id [db e]
+  (ffirst (xt/q db
+                '[:find (pull e [*])
+                  :in e
+                  :where
+                  [e :item/owner _]]
+                e)))
 
 (defn all-tags [db]
   (map first
@@ -18,28 +26,26 @@
                [e :tag/name nme]
                [e :tag/description desc]])))
 
-(defn itemsfortag [db tid]
-  (xt/q db
-        '[:find e name description
-          :in tid
-          :where
-          [e :item/tags tid]
-          [e :item/name name]
-          [e :item/name description]]
-        tid))
+(defn items-for-tag [db tid]
+  (map first (xt/q db
+                   '[:find (pull e [*])
+                     :in tid
+                     :where
+                     [e :item/tags tid]]
+                   tid)))
 
-(defn votesfortag [db tid]
-  (xt/q db
-        '[:find vote i1 i2 mag
-          :in tid
-          :where
-          [vote :vote/tag tid]
-          [i1 :item/tags tid]
-          [i2 :item/tags tid]
-          [vote :vote/left-item i1]
-          [vote :vote/right-item i2]
-          [vote :vote/magnitude mag]]
-        tid))
+(defn votes-for-tag [db tid]
+  (map first (xt/q db
+                   '[:find (pull vote [*])
+                     :in tid
+                     :where
+                     [vote :vote/tag tid]
+                     [i1 :item/tags tid]
+                     [i2 :item/tags tid]
+                     [vote :vote/left-item i1]
+                     [vote :vote/right-item i2]
+                     [vote :vote/magnitude mag]]
+                   tid)))
 
 (comment 
 

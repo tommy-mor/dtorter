@@ -5,14 +5,30 @@
    {:id {:type (non-null ID)}
     :name {:type (non-null String)}
     :description {:type String}
-    :members {:type (list :Item)}}}
+    :members {:type (list :Item)
+              :resolve :query/items-for-tag}
+    :votes {:type (list :Vote)
+            :resolve :query/votes-for-tag}}}
   
   :Item
   {:description "a named url/link/item in the system that can be voted on"
    :fields
    {:id {:type (non-null ID)}
     :name {:type (non-null String)}
-    :paragraph {:type String}}}}
+    :paragraph {:type String}}}
+  :Vote
+  {:description "a vote between to items, in a tag, with an attribute"
+   :fields
+   {:id {:type (non-null ID)}
+    :tag {:type (non-null :Tag)
+          :resolve :query/parent-tag}
+    :left_item {:type (non-null :Item)
+                :resolve :query/left-item}
+    :right_item {:type (non-null :Item)
+                 :resolve :query/right-item}
+    
+    :attribute {:type (non-null :String)}}}}
+  
 
  :queries
  {:tag_by_id

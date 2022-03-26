@@ -17,22 +17,43 @@
     (keyword (name kw)))) 
 
 (defn strip [map]
-  (postwalk (some-fn strip-namespaces identity) map))
+  (show (postwalk (some-fn strip-namespaces identity) map)))
 
 (def resolver-map
   {:query/tag-by-id
    (fn [{:keys [db]} {:keys [id]} value]
      (strip (queries/tag-by-id db id)))
+   
+   :query/items-for-tag
+   (fn [{:keys [db]} {} value]
+     (strip (queries/items-for-tag db (:id value))))
+   
+   :query/votes-for-tag
+   (fn [{:keys [db]} {} value]
+     (strip (queries/votes-for-tag db (:id value))))
+   
    :query/all-tags
    (fn [{:keys [db]} _ value]
-     (strip (queries/all-tags db)))})
+     (strip (queries/all-tags db)))
+
+   :query/parent-tag
+   (fn [{:keys [db]} _ value]
+     (strip (queries/tag-by-id db (:tag value))))
+
+   :query/left-item
+   (fn [{:keys [db]} _ value]
+     (strip (queries/item-by-id db (:left-item value))))
+   
+   :query/right-item
+   (fn [{:keys [db]} _ value]
+     (strip (queries/item-by-id db (:right-item value))))
+   })
 
 (defn load-schema []
   (-> (io/resource "schema.edn")
       slurp
       edn/read-string
-      (util/attach-resolvers resolver-map)
-      schema/compile))
+      (util/attach-resolvers resolver-map)      schema/compile))
 
 (defn q [query-string]
   (def schema (load-schema))
