@@ -51,7 +51,7 @@
    ;; does calculations
    :query/sorted
    (fn [{:keys [db]} {:keys [attribute]} value]
-     (queries/sorted db value))
+     (strip (queries/sorted db value)))
    })
 
 (defn load-schema []

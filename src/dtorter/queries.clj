@@ -56,7 +56,8 @@
   (clojure.pprint/pprint tag)
   (def items (items-for-tag db (:id tag)))
   (def votes (votes-for-tag db (:id tag)))
-  (show (vals (show (math/getranking (vec items) (vec votes))))))
+  (reverse (for [[elo item]  (math/getranking (vec items) (vec votes))]
+             (assoc item :elo elo))))
 
 ;; (def db dtorter.http/db)
 ;; (def tag {:id "1a260ec6-9580-4dec-ab44-256a9c5c43b1"})

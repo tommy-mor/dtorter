@@ -18,7 +18,8 @@
    :fields
    {:id {:type (non-null ID)}
     :name {:type (non-null String)}
-    :paragraph {:type String}}}
+    :paragraph {:type String}
+    :elo {:type Float}}}
   :Vote
   {:description "a vote between to items, in a tag, with an attribute"
    :fields
