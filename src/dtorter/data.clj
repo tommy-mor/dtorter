@@ -1,7 +1,7 @@
 (ns dtorter.data
   (:require [cheshire.core :refer :all]
             [clojure.pprint :refer [pprint]]))
-
+(defn uuid [st] (java.util.UUID/fromString st))
 (declare decode-v)
 (defn decode-kv [[left right]]
   (let [decoded-left (decode-v left)
@@ -42,7 +42,7 @@
 
 (defn get-transactions []
 
-  (def users (data/parse-file "users"))
+  (def users (parse-file "users"))
   (def id->username (into {} (for [user users] [(:id user) user])))
   (def users-tx
     (vec (for [user users]
@@ -51,7 +51,7 @@
             :user/password-hash (:password_hash user)})))
 
   (def tags (->>
-             (data/parse-file "tags")
+             (parse-file "tags")
              (filter #(not (= "porter test" (:title %))))))
 
   (def id->tag (into {} (for [tag tags] [(:id tag) tag])))
@@ -62,13 +62,13 @@
                   :tag/description (:description tag)
                   :tag/owner (:user_id tag)}))
 
-  (data/duplicates (map :title tags))
+  (duplicates (map :title tags))
 
-  (def items-in-tags (data/parse-file "items_in_tag"))
+  (def items-in-tags (parse-file "items_in_tag"))
   (def item->tag (into {} (for [row items-in-tags]
                             [(:item_id row) (:tag_id row)])))
   (def items (->>
-              (data/parse-file "items")
+              (parse-file "items")
               (filter #(item->tag (:id %)))
               (filter #(nil? (:github_id (:content %))))))
   (def items-tx
@@ -84,7 +84,7 @@
                     (when-let [url (get-in item [:content :url])]
                       {:item/url url}))))))
 
-  (def votes (data/parse-file "votes"))
+  (def votes (parse-file "votes"))
 
   (pprint (distinct (map keys votes)))
 
@@ -175,3 +175,6 @@
 ;; permissions / schema.
 
 ;; user ownership
+
+;; TODO
+;; maybe use uuid type everywhere?

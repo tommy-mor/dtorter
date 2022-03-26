@@ -3,12 +3,29 @@
             [com.walmartlabs.lacinia :as lacinia]
             [com.walmartlabs.lacinia.util :as util]
             [com.walmartlabs.lacinia.schema :as schema]
-            [clojure.edn  :as edn]))
+            [clojure.edn  :as edn]
+            [clojure.walk :refer [postwalk]]
+
+            [dtorter.queries :as queries]))
+
+(defn show [e]
+  (clojure.pprint/pprint e)
+  e)
+
+(defn strip-namespaces [kw]
+  (when (keyword? kw)
+    (keyword (name kw)))) 
+
+(defn strip [map]
+  (postwalk (some-fn strip-namespaces identity) map))
 
 (def resolver-map
   {:query/tag-by-id
    (fn [{:keys [db]} {:keys [id]} value]
-     4)})
+     (strip (queries/tag-by-id db id)))
+   :query/all-tags
+   (fn [{:keys [db]} _ value]
+     (strip (queries/all-tags db)))})
 
 (defn load-schema []
   (-> (io/resource "schema.edn")
@@ -17,9 +34,8 @@
       (util/attach-resolvers resolver-map)
       schema/compile))
 
-(def schema (load-schema))
-
 (defn q [query-string]
+  (def schema (load-schema))
   (lacinia/execute schema query-string nil nil))
 
 (comment (q "{ tag_by_id(id: \"foo\") {id name}}"))

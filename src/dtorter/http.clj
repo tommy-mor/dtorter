@@ -3,17 +3,25 @@
             [io.pedestal.http.route :as route]
             [io.pedestal.test :as test]
             [com.walmartlabs.lacinia.pedestal2 :as lp]
+            
             [dtorter.api :as api]
-            [dtorter.queries :as queries]))
+            [dtorter.queries :as queries]
+            [dtorter.data :as data]
+            [xtdb.api :as xt]))
 
 (def schema (api/load-schema))
 
 ;; database stuff
 
-; (def conn (dtorter.queries/get-conn))
+(def node (xt/start-node {}))
+(def db (do
+          (xt/submit-tx node (for [tx (data/get-transactions)]
+                               [::xt/put tx]))
+          (xt/sync node)
+          (xt/db node)))
 
 (defn enable-graphql [service-map schema]
-  (let [interceptors (lp/default-interceptors schema {:conn true})]
+  (let [interceptors (lp/default-interceptors schema {:db db})]
     (-> service-map
         (update ::server/routes conj
                 ["/api" :post interceptors :route-name ::graphql-api]))))
@@ -27,7 +35,7 @@
       (assoc ::server/secure-headers nil)))
 
 (def routes #{["/test" :get
-               (fn [r] {:status 200 :body (str "hssellos world")})
+               (fn [r] {:status 200 :body (str "hssellos worlds")})
                :route-name :bingus]})
 (def service
   (-> {:env :prod

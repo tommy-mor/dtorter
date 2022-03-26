@@ -2,12 +2,21 @@
   (:require [xtdb.api :as xt]
             [dtorter.main :as main]))
 
-(defn alltags [db]
-  (xt/q db
-        '[:find e nme desc
-          :where
-          [e :tag/name nme]
-          [e :tag/description desc]]))
+(defn tag-by-id [db e]
+  (first (xt/q db
+               '[:find (pull e [*])
+                 :in e
+                 :where
+                 [e :tag/owner _]]
+               e)))
+
+(defn all-tags [db]
+  (map first
+       (xt/q db
+             '[:find (pull e [*])
+               :where
+               [e :tag/name nme]
+               [e :tag/description desc]])))
 
 (defn itemsfortag [db tid]
   (xt/q db

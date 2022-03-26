@@ -19,4 +19,9 @@
   {:type :Tag
    :description "return a tag based on its unique id, if it exists"
    :args {:id {:type ID}}
-   :resolve :query/tag-by-id}}}
+   :resolve :query/tag-by-id}
+  :all_tags
+  {:type (list :Tag)
+   :description "return a list of all (public) tags"
+   :args {}
+   :resolve :query/all-tags}}}
