@@ -1,6 +1,7 @@
 (ns dtorter.queries
   (:require [xtdb.api :as xt]
-            [dtorter.main :as main]))
+            [dtorter.main :as main]
+            [dtorter.math :as math]))
 
 (defn tag-by-id [db e]
   (ffirst (xt/q db
@@ -46,6 +47,21 @@
                      [vote :vote/right-item i2]
                      [vote :vote/magnitude mag]]
                    tid)))
+
+(defn show [a]
+  (clojure.pprint/pprint a)
+  a)
+
+(defn sorted [db tag]
+  (clojure.pprint/pprint tag)
+  (def items (items-for-tag db (:id tag)))
+  (def votes (votes-for-tag db (:id tag)))
+  (show (vals (show (math/getranking (vec items) (vec votes))))))
+
+;; (def db dtorter.http/db)
+;; (def tag {:id "1a260ec6-9580-4dec-ab44-256a9c5c43b1"})
+
+;(sorted dtorter.http/db tag)
 
 (comment 
 

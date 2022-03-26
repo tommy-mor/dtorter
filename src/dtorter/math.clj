@@ -25,15 +25,13 @@
   (def A (m/ensure-mutable (m/new-matrix nitems nitems)))
   (first items)
 
-  (def item->idx (into {} (mapv (fn [i n] [(first i) n]) items (range))))
-  
-  (doseq [[vid leftid rightid mag] votes]
-    (def leftscore (- 100 mag))
-    (def rightscore mag)
+  (def item->idx (into {} (mapv (fn [i n] [(:xt/id i) n]) items (range))))
+  (doseq [{:vote/keys [id left-item right-item magnitude] :as vote} votes]
+    (def leftscore (- 100 magnitude))
+    (def rightscore magnitude)
 
-    (def leftidx (item->idx leftid))
-    (def rightidx (item->idx rightid))
-
+    (def leftidx (item->idx left-item))
+    (def rightidx (item->idx right-item))
     ;; right giving energy to left
     (def oldval (m/mget A leftidx rightidx))
     (m/mset! A leftidx rightidx (+ oldval leftscore))
@@ -79,15 +77,20 @@
   (m/mul! stable (* 10 nitems))
 
   (into (sorted-map) (for [item items]
-                       [(m/slice stable (item->idx (first item)))
+                       [(m/slice stable (item->idx (:xt/id item)))
                         item])))
 
+
+
+
 (comment
-  (def alltags dtorter.queries/alltags)
-  (def test-tag (first (filter #(= "ASCII smiley" (second %)) (alltags))))
-  (def tid (first test-tag))
-  (def items (dtorter.queries/itemsfortag tid))
-  (def votes (dtorter.queries/votesfortag tid))
+  (def db dtorter.http/db)
+  (def alltags (dtorter.queries/all-tags db))
+  (distinct (map keys alltags))
+  (def test-tag (first (filter #(= "ASCII smiley" (:tag/name %)) alltags)))
+  (def tid (:xt/id test-tag))
+  (def items (dtorter.queries/items-for-tag db tid))
+  (def votes (dtorter.queries/votes-for-tag db tid))
   (count votes)
 
   (binding [*epsilon* 0.000001]

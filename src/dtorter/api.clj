@@ -17,7 +17,7 @@
     (keyword (name kw)))) 
 
 (defn strip [map]
-  (show (postwalk (some-fn strip-namespaces identity) map)))
+  (postwalk (some-fn strip-namespaces identity) map))
 
 (def resolver-map
   {:query/tag-by-id
@@ -47,6 +47,11 @@
    :query/right-item
    (fn [{:keys [db]} _ value]
      (strip (queries/item-by-id db (:right-item value))))
+   
+   ;; does calculations
+   :query/sorted
+   (fn [{:keys [db]} {:keys [attribute]} value]
+     (queries/sorted db value))
    })
 
 (defn load-schema []

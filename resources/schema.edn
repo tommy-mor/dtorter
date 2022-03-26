@@ -8,7 +8,10 @@
     :members {:type (list :Item)
               :resolve :query/items-for-tag}
     :votes {:type (list :Vote)
-            :resolve :query/votes-for-tag}}}
+            :resolve :query/votes-for-tag}
+    :sorted {:args {:attribute {:type (non-null String)}}
+             :type (list :Item)
+             :resolve :query/sorted}}}
   
   :Item
   {:description "a named url/link/item in the system that can be voted on"
