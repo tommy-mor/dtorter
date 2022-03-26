@@ -10,7 +10,7 @@
 
 ;; database stuff
 
-(def conn (dtorter.queries/get-conn))
+; (def conn (dtorter.queries/get-conn))
 
 (defn enable-graphql [service-map schema]
   (let [interceptors (lp/default-interceptors schema {:conn true})]
@@ -70,11 +70,11 @@
 (defn start [] (swap! server start-server))
 (defn stop [] (swap! server stop-server))
 
-(start)
-
-(comment 
+(comment
+  (start)
 
   @server
 
   (stop)
   (start))
+

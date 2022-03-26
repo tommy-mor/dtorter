@@ -1,43 +1,46 @@
 (ns dtorter.queries
-  (:require [datomic.client.api :as d]))
-
-(defn get-conn []
-  (def cfg {:server-type :peer-server
-            :access-key "myaccesskey"
-            :secret "mysecret"
-            :endpoint "localhost:8998"
-            :validate-hostnames false})
-
-  (def client (d/client cfg))
-  (def conn (d/connect client {:db-name "hello"}))
-  conn)
-
+  (:require [xtdb.api :as xt]
+            [dtorter.main :as main]))
 
 (defn alltags [db]
-  (d/q '[:find ?e ?name ?description
-         :where
-         [?e :tag/name ?name]
-         [?e :tag/description ?description]]
-       db))
+  (xt/q db
+        '[:find e nme desc
+          :where
+          [e :tag/name nme]
+          [e :tag/description desc]]))
 
 (defn itemsfortag [db tid]
-  (d/q '[:find ?e ?name ?description
-         :in $ ?tid
-         :where
-         [?tid :tag/member ?e]
-         [?e :item/name ?name]
-         [?e :item/name ?description]]
-       db
-       tid))
+  (xt/q db
+        '[:find e name description
+          :in tid
+          :where
+          [e :item/tags tid]
+          [e :item/name name]
+          [e :item/name description]]
+        tid))
 
 (defn votesfortag [db tid]
-  (d/q '[:find ?vote ?i1 ?i2 ?mag
-         :in $ ?tid
-         :where
-         [?tid :tag/member ?i1]
-         [?tid :tag/member ?i2]
-         [?vote :vote/left-item ?i1]
-         [?vote :vote/right-item ?i2]
-         [?vote :vote/magnitude ?mag]]
-       db
-       tid))
+  (xt/q db
+        '[:find vote i1 i2 mag
+          :in tid
+          :where
+          [vote :vote/tag tid]
+          [i1 :item/tags tid]
+          [i2 :item/tags tid]
+          [vote :vote/left-item i1]
+          [vote :vote/right-item i2]
+          [vote :vote/magnitude mag]]
+        tid))
+
+(comment 
+
+  (xt/sync main/node)
+
+  (def db (do (xt/sync main/node)
+              (xt/db main/node)))
+
+  (def tid (ffirst (alltags db)))
+
+  (def items (itemsfortag db tid))
+
+  (count (votesfortag db tid)))

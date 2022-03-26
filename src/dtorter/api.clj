@@ -22,6 +22,6 @@
 (defn q [query-string]
   (lacinia/execute schema query-string nil nil))
 
-(q "{ tag_by_id(id: \"foo\") {id name}}")
+(comment (q "{ tag_by_id(id: \"foo\") {id name}}"))
 
 
