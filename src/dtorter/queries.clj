@@ -53,10 +53,13 @@
 
 (defn sorted [db tag attribute]
   (def items (items-for-tag db (:id tag)))
-  (def votes (filter #(= (:attribute %) attribute)
+  (def votes (filter #(= (:vote/attribute %) attribute)
                      (votes-for-tag db (:id tag))))
   (reverse (for [[elo item] (math/getranking (vec items) (vec votes))]
              (assoc item :elo elo))))
+
+(sorted dtorter.http/db dtorter.main/tag "default")
+
 
 (defn attributes [db tag]
   (def votes (votes-for-tag db (:id tag)))

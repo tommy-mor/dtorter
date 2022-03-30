@@ -33,7 +33,8 @@
     :right_item {:type (non-null :Item)
                  :resolve :query/right-item}
     
-    :attribute {:type (non-null :String)}}}}
+    :attribute {:type (non-null :String)}
+    :magnitude {:type (non-null :Int)}}}}
   
 
  :queries
