@@ -1,6 +1,5 @@
 (ns dtorter.queries
   (:require [xtdb.api :as xt]
-            [dtorter.main :as main]
             [dtorter.math :as math]))
 
 (defn tag-by-id [db e]
