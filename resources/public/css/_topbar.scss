@@ -1,0 +1,76 @@
+@use 'config';
+
+.topbar {
+	width: 100%;
+	display: inline;
+
+	a {
+		margin: 5px;
+		text-decoration: none;
+	}
+}
+
+
+// this is all for 
+.currentpage {
+	border-width: 2px;
+	border-style: dotted dotted none dotted;
+}
+
+.currentpage_full {
+	border-width: 2px;
+	border-style: dotted dotted dotted dotted;
+}
+
+.topleft {
+	display:inline-block;
+}
+
+.topleft span {
+	background-color: config.$highlight-color;
+}
+
+.topleft a {
+	position: relative;
+}
+
+.topright a {
+	position: relative;
+}
+
+.topleft a:after{
+	content: "";
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 40%;
+	background-color: config.$highlight-color;
+	z-index: -10;
+	-webkit-transition: all .1s linear;
+	-moz-transition: all .1s linear;
+	transition: all .1s linear;
+}
+
+.topright a:after{
+	content: "";
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 40%;
+	background-color: config.$highlight-color;
+	z-index: -10;
+	-webkit-transition: all .1s linear;
+	-moz-transition: all .1s linear;
+	transition: all .1s linear;
+}
+.topright {
+	float: right;
+}
+
+
+// current username does not have blue color
+.nolink {
+	color: black;
+}

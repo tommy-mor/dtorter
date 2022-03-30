@@ -11,7 +11,9 @@
                  [com.walmartlabs/lacinia "1.0"]
                  [com.walmartlabs/lacinia-pedestal "1.0"]
                  
-                 [com.xtdb/xtdb-core "1.20.0"]]
+                 [com.xtdb/xtdb-core "1.20.0"]
+                 
+                 [hiccup "1.0.5"]]
   
   
   :repl-options {:init-ns dtorter.main}

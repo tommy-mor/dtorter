@@ -1,0 +1,16 @@
+@use 'config';
+
+.tag {
+	background: config.$tag-color-weaker;
+}
+
+.frontpagetag {
+	margin: 10px;
+	margin-right: 0;
+	padding: 3px;
+	display: flex;
+}
+
+.frontpagelist {
+	padding: 0px;
+}

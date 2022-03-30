@@ -1,0 +1,120 @@
+@use 'config';
+
+.votearena {
+	width: 100%;
+	display: grid;
+	grid-template-columns: 50% 50%;
+	margin-top: 30px;
+}
+
+.leftitem {
+	grid-column-start: 1;
+	margin: 2px;
+	overflow-wrap: anywhere;
+
+	align-self: end;
+}
+.rightitem {
+	grid-column-start: 2;
+	margin: 2px;
+	overflow-wrap: anywhere;
+
+	align-self: end;
+	text-align: right;
+}
+
+.slider {
+	grid-column-start: 1;
+	grid-column-end: 3;
+	grid-row-start: 2;
+	-webkit-appearance: none;  /* Override default CSS styles */
+	appearance: none;
+	height: 30px;
+	background: config.$voting-color-medium;
+	outline: none;
+	opacity: 0.7;
+
+	-webkit-transition: .2s; /* 0.2 seconds transition on hover */
+	transition: opacity .2s;
+
+	/* Mouse-over effects */
+	&:hover {
+		opacity: 1; /* Fully shown on mouse-over */
+	}
+}
+
+//$handle-color: hsla(config.$voting-color-hue, 100%, 50%, 1.0);
+$handle-color: config.$voting-color-strong;
+
+
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+.slider::-webkit-slider-thumb {
+	-webkit-appearance: none; /* Override default look */
+	appearance: none;
+	width: 25px; /* Set a specific slider handle width */
+	height: 25px; /* Slider handle height */
+	background: $handle-color; /* Green background */
+}
+
+.slider::-moz-range-thumb {
+	width: 25px; /* Set a specific slider handle width */
+	height: 25px; /* Slider handle height */
+	background: $handle-color; /* Green background */
+	/*cursor: pointer; *//* Cursor on hover */
+}
+
+.button {
+	grid-column-start: 1;
+	grid-column-end: 3;
+	grid-row-start: 3;
+	margin: 2px;
+	text-align: center;
+	padding: 6px;
+	border: hsla(config.$voting-color-hue, 100%, 70%, 0.1);
+	border-style: solid;
+	border-radius: 1px;
+	cursor: pointer;
+	border-width: thin;
+	background-color: config.$voting-color-medium;
+
+	&:hover {
+		border: hsla(config.$voting-color-hue, 100%, 70%, 0.25);
+		border-style: none none solid none;
+		border-width: thin thin thick thin;
+		border-radius: 3px;
+		background-color: hsla(config.$voting-color-hue, 100%, 70%, 0.25);
+	}
+
+	&:active {
+		border-style: solid none none none;
+		border-width: thick thin thin thin;
+	}
+}
+
+
+
+.cancelbutton {
+	background-color: hsla(config.$voting-color-hue, 100%, 70%, 0.0);
+	grid-row-start: 4;
+
+	&:hover {
+		border: hsla(config.$voting-color-hue, 100%, 70%, 0.1);
+		background-color: hsla(config.$voting-color-hue, 100%, 70%, 0.05);
+	}
+}
+
+.votinglistpanel {
+	background: config.$voting-color-weak;
+	border: config.$border-many;
+	border-color: config.$voting-color-strong;
+	border-style: config.$border-many-style;
+}
+
+.votingaddpanel {
+	background: config.$voting-color-weak;
+}
+
+.vote {
+	background: config.$voting-color-medium;
+}
+

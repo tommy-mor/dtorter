@@ -1,0 +1,294 @@
+/* if there are no special cases, convert to functions.
+@function color-weak($color) {
+	@return hsla($voting-color-hue, $saturation, $weak-lightness, $weak-alpha);
+}
+*/
+.topbar {
+  width: 100%;
+  display: inline;
+}
+.topbar a {
+  margin: 5px;
+  text-decoration: none;
+}
+
+.currentpage {
+  border-width: 2px;
+  border-style: dotted dotted none dotted;
+}
+
+.currentpage_full {
+  border-width: 2px;
+  border-style: dotted dotted dotted dotted;
+}
+
+.topleft {
+  display: inline-block;
+}
+
+.topleft span {
+  background-color: #ffc2c2;
+}
+
+.topleft a {
+  position: relative;
+}
+
+.topright a {
+  position: relative;
+}
+
+.topleft a:after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 40%;
+  background-color: #ffc2c2;
+  z-index: -10;
+  -webkit-transition: all 0.1s linear;
+  -moz-transition: all 0.1s linear;
+  transition: all 0.1s linear;
+}
+
+.topright a:after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 40%;
+  background-color: #ffc2c2;
+  z-index: -10;
+  -webkit-transition: all 0.1s linear;
+  -moz-transition: all 0.1s linear;
+  transition: all 0.1s linear;
+}
+
+.topright {
+  float: right;
+}
+
+.nolink {
+  color: black;
+}
+
+.cageparent {
+  margin: 10px;
+  border-width: 0px;
+  border-style: dashed;
+  border-radius: 2px;
+  padding: 5px;
+  /*
+  	outline: solid;
+  outline-color: lightblue;
+  	outline-thickness: 1px;*/
+}
+
+.cagetitle {
+  cursor: pointer;
+  white-space: pre;
+}
+
+.votearena {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 50% 50%;
+  margin-top: 30px;
+}
+
+.leftitem {
+  grid-column-start: 1;
+  margin: 2px;
+  overflow-wrap: anywhere;
+  align-self: end;
+}
+
+.rightitem {
+  grid-column-start: 2;
+  margin: 2px;
+  overflow-wrap: anywhere;
+  align-self: end;
+  text-align: right;
+}
+
+.slider {
+  grid-column-start: 1;
+  grid-column-end: 3;
+  grid-row-start: 2;
+  -webkit-appearance: none;
+  /* Override default CSS styles */
+  appearance: none;
+  height: 30px;
+  background: rgba(255, 204, 102, 0.2);
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: 0.2s;
+  /* 0.2 seconds transition on hover */
+  transition: opacity 0.2s;
+  /* Mouse-over effects */
+}
+.slider:hover {
+  opacity: 1;
+  /* Fully shown on mouse-over */
+}
+
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  /* Override default look */
+  appearance: none;
+  width: 25px;
+  /* Set a specific slider handle width */
+  height: 25px;
+  /* Slider handle height */
+  background: #ffaa00;
+  /* Green background */
+}
+
+.slider::-moz-range-thumb {
+  width: 25px;
+  /* Set a specific slider handle width */
+  height: 25px;
+  /* Slider handle height */
+  background: #ffaa00;
+  /* Green background */
+  /*cursor: pointer; */
+  /* Cursor on hover */
+}
+
+.button {
+  grid-column-start: 1;
+  grid-column-end: 3;
+  grid-row-start: 3;
+  margin: 2px;
+  text-align: center;
+  padding: 6px;
+  border: rgba(255, 204, 102, 0.1);
+  border-style: solid;
+  border-radius: 1px;
+  cursor: pointer;
+  border-width: thin;
+  background-color: rgba(255, 204, 102, 0.2);
+}
+.button:hover {
+  border: rgba(255, 204, 102, 0.25);
+  border-style: none none solid none;
+  border-width: thin thin thick thin;
+  border-radius: 3px;
+  background-color: rgba(255, 204, 102, 0.25);
+}
+.button:active {
+  border-style: solid none none none;
+  border-width: thick thin thin thin;
+}
+
+.cancelbutton {
+  background-color: rgba(255, 204, 102, 0);
+  grid-row-start: 4;
+}
+.cancelbutton:hover {
+  border: rgba(255, 204, 102, 0.1);
+  background-color: rgba(255, 204, 102, 0.05);
+}
+
+.votinglistpanel {
+  background: rgba(255, 235, 194, 0.3);
+  border: 2px;
+  border-color: #ffaa00;
+  border-style: none none none dotted;
+}
+
+.votingaddpanel {
+  background: rgba(255, 235, 194, 0.3);
+}
+
+.vote {
+  background: rgba(255, 204, 102, 0.2);
+}
+
+.itemranking {
+  background: rgba(194, 219, 255, 0.3);
+  border: 2px;
+  border-color: #006aff;
+  border-style: none none none dotted;
+}
+
+.itempanel {
+  background: rgba(194, 219, 255, 0.3);
+}
+
+.item {
+  background: rgba(102, 166, 255, 0.2);
+  cursor: pointer;
+}
+
+.hovered {
+  outline: #006aff thick ridge;
+}
+
+.rightcorner {
+  float: right;
+}
+
+.tag {
+  background: rgba(255, 194, 194, 0.1);
+}
+
+.frontpagetag {
+  margin: 10px;
+  margin-right: 0;
+  padding: 3px;
+  display: flex;
+}
+
+.frontpagelist {
+  padding: 0px;
+}
+
+body {
+  font: normal 1em verdana, arial, helvetica, sans-serif;
+  margin: 0;
+  max-width: 900px;
+  margin: auto;
+}
+
+.mainbody {
+  padding: 5px;
+}
+.mainbody h1 {
+  margin: 0px;
+}
+.mainbody li {
+  list-style-type: none;
+}
+
+.addinput {
+  font-size: large;
+}
+
+.editinput {
+  font-size: large;
+  grid-column-start: 1;
+  grid-column-end: 3;
+}
+
+a.nolink:after {
+  content: none;
+}
+
+.permissionform {
+  background-color: #ebebeb;
+  width: fit-content;
+  margin-left: 30px;
+}
+
+.format-picker {
+  width: fit-content;
+  margin-left: 30px;
+  display: flex;
+  flex-wrap: no-wrap;
+}
+
+/*# sourceMappingURL=site.css.map */

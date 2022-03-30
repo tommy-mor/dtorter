@@ -1,0 +1,43 @@
+$font-stack: verdana,arial,helvetica,sans-serif;
+
+$saturation: 100%;
+
+$strong-lightness: 50%;
+$strong-alpha: 1;
+
+$medium-lightness: 70%;
+$medium-alpha: 0.2;
+
+$weak-lightness: 88%;
+$weak-alpha: 0.3;
+
+
+$highlight-color-hue: 0;
+$highlight-color: hsla($highlight-color-hue, $saturation, 88%, 1);
+
+/* if there are no special cases, convert to functions.
+@function color-weak($color) {
+	@return hsla($voting-color-hue, $saturation, $weak-lightness, $weak-alpha);
+}
+*/
+
+$voting-color-hue: 40;
+$voting-color-strong: hsla($voting-color-hue, $saturation, $strong-lightness, $strong-alpha); 
+$voting-color-medium: hsla($voting-color-hue, $saturation, $medium-lightness, $medium-alpha);
+$voting-color-weak:   hsla($voting-color-hue, $saturation, $weak-lightness, $weak-alpha);
+
+$item-color-hue: 215;
+$item-color-strong: hsla($item-color-hue, $saturation, $strong-lightness, $strong-alpha); 
+$item-color-medium: hsla($item-color-hue, $saturation, $medium-lightness, $medium-alpha);
+$item-color-weak:   hsla($item-color-hue, $saturation, $weak-lightness, $weak-alpha);
+
+$tag-color-hue: 0;
+$tag-color-strong: hsla($tag-color-hue, $saturation, $strong-lightness, $strong-alpha); 
+$tag-color-medium: hsla($tag-color-hue, $saturation, $medium-lightness, $medium-alpha);
+$tag-color-weak:   hsla($tag-color-hue, $saturation, $weak-lightness, $weak-alpha);
+$tag-color-weaker:   hsla($tag-color-hue, $saturation, $weak-lightness, 0.1);
+
+
+
+$border-many: 2px;
+$border-many-style: none none none dotted;
