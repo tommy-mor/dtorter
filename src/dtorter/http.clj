@@ -9,8 +9,6 @@
             [dtorter.data :as data]
             [xtdb.api :as xt]
 
-            [hiccup.core :refer [html]]
-
             [dtorter.views.front-page :as views]))
 
 (def schema (api/load-schema))
@@ -38,30 +36,9 @@
               (lp/graphiql-asset-routes "/assets/graphiql"))
       (assoc ::server/secure-headers nil)))
 
-(def html-response
-  "If the response contains a key :html,
-     it take the value of these key,
-     turns into HTML via hiccup,
-     assoc this HTML in the body
-     and set the Content-Type of the response to text/html"
-  {:name  ::html-response
-   :leave (fn [{:keys [response]
-                :as   ctx}]
-            (if (contains? response :html)
-              (let [html-body (->> response
-                                   :html
-                                   html
-                                   (str "\n"))]
-                (assoc ctx :response (-> response
-                                         (assoc :body html-body)
-                                         (assoc-in [:headers "Content-Type"] "text/html"))))
-              ctx))})
-
 (def routes #{["/test" :get
                (fn [r] {:status 200 :body (str "hssellos worl")})
-               :route-name :bingus]
-              ["/" :get
-               [html-response views/front-page] :route-name :front-page]})
+               :route-name :bingus]})
 
 (def service
   (-> {:env :prod
@@ -75,7 +52,7 @@
   (let [schema (api/load-schema)]
     
     (route/expand-routes
-     (::server/routes (-> {::server/routes routes}
+     (::server/routes (-> {::server/routes (into views/routes routes)}
                           (enable-graphql schema)
                           (enable-ide schema))))))
     
