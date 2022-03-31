@@ -25,7 +25,6 @@
           (xt/db node)))
 
 (defn enable-graphql [service-map schema]
-  (lp/default-interceptors)
   (let [interceptors (lp/default-interceptors schema {:db db})]
     (-> service-map
         (update ::server/routes conj
