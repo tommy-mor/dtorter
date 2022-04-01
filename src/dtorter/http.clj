@@ -9,7 +9,11 @@
             [dtorter.data :as data]
             [xtdb.api :as xt]
 
-            [dtorter.views.front-page :as views]))
+            [dtorter.views.front-page :as views]
+            [hiccup.core :refer [html]]
+            
+            [ring.middleware.session.cookie :as cookie]
+            [io.pedestal.http.ring-middlewares :as middlewares]))
 
 (def schema (api/load-schema))
 
@@ -43,24 +47,37 @@
        ::server/resource-path "/public"}
       (enable-graphql schema)))
 
-(def load-db
-  {:name ::load-db
-   :enter (fn [ctx]
-            (assoc ctx :db db))})
+(def common-interceptors
+  [(middlewares/session {:store (cookie/cookie-store)})
+   {:name ::load-db
+    :enter (fn [ctx]
+             (assoc ctx :db db))}
 
 
 
-;; TODO do this in a way that isnt ugly (this is injecting the db into the views routes)
-;; could make views/routes a function that takes intercepors...
-;; https://souenzzo.com.br/clojure-ssr-app-with-pedestal-and-hiccup.html
+   ;; https://souenzzo.com.br/clojure-ssr-app-with-pedestal-and-hiccup.html
+   {:name  ::html-response
+    :leave (fn [{:keys [response]
+                 :as   ctx}]
+             (if (contains? response :html)
+               (let [html-body (->> response
+                                    :html
+                                    html
+                                    (str "\n"))]
+                 (assoc ctx :response (-> response
+                                          (assoc :body html-body)
+                                          (assoc-in [:headers "Content-Type"] "text/html"))))
+               ctx))}])
+
 (defn refresh-routes []
   "regather routes for dev thing"
   (let [schema (api/load-schema)]
     
     (route/expand-routes
-     (::server/routes (-> {::server/routes (views/routes load-db)}
+     (::server/routes (-> {::server/routes (views/routes common-interceptors)}
                           (enable-graphql schema)
                           (enable-ide schema))))))
+
     
 
 

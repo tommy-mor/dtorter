@@ -5,30 +5,10 @@
             [cryptohash-clj.api :as c]
             [cryptohash-clj.encode :as enc]
             [xtdb.api :as xt]
-            [dtorter.hashing :as hashing]))
+            [dtorter.hashing :as hashing]
+            [ring.util.response :as ring-resp]))
 
-;; for now, just replace every password with default password, can be updated later.
-
-(def html-response
-  "If the response contains a key :html,
-     it take the value of these key,
-     turns into HTML via hiccup,
-     assoc this HTML in the body
-     and set the Content-Type of the response to text/html"
-  {:name  ::html-response
-   :leave (fn [{:keys [response]
-                :as   ctx}]
-            (if (contains? response :html)
-              (let [html-body (->> response
-                                   :html
-                                   html
-                                   (str "\n"))]
-                (assoc ctx :response (-> response
-                                         (assoc :body html-body)
-                                         (assoc-in [:headers "Content-Type"] "text/html"))))
-              ctx))})
-
-(defn layout [inner]
+(defn layout [{:keys [session]} inner]
   [:html
    [:head
     [:meta {:charset "utf-8"}]
@@ -39,31 +19,35 @@
             :type "text/css"}]
     [:title "sorter"]]
    [:div.topbar
+    [:span (prn-str session)]
     [:div.topleft
      [:span "sorter"]
      [:a.currentpage {:href (url-for :front-page)} "home"]
      [:a.currentpage {:href (url-for :users-page)} "users"]]
-    [:div.topright
-     [:a.currentpage {:href (url-for :login-page)} "login"]
-     [:a.currentpage "make account"]]
+    (if-let [username (:user-name session)]
+      [:div.topright
+       [:a.currentpage {:href (url-for :log-off)} "logoff"]]
+      [:div.topright
+       [:a.currentpage {:href (url-for :login-page)} "login"]
+       [:a.currentpage "make account"]])
     [:div.mainbody
      inner]]])
 
 (defn front-page [req]
   {:status 200
-   :html (layout [:h1 "inssneruu"])})
+   :html (layout req [:h1 "inssneruu"])})
 
 (defn login-page [req]
   {:status 200
-   :html (layout [:form {:action (url-for :login-submit)
-                         :method "POST"}
-                  [:input {:required true :type "text" :name "username" :placeholder "user"}]
-                  [:input {:required true :type "password" :name "password" :placeholder "pass"}]
-                  [:input {:type "submit" :value "login"}]])})
+   :html (layout req [:form {:action (url-for :login-submit)
+                             :method "POST"}
+                      [:input {:required true :type "text" :name "username" :placeholder "user"}]
+                      [:input {:required true :type "password" :name "password" :placeholder "pass"}]
+                      [:input {:type "submit" :value "login"}]])})
 
 (defn users-page [req]
   {:status 200
-   :html (layout [:h1 "users"])})
+   :html (layout req [:h1 "users"])})
 
 (def stest (atom nil))
 (:form-params (clojure.pprint/pprint (keys @stest)))
@@ -81,25 +65,36 @@
             (reset! stest ctx)
             (let [{:keys [username password]} (:form-params (:request ctx))
                   user-doc (ffirst (xt/q (:db ctx)
-                                  '[:find (pull e [*])
-                                    :in username
-                                    :where [e :user/name username]]
-                                  username))
+                                         '[:find (pull e [*])
+                                           :in username
+                                           :where [e :user/name username]]
+                                         username))
                   password-hash (:user/password-hash user-doc)]
-              (if (hashing/check-pw password password-hash)
+              (if (and password-hash (hashing/check-pw password password-hash))
                 (assoc ctx :response
-                       {:status 200
-                        :html (layout [:h1 "epic"])})
+                       (-> (ring-resp/redirect (url-for :front-page))
+                           (assoc :session {:user-id (:xt/id user-doc)
+                                            :user-name (:user/name user-doc)})))
                 (assoc ctx :response
-                       {:status 300
-                        :html (layout [:h1 "cringe"])}))))})
+                       ;; TODO add error msg
+                       (login-page (:request ctx))))))})
+(def log-off
+  {:name ::log-off
+   :enter (fn [ctx]
+            (-> ctx
+                (assoc :response (-> (ring-resp/redirect (url-for :front-page))
+                                     (assoc :session nil)))))})
 
-(defn routes [load-db]
+
+
+(defn routes [common-interceptors]
   #{["/" :get
-     [html-response front-page] :route-name :front-page]
+     (into common-interceptors [front-page]) :route-name :front-page]
     ["/users" :get
-     [html-response users-page] :route-name :users-page]
+     (into common-interceptors [users-page]) :route-name :users-page]
     ["/login" :get
-     [html-response login-page] :route-name :login-page]
+     (into common-interceptors [login-page]) :route-name :login-page]
     ["/login" :post
-     [html-response (body-params/body-params) load-db login-done] :route-name :login-submit]})
+     (into common-interceptors [(body-params/body-params) login-done]) :route-name :login-submit]
+    ["/logoff" :get
+     (into common-interceptors [log-off]) :route-name :log-off]})
