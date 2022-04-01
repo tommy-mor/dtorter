@@ -36,23 +36,29 @@
               (lp/graphiql-asset-routes "/assets/graphiql"))
       (assoc ::server/secure-headers nil)))
 
-(def routes #{["/test" :get
-               (fn [r] {:status 200 :body (str "hssellos worl")})
-               :route-name :bingus]})
-
 (def service
   (-> {:env :prod
        ::server/type :jetty
        ::server/port 8080
        ::server/resource-path "/public"}
       (enable-graphql schema)))
+
+(def load-db
+  {:name ::load-db
+   :enter (fn [ctx]
+            (assoc ctx :db db))})
+
+
+
+;; TODO do this in a way that isnt ugly (this is injecting the db into the views routes)
+;; could make views/routes a function that takes intercepors...
 ;; https://souenzzo.com.br/clojure-ssr-app-with-pedestal-and-hiccup.html
 (defn refresh-routes []
   "regather routes for dev thing"
   (let [schema (api/load-schema)]
     
     (route/expand-routes
-     (::server/routes (-> {::server/routes (into views/routes routes)}
+     (::server/routes (-> {::server/routes (views/routes load-db)}
                           (enable-graphql schema)
                           (enable-ide schema))))))
     

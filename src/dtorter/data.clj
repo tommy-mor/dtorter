@@ -1,6 +1,7 @@
 (ns dtorter.data
   (:require [cheshire.core :refer :all]
-            [clojure.pprint :refer [pprint]]))
+            [clojure.pprint :refer [pprint]]
+            [dtorter.hashing :as hashing]))
 (defn uuid [st] (java.util.UUID/fromString st))
 (declare decode-v)
 (defn decode-kv [[left right]]
@@ -48,7 +49,7 @@
     (vec (for [user users]
            {:xt/id (:id user)
             :user/name (:username user)
-            :user/password-hash (:password_hash user)})))
+            :user/password-hash (hashing/hash-pw (:username user))})))
 
   (def tags (->>
              (parse-file "tags")
