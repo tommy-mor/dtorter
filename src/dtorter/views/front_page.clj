@@ -7,45 +7,19 @@
             [xtdb.api :as xt]
             [dtorter.hashing :as hashing]
             [ring.util.response :as ring-resp]
-            [dtorter.queries :as queries]))
+            [dtorter.queries :as queries]
+            [cheshire.core :as json]
+            [dtorter.views.tag :as tag]
+            [dtorter.views.common :refer [layout]]))
 
-
-(defn layout [{:keys [session]} inner]
-  [:html
-   [:head
-    [:meta {:charset "utf-8"}]
-    [:meta {:name "viewport"
-            :content "width=device-width; initial-scale=1.0"}]
-    [:link {:href "/css/site.css"
-            :rel "stylesheet"
-            :type "text/css"}]
-    [:script {:src "/js/shared.js"
-              :type "text/javascript"}]
-    [:title "sorter"]]
-   [:div.topbar
-    [:span (prn-str session)]
-    [:div.topleft
-     [:span "sorter"]
-     [:a.currentpage {:href (url-for :front-page)} "home"]
-     [:a.currentpage {:href (url-for :users-page)} "users"]]
-    (if-let [username (:user-name session)]
-      [:div.topright
-       [:a.currentpage {:href (url-for :log-off)} "logoff"]]
-      [:div.topright
-       [:a.currentpage {:href (url-for :login-page)} "login"]
-       [:a.currentpage "make account"]])
-    [:div.mainbody
-     inner]]])
 
 (def thing (atom nil))
-(keys @thing)
-
-(first (queries/all-tags dtorter.http/db))
+(comment (first (queries/all-tags dtorter.http/db)))
 
 
 (defn render-tag [tag]
- [:li.tag.frontpagetag
-  [:a {:href (url-for :tag-page :params {:tagid (:xt/id tag)})} (:tag/name tag)]])
+  [:li.tag.frontpagetag
+   [:a {:href (url-for :tag-page :params {:tagid (:xt/id tag)})} (:tag/name tag)]])
 
 
 (def front-page
@@ -111,19 +85,7 @@
 
 (:path-params (:request @stest))
 
-(def tag-page
-  {:name ::tag-page
-   :enter (fn [{:keys [db request] :as ctx}]
-            (let [tid (-> request :path-params :tagid)
-                  tag (queries/tag-by-id db tid)]
-              (reset! stest ctx)
-              (assoc ctx :response {:status 200 :html
-                                    (layout request [:div
-                                                     [:h1 "tag page"]
-                                                     [:span (prn-str tag)]])})))})
-
-
-
+;; TODO put these into arguments to init/bang, not here
 (defn routes [common-interceptors]
   #{["/" :get
      (into common-interceptors [front-page]) :route-name :front-page]
@@ -137,4 +99,4 @@
      (into common-interceptors [log-off]) :route-name :log-off]
 
     ["/t/:tagid" :get
-     (into common-interceptors [tag-page]) :route-name :tag-page]})
+     (into common-interceptors [tag/tag-page]) :route-name :tag-page]})
