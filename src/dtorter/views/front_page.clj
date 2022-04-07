@@ -6,7 +6,9 @@
             [cryptohash-clj.encode :as enc]
             [xtdb.api :as xt]
             [dtorter.hashing :as hashing]
-            [ring.util.response :as ring-resp]))
+            [ring.util.response :as ring-resp]
+            [dtorter.queries :as queries]))
+
 
 (defn layout [{:keys [session]} inner]
   [:html
@@ -17,6 +19,8 @@
     [:link {:href "/css/site.css"
             :rel "stylesheet"
             :type "text/css"}]
+    [:script {:src "/js/shared.js"
+              :type "text/javascript"}]
     [:title "sorter"]]
    [:div.topbar
     [:span (prn-str session)]
@@ -33,9 +37,29 @@
     [:div.mainbody
      inner]]])
 
-(defn front-page [req]
-  {:status 200
-   :html (layout req [:h1 "inssneruu"])})
+(def thing (atom nil))
+(keys @thing)
+
+(first (queries/all-tags dtorter.http/db))
+
+
+(defn render-tag [tag]
+ [:li.tag.frontpagetag
+  [:a {:href (url-for :tag-page :params {:tagid (:xt/id tag)})} (:tag/name tag)]])
+
+
+(def front-page
+  {:name ::front-page
+   :enter (fn [{:keys [db request] :as ctx}]
+            (let [tags (queries/all-tags db)]
+              (assoc ctx
+                     :response
+                     {:status 200
+                      :html (layout request [:div
+                                             [:h1 "front page"]
+                                             [:ul
+                                              (for [tag tags]
+                                                (render-tag tag))]])})))})
 
 (defn login-page [req]
   {:status 200
@@ -85,6 +109,19 @@
                 (assoc :response (-> (ring-resp/redirect (url-for :front-page))
                                      (assoc :session nil)))))})
 
+(:path-params (:request @stest))
+
+(def tag-page
+  {:name ::tag-page
+   :enter (fn [{:keys [db request] :as ctx}]
+            (let [tid (-> request :path-params :tagid)
+                  tag (queries/tag-by-id db tid)]
+              (reset! stest ctx)
+              (assoc ctx :response {:status 200 :html
+                                    (layout request [:div
+                                                     [:h1 "tag page"]
+                                                     [:span (prn-str tag)]])})))})
+
 
 
 (defn routes [common-interceptors]
@@ -97,4 +134,7 @@
     ["/login" :post
      (into common-interceptors [(body-params/body-params) login-done]) :route-name :login-submit]
     ["/logoff" :get
-     (into common-interceptors [log-off]) :route-name :log-off]})
+     (into common-interceptors [log-off]) :route-name :log-off]
+
+    ["/t/:tagid" :get
+     (into common-interceptors [tag-page]) :route-name :tag-page]})

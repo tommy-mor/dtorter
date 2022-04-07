@@ -55,8 +55,7 @@
    
    :query/attributes
    (fn [{:keys [db]} {} value]
-     (strip (queries/attributes db value)))
-   })
+     (strip (queries/attributes db value)))})
 
 (defn load-schema []
   (-> (io/resource "schema.edn")
