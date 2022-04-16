@@ -14,7 +14,9 @@
                  [com.xtdb/xtdb-core "1.20.0"]
                  
                  [hiccup "1.0.5"]
-                 [cryptohash-clj "0.1.10"]]
+                 [cryptohash-clj "0.1.10"]
+
+                 [re-graph "0.1.17"]]
   
   
   :repl-options {:init-ns dtorter.main}

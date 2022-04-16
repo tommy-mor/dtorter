@@ -2,6 +2,7 @@
   (:require [cheshire.core :refer :all]
             [clojure.pprint :refer [pprint]]
             [dtorter.hashing :as hashing]))
+
 (defn uuid [st] (java.util.UUID/fromString st))
 (declare decode-v)
 (defn decode-kv [[left right]]

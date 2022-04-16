@@ -52,6 +52,9 @@
    {:name ::load-db
     :enter (fn [ctx]
              (assoc ctx :db db))}
+   {:name ::load-gql-schema
+    :enter (fn [ctx]
+             (assoc ctx :gql-schema schema))}
 
 
 
