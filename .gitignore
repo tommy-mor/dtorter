@@ -12,3 +12,5 @@ pom.xml.asc
 .hgignore
 .hg/
 resources/public/js
+node_modules/
+package-lock.json
