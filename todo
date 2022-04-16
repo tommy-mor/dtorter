@@ -1,7 +1,13 @@
+make gql support pair chosing
+get full aplication db running from just internally run gql query
+get spec validation for re-frame db
+make initial state render fully from that  (don't touch network requests)
+
+
 merge front and backend codebases...
   * put gql query from tag.clj into cljc file..
   * specs apply both places
-  * 
+  
 
 make init db come from gql client
 make client use gql in re-frame events

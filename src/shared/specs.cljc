@@ -17,6 +17,7 @@
 (s/def :tag/name string?)
 (s/def :tag/description string?)
 
+;; add elo
 (s/def ::item (s/keys :req-un [:xt/id :item/name :item/owner :item/tags :item/url]))
 
 (s/def :item/name string?)
@@ -24,13 +25,13 @@
 (s/def :item/tags (s/coll-of uuid-str))
 (s/def :item/url string?)
 
-(s/def ::vote (s/keys :req0-un [:xt/id
-                                :vote/left-item
-                                :vote/right-item
-                                :vote/tag
-                                :vote/magnitude
-                                :vote/owner
-                                :vote/attribute]))
+(s/def ::vote (s/keys :req-un [:xt/id
+                               :vote/left-item
+                               :vote/right-item
+                               :vote/tag
+                               :vote/magnitude
+                               :vote/owner
+                               :vote/attribute]))
 (s/def :vote/left-item uuid-str)
 (s/def :vote/left-item uuid-str)
 (s/def :vote/right-item uuid-str)
@@ -39,6 +40,16 @@
 (s/def :vote/magnitude (s/and int? #(and (> % 0) (< % 100))))
 
 (s/def ::show (s/keys :opt-un [::add_items ::vote_panel ::vote_edit ::edit_tag]))
+
+(s/def ::votes (s/coll-of ::vote))
+(s/def ::sorted (s/coll-of ::item))
+(s/def ::unsorted (s/coll-of ::item))
+(s/def ::left ::item)
+(s/def ::left ::item)
+
+(s/def ::pair (s/keys :req-un [::left ::right]))
+
+(s/def ::db (s/keys :req-un [::tag ::votes ::show ::sorted ::pair ::unsorted]))
 
 
 (comment
