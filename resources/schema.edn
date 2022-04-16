@@ -22,6 +22,13 @@
     :name {:type (non-null String)}
     :paragraph {:type String}
     :elo {:type Float}}}
+  
+  :Pair
+  {:description "two items, to be voted on"
+   :fields
+   {:left {:type (non-null Item)}
+    :right {:type (non-null Item)}}}
+  
   :Vote
   {:description "a vote between to items, in a tag, with an attribute"
    :fields

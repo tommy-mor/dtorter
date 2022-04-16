@@ -33,7 +33,6 @@
                                :vote/owner
                                :vote/attribute]))
 (s/def :vote/left-item uuid-str)
-(s/def :vote/left-item uuid-str)
 (s/def :vote/right-item uuid-str)
 (s/def :vote/tag uuid-str)
 (s/def :vote/attribute string?)
@@ -45,7 +44,8 @@
 (s/def ::sorted (s/coll-of ::item))
 (s/def ::unsorted (s/coll-of ::item))
 (s/def ::left ::item)
-(s/def ::left ::item)
+(s/def ::right ::item)
+
 
 (s/def ::pair (s/keys :req-un [::left ::right]))
 

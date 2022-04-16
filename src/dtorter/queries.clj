@@ -69,13 +69,10 @@
 
 (comment 
 
-  (xt/sync main/node)
+  (def db dtorter.http/db)
 
-  (def db (do (xt/sync main/node)
-              (xt/db main/node)))
+  (def tid (:xt/id (first (all-tags db))))
 
-  (def tid (ffirst (alltags db)))
+  (def items (items-for-tag db tid))
 
-  (def items (itemsfortag db tid))
-
-  (count (votesfortag db tid)))
+  (count (votes-for-tag db tid)))
