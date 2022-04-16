@@ -1,0 +1,11 @@
+merge front and backend codebases...
+  * put gql query from tag.clj into cljc file..
+  * specs apply both places
+  * 
+
+make init db come from gql client
+make client use gql in re-frame events
+then actions
+add unsorted gql attribute
+
+go to party

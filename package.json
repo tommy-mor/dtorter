@@ -1,0 +1,16 @@
+{
+  "devDependencies": {
+    "@babel/cli": "^7.16.0",
+    "@babel/core": "^7.16.0",
+    "@babel/plugin-transform-react-jsx": "^7.16.0",
+    "@babel/plugin-transform-spread": "^7.16.0",
+    "npx": "^10.2.2",
+    "shadow-cljs": "^2.12.1",
+    "sass": "^1.49.9"
+  },
+  "dependencies": {
+    "chart.js": "*",
+    "react": "17.0.1",
+    "react-dom": "17.0.1"
+  }
+}
