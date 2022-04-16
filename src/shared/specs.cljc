@@ -1,11 +1,10 @@
-(ns dtorter.spec
+(ns shared.spec
   (:require [clojure.spec.alpha :as s]
-            [dtorter.queries :as q]
-            [dtorter.api :refer [strip]]))
+            #?@(:clj
+                [[dtorter.queries :as q]
+                 [dtorter.api :refer [strip]]])))
 
 
-
-(keys)
 
 (def uuid-regex #"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
 
