@@ -22,8 +22,11 @@
 
 (def tagid "09044c15-3d3a-4268-9586-074d8ddf95d9")
 
+
+
+
 (comment (->>  (q @stest qs/starting-data-query {:tagid tagid :attribute "default"})
-       :data :tag_by_id :pair :left keys))
+               :data :tag_by_id (s/explain ::sp/db)))
 
 (def show-all {:vote_panel true
                :vote_edit true
@@ -37,8 +40,7 @@
           :users []
           :attributes []
           :sorted []
-          :left {}
-          :right {}
+          :pair {}
           :unsorted []}))
 
 (comment 

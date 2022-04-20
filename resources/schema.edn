@@ -12,6 +12,9 @@
     :sorted {:args {:attribute {:type (non-null String)}}
              :type (list :Item)
              :resolve :query/sorted}
+    :unsorted {:args {:attribute {:type (non-null String)}}
+               :type (list :Item)
+               :resolve :query/unsorted}
     :attributes {:type (list :String)
                  :resolve :query/attributes}
     :pair {:type :Pair

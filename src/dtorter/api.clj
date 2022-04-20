@@ -55,6 +55,10 @@
    (fn [{:keys [db]} {:keys [attribute]} value]
      (strip (queries/sorted db value attribute)))
    
+   :query/unsorted
+   (fn [{:keys [db]} {:keys [attribute]} value]
+     (strip (queries/unsorted db value attribute)))
+   
    :query/attributes
    (fn [{:keys [db]} {} value]
      (strip (queries/attributes db value)))

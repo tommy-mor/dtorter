@@ -63,6 +63,16 @@
   (reverse (for [[elo item] (math/getranking (vec items) (vec votes))]
              (assoc item :elo elo))))
 
+(defn unsorted [db tag attribute]
+  (def items (items-for-tag db (:id tag)))
+  (def votes (filter #(= (:vote/attribute %) attribute)
+                     (votes-for-tag db (:id tag))))
+
+  (def voted-ids (set
+                  (flatten (map (juxt :vote/left-item :vote/right-item) votes))))
+  (filter #(not (voted-ids (:xt/id %)))
+          items))
+
 (defn attributes [db tag]
   (def votes (votes-for-tag db (:id tag)))
   (distinct (map :vote/attribute votes)))

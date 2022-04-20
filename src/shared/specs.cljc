@@ -18,8 +18,9 @@
 (s/def :tag/description string?)
 
 ;; add elo
-(s/def ::item (s/keys :req-un [:xt/id :item/name :item/owner :item/tags]
-                      :un [:item/url]))
+;; TODO make sure that :un is correct
+(s/def ::item (s/keys :req-un [:xt/id :item/name]
+                      :un [:item/url :item/tags :item/owner]))
 
 (s/def :item/name string?)
 (s/def :item/owner uuid-str)
@@ -49,8 +50,10 @@
 
 
 (s/def ::pair (s/keys :req-un [::left ::right]))
+(s/def ::attributes (s/coll-of string?))
 
-(s/def ::db (s/keys :req-un [::tag ::votes ::show ::sorted ::pair ::unsorted]))
+(s/def ::db (s/keys :req-un [:tag/name :tag/description ::attributes
+                             ::votes ::show ::sorted ::pair ::unsorted]))
 
 
 (comment
