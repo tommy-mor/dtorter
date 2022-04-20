@@ -15,10 +15,12 @@ query  starting_data($tagid: ID, $attribute: String)  {
       left {...itemInfo}
       right {...itemInfo}
     }
-    votes {
+    votes(attribute: $attribute) {
       id
       left_item {...itemInfo}
       right_item {...itemInfo}
+      attribute
+      magnitude
     }
   }
 }

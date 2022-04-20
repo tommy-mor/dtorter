@@ -25,13 +25,11 @@
 
 
 
+(def show-all {:show {:vote_panel true
+                      :vote_edit true
+                      :edit_tag true}})
 (comment (->>  (q @stest qs/starting-data-query {:tagid tagid :attribute "default"})
-               :data :tag_by_id (s/explain ::sp/db)))
-
-(def show-all {:vote_panel true
-               :vote_edit true
-               :edit_tag true})
-
+               :data :tag_by_id (merge show-all) (s/explain ::sp/db)))
 
 (defn initstr [db tag]
   (strip {:tag tag

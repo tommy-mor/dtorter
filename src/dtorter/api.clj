@@ -31,8 +31,8 @@
      (strip (queries/items-for-tag db (:id value))))
    
    :query/votes-for-tag
-   (fn [{:keys [db]} {} value]
-     (strip (queries/votes-for-tag db (:id value))))
+   (fn [{:keys [db]} {:keys [attribute]} value]
+     (strip (queries/votes-for-tag db (:id value) attribute)))
    
    :query/all-tags
    (fn [{:keys [db]} _ value]
