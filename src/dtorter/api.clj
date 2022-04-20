@@ -20,6 +20,7 @@
   (postwalk (some-fn strip-namespaces identity) map))
 
 
+(def stest (atom nil))
 (def resolver-map
   {:query/tag-by-id
    (fn [{:keys [db]} {:keys [id]} value]
@@ -58,9 +59,9 @@
    (fn [{:keys [db]} {} value]
      (strip (queries/attributes db value)))
    
-   :query/pair-for-tag
+   :query/pair
    (fn [{:keys [db]} {} value]
-     (strip (queries/pair-for-tag db (:tag value))))})
+     (strip (queries/pair-for-tag db (:id value))))})
 
 (defn load-schema []
   (-> (io/resource "schema.edn")

@@ -63,8 +63,7 @@
               (reset! stest ctx)
               (assoc ctx :response {:status 200 :html
                                     (layout request [:div
-                                                     [:h1 "tag page"]
-                                                     [:span (json/generate-string tag)]
+                                                     ;; [:span (json/generate-string tag)]
                                                      [:div#app.appbody]
                                                      [:script {:type "text/javascript"}
                                                       (jsonstring db tag)]

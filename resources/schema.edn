@@ -13,7 +13,9 @@
              :type (list :Item)
              :resolve :query/sorted}
     :attributes {:type (list :String)
-                 :resolve :query/attributes}}}
+                 :resolve :query/attributes}
+    :pair {:type :Pair
+           :resolve :query/pair}}}
   
   :Item
   {:description "a named url/link/item in the system that can be voted on"
@@ -26,8 +28,8 @@
   :Pair
   {:description "two items, to be voted on"
    :fields
-   {:left {:type (non-null Item)}
-    :right {:type (non-null Item)}}
+   {:left {:type :Item}
+    :right {:type :Item}}
    :resolve :query/pair-for-tag}
   
   :Vote
