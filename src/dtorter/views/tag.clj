@@ -14,16 +14,17 @@
 (def stest (atom nil))
 
 (defn q [ctx query-string args]
-  (:data (lacinia/execute (:gql-schema ctx)
-                          query-string
-                          args
-                          {:db (:db ctx)})))
+  (lacinia/execute (:gql-schema ctx)
+                   query-string
+                   args
+                   {:db (:db ctx)}))
 
 (def tagid "09044c15-3d3a-4268-9586-074d8ddf95d9")
 
 (comment
 
-  (first (q @stest qs/starting-data-query {:tagid tagid :attribute "default"})))
+  (->  (q @stest qs/starting-data-query {:tagid tagid :attribute "default"})
+       :data :tag_by_id :pair))
 
 (def show-all {:vote_panel true
                :vote_edit true
