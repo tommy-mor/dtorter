@@ -14,7 +14,7 @@
 
 (defn strip-namespaces [kw]
   (when (keyword? kw)
-    (keyword (name kw)))) 
+    (keyword (name kw))))
 
 (defn strip [map]
   (postwalk (some-fn strip-namespaces identity) map))
@@ -61,7 +61,11 @@
    
    :query/pair
    (fn [{:keys [db]} {} value]
-     (strip (queries/pair-for-tag db (:id value))))})
+     (strip (queries/pair-for-tag db (:id value))))
+
+   :query/item-tags
+   (fn [{:keys [db]} {} item]
+     (strip (map #(queries/tag-by-id db %) (:tags item))))})
 
 (defn load-schema []
   (-> (io/resource "schema.edn")

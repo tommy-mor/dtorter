@@ -79,5 +79,6 @@
   (def tid (:xt/id (first (all-tags db))))
 
   (def items (items-for-tag db tid))
+  (first items)
 
   (count (votes-for-tag db tid)))

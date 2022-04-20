@@ -18,7 +18,8 @@
 (s/def :tag/description string?)
 
 ;; add elo
-(s/def ::item (s/keys :req-un [:xt/id :item/name :item/owner :item/tags :item/url]))
+(s/def ::item (s/keys :req-un [:xt/id :item/name :item/owner :item/tags]
+                      :un [:item/url]))
 
 (s/def :item/name string?)
 (s/def :item/owner uuid-str)

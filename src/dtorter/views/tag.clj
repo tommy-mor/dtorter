@@ -9,7 +9,8 @@
             
             [shared.query-strings :as qs]
             [shared.specs :as sp]
-            [clojure.spec.alpha :as s]))
+            [clojure.spec.alpha :as s]
+            [clojure.walk :refer [postwalk]]))
 
 (def stest (atom nil))
 
@@ -21,10 +22,8 @@
 
 (def tagid "09044c15-3d3a-4268-9586-074d8ddf95d9")
 
-(comment
-
-  (->  (q @stest qs/starting-data-query {:tagid tagid :attribute "default"})
-       :data :tag_by_id :pair))
+(comment (->>  (q @stest qs/starting-data-query {:tagid tagid :attribute "default"})
+       :data :tag_by_id :pair :left keys))
 
 (def show-all {:vote_panel true
                :vote_edit true

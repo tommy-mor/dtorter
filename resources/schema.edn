@@ -23,7 +23,9 @@
    {:id {:type (non-null ID)}
     :name {:type (non-null String)}
     :paragraph {:type String}
-    :elo {:type Float}}}
+    :elo {:type Float}
+    :tags {:type (list :Tag)
+           :resolve :query/item-tags}}}
   
   :Pair
   {:description "two items, to be voted on"
