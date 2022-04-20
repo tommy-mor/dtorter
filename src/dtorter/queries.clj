@@ -47,6 +47,19 @@
                      [vote :vote/magnitude mag]]
                    tid)))
 
+(defn pair-for-tag [db tid]
+  (map first (xt/q db
+                   '[:find (pull vote [*])
+                     :in tid
+                     :where
+                     [vote :vote/tag tid]
+                     [i1 :item/tags tid]
+                     [i2 :item/tags tid]
+                     [vote :vote/left-item i1]
+                     [vote :vote/right-item i2]
+                     [vote :vote/magnitude mag]]
+                   tid)))
+
 (defn show [a]
   (clojure.pprint/pprint a)
   a)

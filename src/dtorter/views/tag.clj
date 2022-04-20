@@ -8,7 +8,7 @@
             [com.walmartlabs.lacinia :as lacinia]
             
             [shared.query-strings :as qs]
-            [shared.spec :as sp]
+            [shared.specs :as sp]
             [clojure.spec.alpha :as s]))
 
 (def stest (atom nil))
@@ -21,7 +21,9 @@
 
 (def tagid "09044c15-3d3a-4268-9586-074d8ddf95d9")
 
-(first (q @stest qs/starting-data-query {:tagid tagid :attribute "default"}))
+(comment
+
+  (first (q @stest qs/starting-data-query {:tagid tagid :attribute "default"})))
 
 (def show-all {:vote_panel true
                :vote_edit true

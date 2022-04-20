@@ -27,7 +27,8 @@
   {:description "two items, to be voted on"
    :fields
    {:left {:type (non-null Item)}
-    :right {:type (non-null Item)}}}
+    :right {:type (non-null Item)}}
+   :resolve :query/pair-for-tag}
   
   :Vote
   {:description "a vote between to items, in a tag, with an attribute"

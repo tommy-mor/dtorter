@@ -1,4 +1,4 @@
-(ns shared.spec
+(ns shared.specs
   (:require [clojure.spec.alpha :as s]
             #?@(:clj
                 [[dtorter.queries :as q]
