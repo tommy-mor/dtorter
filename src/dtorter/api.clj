@@ -21,6 +21,7 @@
 
 
 (def stest (atom nil))
+;; TODO might be easier to to have tag-by-id return entire tag with all caluclations at once. would save some duplicate queries we are having...
 (def resolver-map
   {:query/tag-by-id
    (fn [{:keys [db]} {:keys [id]} value]

@@ -28,17 +28,16 @@
 (s/def :item/url string?)
 
 (s/def ::vote (s/keys :req-un [:xt/id
-                               :vote/left-item
-                               :vote/right-item
-                               :vote/tag
+                               :vote/left_item
+                               :vote/right_item
                                :vote/magnitude
-                               :vote/owner
-                               :vote/attribute]))
-(s/def :vote/left-item uuid-str)
-(s/def :vote/right-item uuid-str)
+                               :vote/attribute]
+                      :un [:vote/owner :vote/tag]))
+(s/def :vote/left_item ::item)
+(s/def :vote/right_item ::item)
 (s/def :vote/tag uuid-str)
 (s/def :vote/attribute string?)
-(s/def :vote/magnitude (s/and int? #(and (> % 0) (< % 100))))
+(s/def :vote/magnitude (s/and int? #(and (>= % 0) (<= % 100))))
 
 (s/def ::show (s/keys :opt-un [::add_items ::vote_panel ::vote_edit ::edit_tag]))
 

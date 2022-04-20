@@ -98,7 +98,7 @@
                               :vote/left-item (:item_a vote)
                               :vote/right-item (:item_b vote)
                               :vote/tag (:tag_id vote)
-                              :vote/magnitude (:magnitude vote)
+                              :vote/magnitude (max 0 (min 100 (:magnitude vote)))
                               :vote/owner (:user_id vote)}
                              (if-let [atr (:attribute vote)]
                                {:vote/attribute atr}
