@@ -12,8 +12,6 @@
             [clojure.spec.alpha :as s]
             [clojure.walk :refer [postwalk]]))
 
-(def stest (atom nil))
-
 (defn q [ctx query-string args]
   (lacinia/execute (:gql-schema ctx)
                    query-string
@@ -28,46 +26,33 @@
 (def show-all {:show {:vote_panel true
                       :vote_edit true
                       :edit_tag true}})
-(comment (->>  (q @stest qs/starting-data-query {:tagid tagid :attribute "default"})
-               :data :tag_by_id (merge show-all) (s/explain ::sp/db)))
 
-(defn initstr [db tag]
-  (strip {:tag tag
-          :votes []
-          :show show-all
-          :users []
-          :attributes []
-          :sorted []
-          :pair {}
-          :unsorted []}))
+(defn gather-info [ctx tid attribute]
+  (->>  (q ctx qs/starting-data-query {:tagid tagid :attribute attribute})
+        :data :tag_by_id (merge show-all) (s/conform ::sp/db)))
 
-(comment 
-  (def tag {:name "math explainer videos" ,
-            :description "think numberphile/mathologer/3b1b" ,
-            :owner "092d58c9-d64b-40ab-a8a2-d683c92aa319" ,
-            :id "0afbe57c-fd32-4779-9a72-e375c6159325"})
-
-
-  (s/explain ::sp/db (initstr nil tag)))
-
-(defn jsonstring [db tag]
+(defn jsonstring [ctx tag attribute]
   (str "var tagid = '" (:xt/id tag) "';\n"
        "var itemid = false;\n"
-       "var init = " (json/generate-string (initstr db tag)) ";"))
+       "var init = " (-> (gather-info ctx (:xt/id tag) attribute)
+                         strip
+                         json/generate-string) ";"))
 
 (def tag-page
   {:name ::tag-page
    :enter (fn [{:keys [db request] :as ctx}]
             (let [tid (-> request :path-params :tagid)
-                  tag (queries/tag-by-id db tid)]
-              (reset! stest ctx)
+                  tag (queries/tag-by-id db tid)
+                  attribute (or (-> request :path-params :attribute)
+                                "default")] ;; TODO find better default attribute
               (assoc ctx :response {:status 200 :html
                                     (layout request [:div
                                                      ;; [:span (json/generate-string tag)]
                                                      [:div#app.appbody]
                                                      [:script {:type "text/javascript"}
-                                                      (jsonstring db tag)]
+                                                      (jsonstring ctx tag attribute)]
                                                      [:script {:type "text/javascript"
                                                                :src "/js/app.js"}]
                                                      [:script {:type "text/javascript"}
                                                       "frontsorter.tag.init_BANG_()"]])})))})
+
