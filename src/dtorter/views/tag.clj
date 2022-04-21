@@ -21,19 +21,26 @@
 (comment (def tagid "09044c15-3d3a-4268-9586-074d8ddf95d9")
          (def attribute "default"))
 
-(def show-all {:show {:vote_panel true
-                      :vote_edit true
-                      :edit_tag true}})
+(def show-all {:vote_panel true
+               :vote_edit true
+               :edit_tag true})
+
+;; TODO get rid of show map, should be calculated on clientside.
+(defn add-show [db]
+  (merge db {:show (cond-> show-all
+                     (nil? (:pair db)) (assoc :vote_panel false))}))
 
 (defn get-throwing [map val]
   (let [got (get map val)]
-    (if (= got nil)
+    (if (nil? got)
       (throw (ex-info "couldnt find key in map" {:map map :key val}))
       got)))
 
 (defn gather-info [ctx tid attribute]
-  (->  (q ctx qs/starting-data-query {:tagid tagid :attribute attribute})
-        (get-throwing :data) :tag_by_id (merge show-all)))
+  (->  (q ctx qs/starting-data-query {:tagid tid :attribute attribute})
+       (get-throwing :data)
+       :tag_by_id
+       add-show))
 
 (defn conform-throwing [spec x]
   (let [conformed (s/conform spec x)]
@@ -46,12 +53,12 @@
   (def shown x)
   shown
   x)
+
 (defn jsonstring [ctx tag attribute]
   (def ctx ctx)
   (str "var tagid = '" (:xt/id tag) "';\n"
        "var itemid = false;\n"
        "var init = " (->> (gather-info ctx (:xt/id tag) attribute)
-                          show
                           (conform-throwing ::sp/db)
                           strip
                           json/generate-string) ";"))
@@ -59,8 +66,8 @@
 (def tag-page
   {:name ::tag-page
    :enter (fn [{:keys [db request] :as ctx}]
-            (let [tid (-> request :path-params :tagid)
-                  tag (queries/tag-by-id db tid)
+            (let [tidp (-> request :path-params :tagid)
+                  tag (queries/tag-by-id db tidp)
                   attribute (or (-> request :path-params :attribute)
                                 "default")] ;; TODO find better default attribute
               (assoc ctx :response {:status 200 :html

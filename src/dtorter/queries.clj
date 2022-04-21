@@ -95,7 +95,9 @@
 ; TODO add pair chosing...
 (defn pair-for-tag [db tid]
   (def items (items-for-tag db tid))
-  {:left (first items) :right (second items)})
+  (if (> (count items) 2)
+    {:left (first items) :right (second items)}
+    nil))
 
 (defn show [a]
   (clojure.pprint/pprint a)

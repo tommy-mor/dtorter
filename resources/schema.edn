@@ -12,22 +12,26 @@
     :name {:type (non-null String)}
     :description {:type String}
     :members {:type (list :Item)
-              :resolve :query/items-for-tag}
+              :resolve :Tag/items}
     :votes {:args {:attribute {:type (non-null String)}}
             :type (list :Vote)
-            :resolve :query/votes-for-tag}
+            :resolve :Tag/votes}
     :sorted {:args {:attribute {:type (non-null String)}}
              :type (list :Item)
-             :resolve :query/sorted}
+             :resolve :Tag/sorted}
     :unsorted {:args {:attribute {:type (non-null String)}}
                :type (list :Item)
-               :resolve :query/unsorted}
+               :resolve :Tag/unsorted}
     :attributes {:type (list :String)
-                 :resolve :query/attributes}
+                 :resolve :Tag/attributes}
     :pair {:type :Pair
-           :resolve :query/pair}
+           :resolve :Tag/pair}
     :owner {:type :User
-            :resolve :query/owner}}}
+            :resolve :All/owner}
+
+    :votecount {:type Int :resolve :Tag/votecount}
+    :usercount {:type Int :resolve :Tag/usercount}
+    :itemcount {:type Int :resolve :Tag/itemcount}}}
   
   :Item
   {:description "a named url/link/item in the system that can be voted on"
@@ -37,25 +41,24 @@
     :paragraph {:type String}
     :elo {:type Float}
     :tags {:type (list :Tag)
-           :resolve :query/item-tags}}}
+           :resolve :Item/tags}}}
   
   :Pair
   {:description "two items, to be voted on"
    :fields
    {:left {:type :Item}
-    :right {:type :Item}}
-   :resolve :query/pair-for-tag}
+    :right {:type :Item}}}
   
   :Vote
   {:description "a vote between to items, in a tag, with an attribute"
    :fields
    {:id {:type (non-null ID)}
     :tag {:type (non-null :Tag)
-          :resolve :query/parent-tag}
+          :resolve :Vote/tag}
     :left_item {:type (non-null :Item)
-                :resolve :query/left-item}
+                :resolve :Vote/left-item}
     :right_item {:type (non-null :Item)
-                 :resolve :query/right-item}
+                 :resolve :Vote/right-item}
     
     :attribute {:type (non-null :String)}
     :magnitude {:type (non-null :Int)}}}}
