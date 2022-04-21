@@ -4,10 +4,25 @@
             [re-frame.core :as re-frame]
             [shared.specs :as sp]))
 
-(s/def ::db ::sp/db)
-
-
 (def default-db nil)
+
+(comment (->> @re-frame.db/app-db
+              (s/valid? ::sp/db))
+         (->> @re-frame.db/app-db
+              :owner))
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

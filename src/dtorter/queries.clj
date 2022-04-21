@@ -2,13 +2,21 @@
   (:require [xtdb.api :as xt]
             [dtorter.math :as math]))
 
+(defn user-by-id [db e]
+  (ffirst (xt/q db
+                '[:find (pull e [*])
+                  :in e
+                  :where
+                  [e :user/name _]]
+                e)))
+
 (defn tag-by-id [db e]
   (ffirst (xt/q db
-               '[:find (pull e [*])
-                 :in e
-                 :where
-                 [e :tag/owner _]]
-               e)))
+                '[:find (pull e [*])
+                  :in e
+                  :where
+                  [e :tag/owner _]]
+                e)))
 
 (defn item-by-id [db e]
   (ffirst (xt/q db

@@ -1,5 +1,11 @@
 {:objects
- {:Tag
+ {:User
+  {:description "a user in the system"
+   :fields
+   {:id {:type (non-null ID)}
+    :name {:type (non-null String)}}}
+  
+  :Tag
   {:description "a collection of items"
    :fields
    {:id {:type (non-null ID)}
@@ -19,7 +25,9 @@
     :attributes {:type (list :String)
                  :resolve :query/attributes}
     :pair {:type :Pair
-           :resolve :query/pair}}}
+           :resolve :query/pair}
+    :owner {:type :User
+            :resolve :query/owner}}}
   
   :Item
   {:description "a named url/link/item in the system that can be voted on"

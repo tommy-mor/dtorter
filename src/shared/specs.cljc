@@ -9,18 +9,19 @@
 (def uuid-regex #"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
 
 (def uuid-str #(re-matches uuid-regex %))
+(s/def :xt/id uuid-str)
 
+(s/def ::user (s/keys :req-un [:xt/id :user/name]))
 
 (s/def ::tag (s/keys :req-un [:xt/id :tag/name :tag/description :tag/owner]))
-(s/def :xt/id uuid-str)
-(s/def :tag/owner uuid-str)
 (s/def :tag/name string?)
 (s/def :tag/description string?)
+(s/def :tag/owner ::user)
 
 ;; add elo
 ;; TODO make sure that :un is correct
 (s/def ::item (s/keys :req-un [:xt/id :item/name]
-                      :un [:item/url :item/tags :item/owner]))
+                      :opt-un [:item/url :item/tags :item/owner]))
 
 (s/def :item/name string?)
 (s/def :item/owner uuid-str)
@@ -32,7 +33,7 @@
                                :vote/right_item
                                :vote/magnitude
                                :vote/attribute]
-                      :un [:vote/owner :vote/tag]))
+                      :opt-un [:vote/owner :vote/tag]))
 (s/def :vote/left_item ::item)
 (s/def :vote/right_item ::item)
 (s/def :vote/tag uuid-str)
@@ -50,9 +51,11 @@
 
 (s/def ::pair (s/keys :req-un [::left ::right]))
 (s/def ::attributes (s/coll-of string?))
+(s/def ::percent :vote/magnitude)
 
-(s/def ::db (s/keys :req-un [:tag/name :tag/description ::attributes
-                             ::votes ::show ::sorted ::pair ::unsorted]))
+(s/def ::db (s/keys :req-un [:tag/name :tag/description :tag/owner
+                             ::attributes ::votes ::show ::sorted ::pair ::unsorted]
+                    :opt-un [::percent])) ;; optional stuff is transient state of webapp
 
 
 (comment

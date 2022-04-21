@@ -18,25 +18,43 @@
                    args
                    {:db (:db ctx)}))
 
-(def tagid "09044c15-3d3a-4268-9586-074d8ddf95d9")
-
-
-
+(comment (def tagid "09044c15-3d3a-4268-9586-074d8ddf95d9")
+         (def attribute "default"))
 
 (def show-all {:show {:vote_panel true
                       :vote_edit true
                       :edit_tag true}})
 
-(defn gather-info [ctx tid attribute]
-  (->>  (q ctx qs/starting-data-query {:tagid tagid :attribute attribute})
-        :data :tag_by_id (merge show-all) (s/conform ::sp/db)))
+(defn get-throwing [map val]
+  (let [got (get map val)]
+    (if (= got nil)
+      (throw (ex-info "couldnt find key in map" {:map map :key val}))
+      got)))
 
+(defn gather-info [ctx tid attribute]
+  (->  (q ctx qs/starting-data-query {:tagid tagid :attribute attribute})
+        (get-throwing :data) :tag_by_id (merge show-all)))
+
+(defn conform-throwing [spec x]
+  (let [conformed (s/conform spec x)]
+    (if (= conformed ::s/invalid)
+      (throw (ex-info "invalid data being sent" (s/explain-data spec x)))
+      conformed)))
+
+
+(defn show [x]
+  (def shown x)
+  shown
+  x)
 (defn jsonstring [ctx tag attribute]
+  (def ctx ctx)
   (str "var tagid = '" (:xt/id tag) "';\n"
        "var itemid = false;\n"
-       "var init = " (-> (gather-info ctx (:xt/id tag) attribute)
-                         strip
-                         json/generate-string) ";"))
+       "var init = " (->> (gather-info ctx (:xt/id tag) attribute)
+                          show
+                          (conform-throwing ::sp/db)
+                          strip
+                          json/generate-string) ";"))
 
 (def tag-page
   {:name ::tag-page

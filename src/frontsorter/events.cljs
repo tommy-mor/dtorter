@@ -4,7 +4,8 @@
                           reg-fx]]
    [cljs.spec.alpha :as s]
    [ajax.core :as ajax]
-   [frontsorter.attributes :as attrs]))
+   [frontsorter.attributes :as attrs]
+   [shared.specs :as sp]))
 
 
 ;; spec checking from
@@ -15,7 +16,7 @@
   (when-not (s/valid? a-spec db)
     (throw (ex-info (str "spec check failed: " (s/explain-str a-spec db)) {}))))
 
-(def check-spec-interceptor (after (partial check-and-throw :todomvc.db/db)))
+(def check-spec-interceptor (after (partial check-and-throw ::sp/db)))
 
 ;; maybe add (path [:tagpage]) to this?
 (def interceptor-chain [check-spec-interceptor])
@@ -30,7 +31,6 @@
  ;; TODO add spec checking here
  (fn [db _]
    (let [db (js->clj js/init :keywordize-keys true)]
-     (reset! stest db)
      (assoc db :percent 50))))
 
 (reg-event-fx :failed-http-req
@@ -43,7 +43,6 @@
 
 
 (reg-fx :delayed
-        interceptor-chain
         (fn [event]
           (js/setTimeout
            #(re-frame.core/dispatch event)
@@ -223,7 +222,7 @@
 
 (reg-event-db
  :cancelvote
- interceptor-chian
+ interceptor-chain
  (fn [db _]
    (voting->item db)))
 

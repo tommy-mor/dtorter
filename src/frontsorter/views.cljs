@@ -11,6 +11,8 @@
                 @(subscribe [:format]))]
     [:> foo/ItemCreator {:inputList fields}]))
 
+
+
 (defn tag-info []
   (let [{:keys [name description
                 numusers numitems numvotes

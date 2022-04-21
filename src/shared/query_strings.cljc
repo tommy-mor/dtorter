@@ -9,6 +9,7 @@ query  starting_data($tagid: ID, $attribute: String)  {
     name
     description
     attributes
+    owner { id name }
     sorted(attribute: $attribute) {...itemInfo}
     unsorted(attribute: $attribute) {...itemInfo}
     pair {

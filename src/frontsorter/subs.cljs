@@ -8,24 +8,33 @@
 (reg-sub :show :show)
 
 ;; tag info subs
-(reg-sub :tag :tag)
-
 ;; pair subs
 
-(reg-sub :left :left)
+(reg-sub :left (comp :left :pair))
 
-(reg-sub :right :left)
+(reg-sub :right (comp :left :pair))
 
 (reg-sub :percent :percent)
 
 (reg-sub :pair
  (fn [query-v _]
    [(subscribe [:left]) (subscribe [:right]) (subscribe [:percent])])
+
  
  (fn [[left right percent] _]
    {:left left
     :right right
     :percent percent}))
+
+(reg-sub :name :name)
+(reg-sub :description :description)
+(reg-sub :owner :owner)
+(reg-sub :tag
+         :<- [:name]
+         :<- [:description]
+         :<- [:owner]
+         (fn [[name desc owner] _]
+           {:name name :description desc :creator owner}))
 
 ; this is slightly wrong, because css is a little closer to view
 ; than computed subscriptions like to be (closer to data)
@@ -44,8 +53,7 @@
              :left (/ (max 0 (- 50 percent)) 2)
              0)))
 
-(reg-sub :item (fn [db [_ side]] (side db)))
-
+(reg-sub :item (fn [db [_ side]] ((comp side :pair) db)))
 (reg-sub :urls
          (fn [[_ side]] (subscribe [:item side]))
          (fn [item [_ side]]

@@ -70,7 +70,11 @@
 
    :query/item-tags
    (fn [{:keys [db]} {} item]
-     (strip (map #(queries/tag-by-id db %) (:tags item))))})
+     (strip (map #(queries/tag-by-id db %) (:tags item))))
+
+   :query/owner
+   (fn [{:keys [db]} {} item]
+     (strip (queries/user-by-id db (:owner item))))})
 
 (defn load-schema []
   (-> (io/resource "schema.edn")
