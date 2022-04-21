@@ -63,6 +63,7 @@
                     :opt-un [::percent
                              ::current-attribute])) ;; transient state of webapp
 
+;; TODO add format map to this system
 
 (comment
   (def tag (first (q/all-tags dtorter.http/db)))

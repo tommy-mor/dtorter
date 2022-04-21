@@ -71,7 +71,8 @@
 
 ;; add panel subs
 
-(reg-sub :format #(-> % :tag :settings :format))
+;; (reg-sub :format #(-> % :tag :settings :format))
+(reg-sub :format (constantly {:name true}))
 
 ;; ranklist subs
 
