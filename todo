@@ -1,15 +1,8 @@
 get spec validation for re-frame db
-make initial state render fully from that  (don't touch network requests)
+make baseline render properly/fix issues
+start adding in important mutations
+permissions/schema
+add move button
+deploy (start using).
+integrate with discord api.
 
-
-merge front and backend codebases...
-  * put gql query from tag.clj into cljc file..
-  * specs apply both places
-  
-
-make init db come from gql client
-make client use gql in re-frame events
-then actions
-add unsorted gql attribute
-
-go to party

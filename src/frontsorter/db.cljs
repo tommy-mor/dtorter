@@ -1,13 +1,14 @@
 (ns frontsorter.db
   (:require [cljs.reader]
             [cljs.spec.alpha :as s]
-            [re-frame.core :as re-frame]))
+            [re-frame.core :as re-frame]
+            [shared.specs :as sp]))
 
+(s/def ::db ::sp/db)
 
-(s/def ::db (s/keys :req
-                    [::tag ::item ::sorted ::votes ::show ::users]))
 
 (def default-db nil)
+
 
 
 

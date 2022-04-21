@@ -6,11 +6,27 @@
    [ajax.core :as ajax]
    [frontsorter.attributes :as attrs]))
 
-(def stest (atom nil))
+
+;; spec checking from
+;; https://github.com/day8/re-frame/blob/master/examples/todomvc/src/todomvc/events.cljs#L49
+(defn check-and-throw
+  "Throws an exception if `db` doesn't match the Spec `a-spec`."
+  [a-spec db]
+  (when-not (s/valid? a-spec db)
+    (throw (ex-info (str "spec check failed: " (s/explain-str a-spec db)) {}))))
+
+(def check-spec-interceptor (after (partial check-and-throw :todomvc.db/db)))
+
+;; maybe add (path [:tagpage]) to this?
+(def interceptor-chain [check-spec-interceptor])
+
+
+
 
 ;; fill db with default db
 (reg-event-db
  :init-db
+ interceptor-chain
  ;; TODO add spec checking here
  (fn [db _]
    (let [db (js->clj js/init :keywordize-keys true)]
@@ -18,6 +34,7 @@
      (assoc db :percent 50))))
 
 (reg-event-fx :failed-http-req
+              interceptor-chain
               (fn [{:keys [db]} [_ result]]
                 {:db (case (:status result)
                        500 (assoc db :errors ["internal server error"])
@@ -25,12 +42,15 @@
                  :delayed [:clear-errors]}))
 
 
-(reg-fx :delayed (fn [event]
-                   (js/setTimeout
-                    #(re-frame.core/dispatch event)
-                    3000)))
+(reg-fx :delayed
+        interceptor-chain
+        (fn [event]
+          (js/setTimeout
+           #(re-frame.core/dispatch event)
+           3000)))
+
 ;; TODO make this only clear the correct error
-(reg-event-db :clear-errors #(assoc % :errors []))
+(reg-event-db :clear-errors interceptor-chain #(assoc % :errors []))
 
 
 (defn http-effect [db m]
@@ -67,6 +87,7 @@
 
 (reg-event-fx
  :refresh-state
+ interceptor-chain
  (fn [{:keys [db]} [_ keeping]]
    (http-effect db {:method :get
                     :uri (str "/api/tags")
@@ -74,21 +95,27 @@
                     :on-success [:handle-refresh-keeping keeping]})))
 
 
-(reg-event-db :handle-refresh (fn [db [_ result]] (merge db result {:errors []})))
+(reg-event-db :handle-refresh
+              interceptor-chain
+              (fn [db [_ result]] (merge db result {:errors []})))
 (reg-event-db :handle-refresh-keeping
+              interceptor-chain
               (fn [db [_ keep-keys result]] (merge db
                                                    result
                                                    (select-keys db keep-keys)
                                                    {:errors []})))
-(reg-event-db :handle-refresh-callback (fn [db [_ callback result]]
-                                         (callback)
-                                         (merge db result {:errors []})))
+(reg-event-db :handle-refresh-callback
+              interceptor-chain
+              (fn [db [_ callback result]]
+                (callback)
+                (merge db result {:errors []})))
 
 
 ;; ui events
 
 (reg-event-db
  :slide
+ interceptor-chain
  (fn [db [_ new-perc]]
    (assoc db :percent new-perc)))
 
@@ -99,6 +126,7 @@
 
 (reg-event-fx
  :vote
+ interceptor-chain
  (fn [{:keys [db]} _]
    (http-effect (if js/itemid
                   (voting->item db)
@@ -117,7 +145,8 @@
                  :on-success [:handle-refresh]}))) 
 
 (reg-event-fx
- :delete-vote 
+ :delete-vote
+ interceptor-chain
  (fn [{:keys [db]} [_ vote]]
    (http-effect db {:method :delete
                     :uri (str "/api/votes/" (:id vote))
@@ -125,6 +154,7 @@
                     :on-success [:handle-refresh]})))
 (reg-event-fx
  :user-selected
+ interceptor-chain
  (fn [{:keys [db]}
       [_ new-user]]
    {:db (assoc-in db [:users :user] new-user)
@@ -132,6 +162,7 @@
 
 (reg-event-fx
  :add-item
+ interceptor-chain
  (fn [{:keys [db]} [_ item callback]]
    (http-effect db {:method :post
                     :uri "/api/items"
@@ -139,6 +170,7 @@
                     :on-success [:handle-refresh-callback callback]})))
 (reg-event-fx
  :edit-item
+ interceptor-chain
  (fn [{:keys [db]} [_ item callback]]
    (http-effect db {:method :put
                     :uri (str "/api/items/" js/itemid)
@@ -146,6 +178,7 @@
                     :on-success [:handle-refresh-callback callback]})))
 (reg-event-fx
  :delete-item
+ interceptor-chain
  (fn [{:keys [db]} [_ voteid]]
    (http-effect db {:method :delete
                     :uri (str "/api/items/" js/itemid)
@@ -154,6 +187,7 @@
                     :dont-rehydrate true})))
 (reg-event-db
  :delete-item-success
+ interceptor-chain
  (fn [db _]
    (set! js/window.location (str "/t/" js/tagid))
    (js/console.log "should never get here")
@@ -178,6 +212,7 @@
 ;; for item page
 (reg-event-db
  :voteonpair
+ interceptor-chain
  (fn [db [_ vote leftitem rightitem]]
    (-> db
        (assoc :left leftitem
@@ -188,6 +223,7 @@
 
 (reg-event-db
  :cancelvote
+ interceptor-chian
  (fn [db _]
    (voting->item db)))
 

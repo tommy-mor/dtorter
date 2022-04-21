@@ -1,6 +1,8 @@
 (ns frontsorter.subs
   (:require [re-frame.core :refer [reg-sub subscribe]]))
 
+(reg-sub :all (fn [x] x))
+
 ;; show 
 ; second arg is a function that takes db
 (reg-sub :show :show)

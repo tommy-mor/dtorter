@@ -16,6 +16,7 @@
                 numusers numitems numvotes
                 creator]} @(subscribe [:tag])
         {:keys [edit_tag]} @(subscribe [:show])]
+    (def deb @(subscribe [:tag]))
     [c/editable-link
      
      "TAG"
