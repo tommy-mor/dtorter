@@ -16,6 +16,9 @@
 (s/def ::tag (s/keys :req-un [:xt/id :tag/name :tag/description :tag/owner]))
 (s/def :tag/name string?)
 (s/def :tag/description string?)
+(s/def :tag/votecount int?)
+(s/def :tag/usercount int?)
+(s/def :tag/itemcount int?)
 (s/def :tag/owner ::user)
 
 ;; add elo
@@ -53,7 +56,7 @@
 (s/def ::attributes (s/coll-of string?))
 (s/def ::percent :vote/magnitude)
 
-(s/def ::db (s/keys :req-un [:tag/name :tag/description :tag/owner
+(s/def ::db (s/keys :req-un [:tag/name :tag/description :tag/owner :tag/votecount :tag/usercount
                              ::attributes ::votes ::show ::sorted ::pair ::unsorted]
                     :opt-un [::percent])) ;; optional stuff is transient state of webapp
 

@@ -29,12 +29,20 @@
 (reg-sub :name :name)
 (reg-sub :description :description)
 (reg-sub :owner :owner)
+(reg-sub :usercount :usercount)
+(reg-sub :votecount :votecount)
+(reg-sub :itemcount :itemcount)
 (reg-sub :tag
          :<- [:name]
          :<- [:description]
          :<- [:owner]
-         (fn [[name desc owner] _]
-           {:name name :description desc :creator owner}))
+         :<- [:votecount]
+         :<- [:usercount]
+         :<- [:itemcount]
+         (fn [[name desc owner votecount usercount itemcount] _]
+           {:name name :description desc :creator owner
+            :numvotes votecount :numusers usercount
+            :numitems itemcount}))
 
 ; this is slightly wrong, because css is a little closer to view
 ; than computed subscriptions like to be (closer to data)

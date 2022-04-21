@@ -9,7 +9,7 @@
 (comment (->> @re-frame.db/app-db
               (s/valid? ::sp/db))
          (->> @re-frame.db/app-db
-              :owner))
+              keys))
 
 
 

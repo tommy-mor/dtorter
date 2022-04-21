@@ -8,6 +8,9 @@ query  starting_data($tagid: ID, $attribute: String)  {
   tag_by_id(id: $tagid) {
     name
     description
+    votecount
+    usercount
+    itemcount
     attributes
     owner { id name }
     sorted(attribute: $attribute) {...itemInfo}

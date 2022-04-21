@@ -3,6 +3,7 @@
             [com.walmartlabs.lacinia :as lacinia]
             [com.walmartlabs.lacinia.util :as util]
             [com.walmartlabs.lacinia.schema :as schema]
+            [com.walmartlabs.lacinia.resolve :as resolve]
             [clojure.edn  :as edn]
             [clojure.walk :refer [postwalk]]
 
@@ -27,52 +28,57 @@
    (fn [{:keys [db]} {:keys [id]} value]
      (strip (queries/tag-by-id db id)))
    
-   :query/items-for-tag
-   (fn [{:keys [db]} {} value]
-     (strip (queries/items-for-tag db (:id value))))
-   
-   :query/votes-for-tag
-   (fn [{:keys [db]} {:keys [attribute]} value]
-     (strip (queries/votes-for-tag db (:id value) attribute)))
-   
    :query/all-tags
    (fn [{:keys [db]} _ value]
      (strip (queries/all-tags db)))
+   
+   :Tag/items
+   (fn [{:keys [db]} {} value]
+     (strip (queries/items-for-tag db (:id value))))
+   
+   :Tag/votes
+   (fn [{:keys [db]} {:keys [attribute]} value]
+     (strip (queries/votes-for-tag db (:id value) attribute)))
+   
+   :Tag/votecount (fn [{:keys [db]} _ value] (strip (queries/count-votes db (:id value) nil)))
+   :Tag/usercount (fn [{:keys [db]} _ value] (strip (queries/count-users db (:id value))))
+   :Tag/itemcount (fn [{:keys [db]} _ value] (strip (queries/count-items db (:id value))))
+   
 
-   :query/parent-tag
+   :Vote/tag
    (fn [{:keys [db]} _ value]
      (strip (queries/tag-by-id db (:tag value))))
 
-   :query/left-item
+   :Vote/left-item
    (fn [{:keys [db]} _ value]
      (strip (queries/item-by-id db (:left-item value))))
    
-   :query/right-item
+   :Vote/right-item
    (fn [{:keys [db]} _ value]
      (strip (queries/item-by-id db (:right-item value))))
    
    ;; does calculations
-   :query/sorted
+   :Tag/sorted
    (fn [{:keys [db]} {:keys [attribute]} value]
      (strip (queries/sorted db value attribute)))
    
-   :query/unsorted
+   :Tag/unsorted
    (fn [{:keys [db]} {:keys [attribute]} value]
      (strip (queries/unsorted db value attribute)))
    
-   :query/attributes
+   :Tag/attributes
    (fn [{:keys [db]} {} value]
      (strip (queries/attributes db value)))
    
-   :query/pair
+   :Tag/pair
    (fn [{:keys [db]} {} value]
      (strip (queries/pair-for-tag db (:id value))))
 
-   :query/item-tags
+   :Item/tags
    (fn [{:keys [db]} {} item]
      (strip (map #(queries/tag-by-id db %) (:tags item))))
 
-   :query/owner
+   :All/owner
    (fn [{:keys [db]} {} item]
      (strip (queries/user-by-id db (:owner item))))})
 

@@ -14,6 +14,9 @@
             
             [ring.middleware.session.cookie :as cookie]
             [io.pedestal.http.ring-middlewares :as middlewares]))
+;; TODO clean up this file by using
+;; https://lacinia.readthedocs.io/en/latest/tutorial/component.html
+;; this library/tutorial
 
 (def schema (api/load-schema))
 
