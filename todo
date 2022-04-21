@@ -1,4 +1,7 @@
-get spec validation for re-frame db
+get attributes rendering.
+get pair rendering
+
+
 make baseline render properly/fix issues
 start adding in important mutations
 permissions/schema

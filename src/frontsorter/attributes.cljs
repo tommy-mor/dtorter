@@ -9,27 +9,16 @@
 ;; inviariants : when no attribute is selected, :current-attribute is null
 ;; 
 
-(defn attributes [db] (c/attributes-not-db (:attributes db)))
+(reg-sub :attributes :attributes)
+(reg-sub :current-attribute :current-attribute)
 
-(reg-sub :attributes attributes) 
-
-(defn current-attribute [db]
-  (-> db :attributes :current))
-
-(reg-sub :current-attribute current-attribute)
+;; eventually switch back to using counts, rn just make it work normally
 
 (reg-event-fx :attribute-selected
               (fn [{:keys [db]} [_ attribute]]
                 (let [path [:attributes :chosen (keyword attribute)]]
-                  {:db (cond-> db
-                         true (assoc-in [:attributes :current] attribute)
-                         ;; because of lua empty table
-                         true (update-in [:attributes :chosen] #(into {} %))
-                         
-                         (and (not (= "default" attribute))
-                              (nil? (get-in db path)))
-                         (assoc-in path 0))
-                   :dispatch [:refresh-state [:attributes]]})))
+                  {:db (assoc db :current-attribute attribute)
+                   :dispatch [:refresh-state [:attributes]]}))) 
 
 (defn attributes-panel []
   (let [editing (atom false)
@@ -38,16 +27,16 @@
       (let [current-attribute @(subscribe [:current-attribute])
             attributes @(subscribe [:attributes])]
         [:div {:style {:display "flex"}} "you are voting on"
-         (if (and (not @editing) (not (= [:default] (keys attributes))))
+         (if (not @editing)
            [:select
             {:on-change #(let [new-attr (.. % -target -value)]
                            (case new-attr
                              "[add new attribute]" (reset! editing true)
                              (dispatch-sync [:attribute-selected new-attr])))
-             :value (or current-attribute "default")}
-            (for [[attribute number] attributes]
+             :value current-attribute}
+            (for [attribute attributes]
               [:option {:value attribute
-                        :key attribute} (str (name attribute) " (" number " votes)")])
+                        :key attribute} (str (name attribute) " (TODO"  " votes)")])
             [:option {:key "add new"} "[add new attribute]"]]
            
            [:<> [:input {:type "text"

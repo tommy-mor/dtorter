@@ -119,6 +119,7 @@
           items))
 
 ;; TODO make sure this nil works as intended..
+;; TODO make this count attributes..
 (defn attributes [db tag]
   (def votes (votes-for-tag db (:id tag) nil))
   (distinct (map :vote/attribute votes)))

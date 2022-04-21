@@ -162,12 +162,4 @@
 
 
 ;; not a view, a function for converting attributes dict to a list
-(defn attributes-not-db [smaller-db]
-  (sort-by val
-           (let [{:keys [chosen none current]} smaller-db]
-             (merge (when current {(keyword current) 0}) 
-                    (if (empty? chosen)
-                      {:default none}
-                      (if (zero? none)
-                        chosen
-                        (merge  {:default none}  chosen)))))))
+

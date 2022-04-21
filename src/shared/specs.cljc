@@ -53,13 +53,15 @@
 
 
 (s/def ::pair (s/nilable (s/keys :req-un [::left ::right])))
+;; eventually this will be (s/coll-of [attribute count])
 (s/def ::attributes (s/coll-of string?))
+(s/def ::current-attribute string?)
 (s/def ::percent :vote/magnitude)
 
 (s/def ::db (s/keys :req-un [:tag/name :tag/description :tag/owner :tag/votecount :tag/usercount
                              ::attributes ::votes ::show ::sorted ::unsorted]
-                    :opt-un [::pair ;; when tag has less than 2 items
-                             ::percent])) ;; transient state of webapp
+                    :opt-un [::percent
+                             ::current-attribute])) ;; transient state of webapp
 
 
 (comment
