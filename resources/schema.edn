@@ -74,4 +74,15 @@
   {:type (list :Tag)
    :description "return a list of all (public) tags"
    :args {}
-   :resolve :query/all-tags}}}
+   :resolve :query/all-tags}}
+
+ :mutations
+ {:vote
+  {:type (non-null :Tag)
+   :description "vote on an item"
+   :args {:tagid {:type (non-null ID)}
+          :left_item {:type (non-null ID)}
+          :right_item {:type (non-null ID)}
+          :attribute {:type (non-null String)}
+          :magnitude {:type (non-null Int)}}
+   :resolve :mutation/vote}}}

@@ -1,11 +1,10 @@
 
 (ns shared.query-strings)
 
-(def starting-data-query
-  "fragment itemInfo on Item { id name }
-
-query  starting_data($tagid: ID, $attribute: String)  {
-  tag_by_id(id: $tagid) {
+(def fragments
+  "
+fragment itemInfo on Item { id name }
+fragment appDb on Tag {
     name
     description
     votecount
@@ -26,7 +25,24 @@ query  starting_data($tagid: ID, $attribute: String)  {
       attribute
       magnitude
     }
+}
+")
+
+
+(def vote
+  (str "mutation Vote($tagid: ID!, $left_item: ID!, $right_item: ID!, $attribute: String!, $magnitude: Int!)  {
+   vote(tagid: $tagid, left_item: $left_item, right_item: $right_item,
+        attribute: $attribute, magnitude: $magnitude) { ...appDb }
+} 
+"
+       fragments))
+
+(def app-db
+  (str fragments
+       "query starting_data($tagid: ID, $attribute: String)  {
+  tag_by_id(id: $tagid) {
+     ...appDb
   }
 }
    
-")
+"))

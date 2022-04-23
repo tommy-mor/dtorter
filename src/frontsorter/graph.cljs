@@ -55,7 +55,7 @@
 (defn graph []
   (let [x-attr (atom false)
         y-attr (atom false)
-        attrs (c/attributes-not-db (js->clj js/attributes :keywordize-keys true))
+        attrs ["TODO"]
         data (atom nil)]    
     (fn []
       (GET (str "/t/" js/tagid "/graph/" @x-attr "/" @y-attr)

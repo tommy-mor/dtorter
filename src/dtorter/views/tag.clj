@@ -37,7 +37,7 @@
       got)))
 
 (defn gather-info [ctx tid attribute]
-  (->  (q ctx qs/starting-data-query {:tagid tid :attribute attribute})
+  (->  (q ctx qs/app-db {:tagid tid :attribute attribute})
        (get-throwing :data)
        :tag_by_id
        add-show))
@@ -51,7 +51,10 @@
 
 (defn show [x]
   (def shown x)
-  shown
+  (comment (-> (q shown qs/app-db {:tagid tagid :attribute "default"})
+               :data
+               :tag_by_id
+               keys))
   x)
 
 (defn jsonstring [ctx tag attribute]

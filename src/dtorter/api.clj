@@ -80,7 +80,15 @@
 
    :All/owner
    (fn [{:keys [db]} {} item]
-     (strip (queries/user-by-id db (:owner item))))})
+     (strip (queries/user-by-id db (:owner item))))
+
+
+   :mutation/vote
+   (fn [{:keys [db node] :as ctx} {:keys [tagid left_item right_item attribute magnitude] :as args} _]
+     (queries/vote node args)
+     
+     
+     (strip (queries/tag-by-id db tagid)))})
 
 (defn load-schema []
   (-> (io/resource "schema.edn")

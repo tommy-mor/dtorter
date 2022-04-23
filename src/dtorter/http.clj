@@ -13,7 +13,8 @@
             [hiccup.core :refer [html]]
             
             [ring.middleware.session.cookie :as cookie]
-            [io.pedestal.http.ring-middlewares :as middlewares]))
+            [io.pedestal.http.ring-middlewares :as middlewares]
+            [clojure.java.io :as io]))
 ;; TODO clean up this file by using
 ;; https://lacinia.readthedocs.io/en/latest/tutorial/component.html
 ;; this library/tutorial
@@ -22,6 +23,13 @@
 
 ;; database stuff
 
+
+(defn lmdb-at [f] {:kv-store {:xtdb/module 'xtdb.lmdb/->kv-store
+                              :db-dir (io/file f)}})
+(comment (def node (xt/start-node
+            {:xtdb/index-store (lmdb-at "/tmp/idx")
+             :xtdb/document-store (lmdb-at "/tmp/ds")
+             :xtdb/tx-log (lmdb-at "/tmp/log")})))
 (def node (xt/start-node {}))
 (def db (do
           (xt/submit-tx node (for [tx (data/get-transactions)]
@@ -30,7 +38,7 @@
           (xt/db node)))
 
 (defn enable-graphql [service-map schema]
-  (let [interceptors (lp/default-interceptors schema {:db db})]
+  (let [interceptors (lp/default-interceptors schema {:db db :node node})]
     (-> service-map
         (update ::server/routes conj
                 ["/api" :post interceptors :route-name ::graphql-api]))))
@@ -54,7 +62,9 @@
   [(middlewares/session {:store (cookie/cookie-store)})
    {:name ::load-db
     :enter (fn [ctx]
-             (assoc ctx :db db))}
+             (assoc ctx
+                    :db db
+                    :node node))}
    {:name ::load-gql-schema
     :enter (fn [ctx]
              (assoc ctx :gql-schema schema))}

@@ -98,7 +98,7 @@
 
 ;; only for item page
 (reg-sub :item-id #(:id (:item %)))
-(reg-sub :votes :votes)
+;; (reg-sub :votes :votes)
 (reg-sub :vote-on
          :<- [:votes]
          (fn [votes [_ item]]

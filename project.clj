@@ -12,11 +12,13 @@
                  [com.walmartlabs/lacinia-pedestal "1.0"]
                  
                  [com.xtdb/xtdb-core "1.20.0"]
+                 [com.xtdb/xtdb-lmdb "1.20.0"]
                  
                  [hiccup "1.0.5"]
                  [cryptohash-clj "0.1.10"]
 
-                 [re-graph "0.1.17"]]
+                 [re-graph "0.1.17"]
+                 [criterium "0.4.6"]]
   
   
   :repl-options {:init-ns dtorter.main}

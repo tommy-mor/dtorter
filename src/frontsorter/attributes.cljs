@@ -36,7 +36,7 @@
              :value current-attribute}
             (for [attribute attributes]
               [:option {:value attribute
-                        :key attribute} (str (name attribute) " (TODO"  " votes)")])
+                        :key attribute} (str (name attribute) " (sst"  " votes)")])
             [:option {:key "add new"} "[add new attribute]"]]
            
            [:<> [:input {:type "text"

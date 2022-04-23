@@ -1,5 +1,21 @@
+fix frontend until it has parity, then host, THEN do performance.
+  PROBLEM: the (xt/db that everyone is using is actually frozen in time, so it wont have the right keys)
+
+  do 20 minutes of performacne stuff, the go home
+
+  attribute selection
+  user selection
+  
+
+
+
+look into performance, ask on zulip before giving up.
+ ask: use criterium to compare things on xtdb, compare to postgres
+  use synthetic benchmark
+
 get attributes rendering.
 get pair rendering
+
 
 
 make baseline render properly/fix issues

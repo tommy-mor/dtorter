@@ -4,6 +4,7 @@
             [dtorter.hashing :as hashing]))
 
 (defn uuid [st] (java.util.UUID/fromString st))
+
 (declare decode-v)
 (defn decode-kv [[left right]]
   (let [decoded-left (decode-v left)
@@ -180,3 +181,5 @@
 
 ;; TODO
 ;; maybe use uuid type everywhere?
+
+;; YOOOOOOOOOOOOO restrictions on data is done by dynamically cretaing a spec, or even just putting an entire spec in the DB as data....

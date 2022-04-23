@@ -53,6 +53,7 @@
       
       true [:span "unknown format"])))
 
+;; TODO get rid fo format map here, can dislpay any item. format restriction happens only on server
 (defn itemview [side]
   (let [format @(subscribe [:format])
         item @(subscribe [:item side])]

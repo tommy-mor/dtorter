@@ -47,15 +47,31 @@
                    '[:find (pull vote [*])
                      :in tid
                      :where
-                     [vote :vote/tag tid]
-                     [i1 :item/tags tid]
-                     [i2 :item/tags tid]
-                     [vote :vote/left-item i1]
-                     [vote :vote/right-item i2]
-                     [vote :vote/magnitude mag]
-                     [vote :vote/attribute attribute]]
+                     [vote :vote/tag tid]]
                    tid
                    attribute)))
+
+(defn uuid [] (str (java.util.UUID/randomUUID)))
+(defn vote [node {:keys [tagid left_item right_item attribute magnitude] :as args}]
+  (comment "TODO add checks here, using spec")
+  (comment "TODO add user id to this")
+  (xt/submit-tx db  [[::xt/put {:xt/id (uuid)
+                                :vote/left-item left_item
+                                :vote/right-item right_item
+                                :vote/magnitude magnitude
+                                :vote/owner tagid
+                                :vote/attribute attribute
+                                :vote/tag tagid}]])
+  (xt/sync db))
+
+(comment
+  (def mtg "fdd74412-92e4-460f-ae80-19d6befef509")
+  (use 'criterium.core)
+  (count (time (for [vote (votes-for-tag dtorter.http/db mtg nil)]
+                 (let [left (comment (item-by-id dtorter.http/db (:vote/left-item vote)))
+                       right (comment (item-by-id dtorter.http/db (:vote/right-item vote)))]
+                   {:l left :r right}))))
+  (time (count-votes dtorter.http/db mtg nil)))
 
 
 (defn count-votes [db tid attribute]
@@ -64,10 +80,6 @@
                       :in tid
                       :where
                       [vote :vote/tag tid]
-                      [i1 :item/tags tid]
-                      [i2 :item/tags tid]
-                      [vote :vote/left-item i1]
-                      [vote :vote/right-item i2]
                       [vote :vote/attribute attribute]]
                     tid
                     attribute))
