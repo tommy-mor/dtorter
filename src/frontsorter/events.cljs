@@ -44,7 +44,6 @@
 (reg-event-db :clear-errors interceptor-chain #(assoc % :errors []))
 
 ;; TODO add current-attribute to special part of spec
-(comment (clojure.string/replace :strst #"^mutation\s?" "" ))
 (reg-event-fx
  :vote
  (fn [{:keys [db]} _]
@@ -68,22 +67,6 @@
 
 
 
-(reg-event-db :handle-refresh
-              interceptor-chain
-              (fn [db [_ result]] (merge db result {:errors []})))
-(reg-event-db :handle-refresh-keeping
-              interceptor-chain
-              (fn [db [_ keep-keys result]] (merge db
-                                                   result
-                                                   (select-keys db keep-keys)
-                                                   {:errors []})))
-(reg-event-db :handle-refresh-callback
-              interceptor-chain
-              (fn [db [_ callback result]]
-                (callback)
-                (merge db result {:errors []})))
-
-
 ;; ui events
 
 (reg-event-db
@@ -92,41 +75,6 @@
  (fn [db [_ new-perc]]
    (assoc db :percent new-perc)))
 
-(defn voting->item [db]
-  (-> db
-      (assoc :item (:left db))
-      (dissoc :left :right :percent)))
-
-(comment
-  (reg-event-fx
-  :vote
-  interceptor-chain
-  (fn [{:keys [db]} _]
-    (http-effect (if js/itemid
-                   (voting->item db)
-                   (assoc db :percent 50))
-                
-                 {:method :post
-                  :uri (str "/api/votes")
-                  :params (let [current-attribute (:current-attribute db)]
-                            (cond-> {:tagid (-> db :tag :id)
-                                     :left (-> db :left :id)
-                                     :right (-> db :right :id)
-                                     :mag (-> db :percent)}
-
-                              true
-                              (assoc :attribute current-attribute)))
-                  :on-success [:handle-refresh]})))) 
-
-(comment
-  (reg-event-fx
-  :delete-vote
-  interceptor-chain
-  (fn [{:keys [db]} [_ vote]]
-    (http-effect db {:method :delete
-                     :uri (str "/api/votes/" (:id vote))
-                     :params (if js/itemid {:itemid js/itemid} {})
-                     :on-success [:handle-refresh]}))))
 (reg-event-fx
  :user-selected
  interceptor-chain
@@ -135,32 +83,6 @@
    {:db (assoc-in db [:users :user] new-user)
     :dispatch [:refresh-state [:left :right]]}))
 
-(comment
-  (reg-event-fx
-   :add-item
-   interceptor-chain
-   (fn [{:keys [db]} [_ item callback]]
-     (http-effect db {:method :post
-                      :uri "/api/items"
-                      :params (assoc item :tagid js/tagid)
-                      :on-success [:handle-refresh-callback callback]}))))
-(comment (reg-event-fx
-          :edit-item
-          interceptor-chain
-          (fn [{:keys [db]} [_ item callback]]
-            (http-effect db {:method :put
-                             :uri (str "/api/items/" js/itemid)
-                             :params (assoc item :tagid js/tagid)
-                             :on-success [:handle-refresh-callback callback]}))))
-(comment (reg-event-fx
-          :delete-item
-          interceptor-chain
-          (fn [{:keys [db]} [_ voteid]]
-            (http-effect db {:method :delete
-                             :uri (str "/api/items/" js/itemid)
-                             :params {}
-                             :on-success [:delete-item-success]
-                             :dont-rehydrate true}))))
 (reg-event-db
  :delete-item-success
  interceptor-chain
@@ -197,11 +119,11 @@
                         (frontsorter.common/calcmag vote (:id leftitem))))
        (dissoc :item))))
 
-(reg-event-db
- :cancelvote
- interceptor-chain
- (fn [db _]
-   (voting->item db)))
+(comment (reg-event-db
+          :cancelvote
+          interceptor-chain
+          (fn [db _]
+            (voting->item db))))
 
 ;; attribute system
 
@@ -210,41 +132,4 @@
 
 
 ;; jail
-(comment
-  (defn http-effect [db m]
-    (if (not (:params m))
-      (js/console.error "request must have params, or api_respond_to will be confused"))
 
-    (let [current-attribute (:current-attribute db)]
-      {:http-xhrio (cond-> m
-                     (or
-                      (= :post (:method m))
-                      (= :delete (:method m))
-                      (= :put (:method m)))
-                     (assoc :format (ajax/json-request-format))
-                     
-                     (not (:dont-rehydrate m))
-                     (cond-> 
-                         true
-                       (assoc-in [:params :rehydrate :tagid] js/tagid)
-                       
-                       js/itemid
-                       (assoc-in [:params :rehydrate :itemid] js/itemid)
-                       
-                       true
-                       (assoc-in [:params :rehydrate :attribute] current-attribute) ;; can be null...
-                       
-                       (not (= "all users" (-> db :users :user)))
-                       (assoc-in [:params :rehydrate :username] (-> db :users :user)))
-                     
-                     true
-                     (assoc :response-format (ajax/json-response-format {:keywords? true})
-                            :on-failure [:failed-http-req]))
-       :db db}))
-  (reg-event-fx :failed-http-req
-                interceptor-chain
-                (fn [{:keys [db]} [_ result]]
-                  {:db (case (:status result)
-                         500 (assoc db :errors ["internal server error"])
-                         (assoc db :errors (:errors (:response result))))
-                   :delayed [:clear-errors]})))
