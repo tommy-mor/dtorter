@@ -55,34 +55,74 @@
 (defn vote [node {:keys [tagid left_item right_item attribute magnitude] :as args}]
   (comment "TODO add checks here, using spec")
   (comment "TODO add user id to this")
-  (xt/submit-tx db  [[::xt/put {:xt/id (uuid)
+  (xt/submit-tx node  [[::xt/put {:xt/id (uuid)
                                 :vote/left-item left_item
                                 :vote/right-item right_item
                                 :vote/magnitude magnitude
                                 :vote/owner tagid
                                 :vote/attribute attribute
                                 :vote/tag tagid}]])
-  (xt/sync db))
+  (xt/sync node))
 
 (comment
   (def mtg "fdd74412-92e4-460f-ae80-19d6befef509")
   (use 'criterium.core)
-  (count (time (for [vote (votes-for-tag dtorter.http/db mtg nil)]
-                 (let [left (comment (item-by-id dtorter.http/db (:vote/left-item vote)))
-                       right (comment (item-by-id dtorter.http/db (:vote/right-item vote)))]
-                   {:l left :r right}))))
-  (time (count-votes dtorter.http/db mtg nil)))
+  (with-progress-reporting
+    (first (quick-bench (doall (for [vote (votes-for-tag dtorter.http/db mtg nil)]
+                                 (let [left (item-by-id dtorter.http/db (:vote/left-item vote))
+                                       right (item-by-id dtorter.http/db (:vote/right-item vote))]
+                                   {:l left :r right}))))))
+  "402 ms"
+  (with-progress-reporting
+    (count (quick-bench (votes-for-tag dtorter.http/db mtg nil))))
+  "32.932 ms"
+  (with-progress-reporting
+    (count (quick-bench (xt/q dtorter.http/db '[:find (pull e [*]) (pull item1 [*]) (pull item2 [*])
+                                                :in tid
+                                                :where
+                                                [e :vote/tag tid]
+                                                [e :vote/left-item item1]
+                                                [e :vote/right-item item2]]
+                              mtg))))
+  "90ms"
+  (-> (xt/q dtorter.http/db '[:find (distinct owner) (pull e [*]) (pull item1 [*]) (pull item2 [*])
+                              :in tid
+                              :where
+                              [e :vote/tag tid]
+                              [e :vote/left-item item1]
+                              [e :vote/right-item item2]
+
+                              [tid :tag/owner owner]
+                              ]
+            mtg)
+      count)
+  "idk"
+  (with-progress-reporting
+    (quick-bench (-> (xt/q dtorter.http/db '[:find (pull tid [*]) (pull owner [*])
+                                             (pull tid [{:vote/_tag [*]}])
+                                             (pull tid [{:item/_tags [*]}])
+                                             (pull tid [{:item/_tags [*]}])
+                                             :in tid
+                                             :where
+                                             [tid :tag/owner owner]
+                                             ]
+                           mtg)
+                     first
+                     (nth 3))))
+  "27 ms, it includes tag, owner, all votes. counts just use count function."
+  
+  ))
 
 
 (defn count-votes [db tid attribute]
-  (or (ffirst (xt/q db
-                    '[:find (count vote)
-                      :in tid
-                      :where
-                      [vote :vote/tag tid]
-                      [vote :vote/attribute attribute]]
-                    tid
-                    attribute))
+(or (ffirst (xt/q db
+                  '[:find (count vote)
+                    :in tid
+                    :where
+                    [vote :vote/tag tid]
+                    [vote :vote/attribute attribute]]
+                  tid
+                  attribute))
       0))
 
 (defn count-users [db tid]
