@@ -19,6 +19,7 @@
 
   col)
 
+;; note, must be keywordless. this will confuse ppl
 (defn getranking [items votes]
   (def nitems (count items))
   (def nvotes (count votes))
@@ -30,8 +31,8 @@
       (def A (m/ensure-mutable (m/new-matrix nitems nitems)))
       (first items)
 
-      (def item->idx (into {} (mapv (fn [i n] [(:xt/id i) n]) items (range))))
-      (doseq [{:vote/keys [id left-item right-item magnitude] :as vote} votes]
+      (def item->idx (into {} (mapv (fn [i n] [(:id i) n]) items (range))))
+      (doseq [{:keys [id left-item right-item magnitude] :as vote} votes]
         (def leftscore (- 100 magnitude))
         (def rightscore magnitude)
 
@@ -82,7 +83,7 @@
       (m/mul! stable (* 10 nitems))
 
       (into (sorted-map) (for [item items]
-                           [(m/slice stable (item->idx (:xt/id item)))
+                           [(m/slice stable (item->idx (:id item)))
                             item])))))
 
 (comment

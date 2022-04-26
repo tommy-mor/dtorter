@@ -1,6 +1,7 @@
 (ns dtorter.queries
   (:require [xtdb.api :as xt]
-            [dtorter.math :as math]))
+            [dtorter.math :as math]
+            [dtorter.util :refer [strip]]))
 
 (defn user-by-id [db e]
   (ffirst (xt/q db
@@ -111,7 +112,7 @@
                      (nth 3))))
   "27 ms, it includes tag, owner, all votes. counts just use count function."
   
-  ))
+  )
 
 
 (defn count-votes [db tid attribute]
@@ -144,7 +145,20 @@
                     tid))
       0))
 
-; TODO add pair chosing...
+(defn tag-info [db tid]
+  (let [[tag owner votes items] (first (xt/q db '[:find
+                                                  (pull tid [*])
+                                                  (pull owner [*])
+                                                  (pull tid [{:vote/_tag [*]}])
+                                                  (pull tid [{:item/_tags [*]}])
+                                                  :in tid
+                                                  :where
+                                                  [tid :tag/owner owner]]
+                                             tid))]
+    (merge tag {:owner owner
+                :votes (:vote/_tag votes)
+                :items (:item/_tags items)})))
+                                        ; TODO add pair chosing...
 (defn pair-for-tag [db tid]
   (def items (items-for-tag db tid))
   (if (> (count items) 2)
@@ -155,20 +169,25 @@
   (clojure.pprint/pprint a)
   a)
 
-(defn sorted [db tag attribute]
-  (def items (items-for-tag db (:id tag)))
-  (def votes (votes-for-tag db (:id tag) attribute))
+(defn sorted-calc [items votes]
   (reverse (for [[elo item] (math/getranking (vec items) (vec votes))]
              (assoc item :elo elo))))
+
+(defn sorted [db tag attribute]
+  (def items (strip (items-for-tag db (:id tag))))
+  (def votes (strip (votes-for-tag db (:id tag) attribute)))
+  (sorted-calc items votes))
+
+(defn unsorted-calc [items votes]
+  (def voted-ids (set
+                  (flatten (map (juxt :left-item :right-item) votes))))
+  (filter #(not (voted-ids (:id %)))
+          items))
 
 (defn unsorted [db tag attribute]
   (def items (items-for-tag db (:id tag)))
   (def votes (votes-for-tag db (:id tag) attribute))
-
-  (def voted-ids (set
-                  (flatten (map (juxt :vote/left-item :vote/right-item) votes))))
-  (filter #(not (voted-ids (:xt/id %)))
-          items))
+  (unsorted-calc items votes))
 
 ;; TODO make sure this nil works as intended..
 ;; TODO make this count attributes..

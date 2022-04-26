@@ -1,3 +1,7 @@
+move lacinia info gathering function into just one query...
+get more actions to work... (switch db to node)
+
+
 fix frontend until it has parity, then host, THEN do performance.
   PROBLEM: the (xt/db that everyone is using is actually frozen in time, so it wont have the right keys)
 
