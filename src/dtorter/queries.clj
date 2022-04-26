@@ -53,6 +53,7 @@
                    attribute)))
 
 (defn uuid [] (str (java.util.UUID/randomUUID)))
+;; TODO move this to mutations.clj
 (defn vote [node {:keys [tagid left_item right_item attribute magnitude] :as args}]
   (comment "TODO add checks here, using spec")
   (comment "TODO add user id to this")
@@ -63,7 +64,8 @@
                                 :vote/owner tagid
                                 :vote/attribute attribute
                                 :vote/tag tagid}]])
-  (xt/sync node))
+
+  (xt/db node))
 
 (comment
   (def mtg "fdd74412-92e4-460f-ae80-19d6befef509")

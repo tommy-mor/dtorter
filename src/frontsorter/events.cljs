@@ -55,14 +55,13 @@
                 :right_item (-> db :pair :right :id)
                 :attribute (-> db :current-attribute)
                 :magnitude 50}
-               [::refresh-db]]}))
-
+               [::refresh-db-vote]]}))
 
 (reg-event-db
- ::refresh-db
+ ::refresh-db-vote
  interceptor-chain
  (fn [db [_ {:keys [data errors] :as payload}]]
-   (merge db data)))
+   (merge db (:vote data))))
 
 
 

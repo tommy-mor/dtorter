@@ -21,10 +21,6 @@
    (fn [{:keys [db]} _ value]
      (strip (queries/all-tags db)))
    
-   :Tag/self
-   (fn [{:keys [db]} _ {:keys [id]}]
-     {:uhh id :votecount 10 :name "tommy"})
-   
    :Tag/items
    (fn [{:keys [db]} {} value]
      (strip (queries/items-for-tag db (:id value))))
@@ -34,11 +30,9 @@
      (if (and (:items value)
               (:votes value))
        (let [id->item (apply hash-map (flatten (map (juxt :id identity) (:items value))))]
-         (do
-           (println "i am being run!!")
-           (map #(assoc %
-                        :left-item (id->item (:left-item %))
-                        :right-item (id->item (:right-item %))) (:votes value))))
+         (map #(assoc %
+                      :left-item (id->item (:left-item %))
+                      :right-item (id->item (:right-item %))) (:votes value)))
        (strip (queries/votes-for-tag db (:id value) attribute))))
    
    :Tag/votecount (fn [{:keys [db]} _ value]
@@ -113,10 +107,8 @@
 
    :mutation/vote
    (fn [{:keys [db node] :as ctx} {:keys [tagid left_item right_item attribute magnitude] :as args} _]
-     (queries/vote node args)
-     
-     
-     (strip (queries/tag-by-id db tagid)))})
+     (let [db (queries/vote node args)]
+       (strip (queries/tag-info db tagid))))})
 
 (defn load-schema []
   (-> (io/resource "schema.edn")

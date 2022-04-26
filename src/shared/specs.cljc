@@ -2,7 +2,7 @@
   (:require [clojure.spec.alpha :as s]
             #?@(:clj
                 [[dtorter.queries :as q]
-                 [dtorter.api :refer [strip]]])))
+                 [dtorter.util :refer [strip]]])))
 
 
 

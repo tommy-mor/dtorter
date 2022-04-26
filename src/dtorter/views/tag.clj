@@ -4,8 +4,9 @@
             [dtorter.queries :as queries]
             [cheshire.core :as json]
             [dtorter.views.common :refer [layout]]
-            [dtorter.api :refer [strip]]
             [com.walmartlabs.lacinia :as lacinia]
+
+            [dtorter.util :refer [strip]]
             
             [shared.query-strings :as qs]
             [shared.specs :as sp]
@@ -62,7 +63,7 @@
   (str "var tagid = '" (:xt/id tag) "';\n"
        "var itemid = false;\n"
        "var init = " (->> (gather-info ctx (:xt/id tag) attribute)
-                          (conform-throwing ::sp/db)
+                          show
                           strip
                           json/generate-string) ";"))
 

@@ -1,5 +1,5 @@
-move lacinia info gathering function into just one query...
-get more actions to work... (switch db to node)
+switch db to node
+get more actions to work
 
 
 fix frontend until it has parity, then host, THEN do performance.
