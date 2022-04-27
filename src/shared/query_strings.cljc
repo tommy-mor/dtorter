@@ -12,7 +12,7 @@ fragment appDb on Tag {
     itemcount
     attributes
     owner { id name }
-    sorted(attribute: $attribute) {...itemInfo}
+    sorted(attribute: $attribute) {...itemInfo elo}
     unsorted(attribute: $attribute) {...itemInfo}
     pair {
       left {...itemInfo}

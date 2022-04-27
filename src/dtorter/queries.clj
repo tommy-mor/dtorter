@@ -52,22 +52,9 @@
                    tid
                    attribute)))
 
-(defn uuid [] (str (java.util.UUID/randomUUID)))
-;; TODO move this to mutations.clj
-(defn vote [node {:keys [tagid left_item right_item attribute magnitude] :as args}]
-  (comment "TODO add checks here, using spec")
-  (comment "TODO add user id to this")
-  (xt/submit-tx node  [[::xt/put {:xt/id (uuid)
-                                :vote/left-item left_item
-                                :vote/right-item right_item
-                                :vote/magnitude magnitude
-                                :vote/owner tagid
-                                :vote/attribute attribute
-                                :vote/tag tagid}]])
-
-  (xt/db node))
-
 (comment
+  "perfornance testing..."
+  
   (def mtg "fdd74412-92e4-460f-ae80-19d6befef509")
   (use 'criterium.core)
   (with-progress-reporting
@@ -115,6 +102,7 @@
   "27 ms, it includes tag, owner, all votes. counts just use count function."
   
   )
+
 
 
 (defn count-votes [db tid attribute]

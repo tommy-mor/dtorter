@@ -54,14 +54,14 @@
                 :left_item (-> db :pair :left :id)
                 :right_item (-> db :pair :right :id)
                 :attribute (-> db :current-attribute)
-                :magnitude 50}
+                :magnitude (-> db :percent)}
                [::refresh-db-vote]]}))
 
 (reg-event-db
  ::refresh-db-vote
  interceptor-chain
  (fn [db [_ {:keys [data errors] :as payload}]]
-   (merge db (:vote data))))
+   (merge db (:vote data) {:percent 50})))
 
 
 

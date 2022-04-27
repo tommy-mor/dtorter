@@ -43,9 +43,7 @@
    
    (when (:elo item)
      
-     [:td {:key 1} (-> (* 10
-                          @(subscribe [:sorted-count])
-                          (:elo item))
+     [:td {:key 1} (-> (:elo item)
                        (.toFixed 2))])
    ;; customize by type (display url for links?)
    
@@ -89,9 +87,9 @@
       (doall (map (fn [i]
                     [:tr.vote 
                      {:key (:id i)}
-                     [:td (idtoname (:item_a i))]
+                     [:td (-> i :left_item :name)]
                      [:td (- 100 (:magnitude i))]
-                     [:td (idtoname (:item_b i))]
+                     [:td (-> i :right_item :name)]
                      [:td (:magnitude i)]
                      (if (:vote_edit @(subscribe [:show]))
                        [:td [c/smallbutton "delete" #(dispatch [:delete-vote i])]])])

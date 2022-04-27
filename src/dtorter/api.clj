@@ -8,6 +8,7 @@
             [clojure.walk :refer [postwalk]]
 
             [dtorter.queries :as queries]
+            [dtorter.mutations :as mutations]
             [dtorter.math :as math]
             [dtorter.util :refer [strip]]))
 
@@ -65,9 +66,9 @@
    
    :Vote/right-item
    (fn [{:keys [db]} _ value]
-     (if (string? (:left-item value))
+     (if (string? (:right-item value))
        (strip (queries/item-by-id db (:right-item value)))
-       (:left-item value)))
+       (:right-item value)))
    
    ;; does calculations
    :Tag/sorted
@@ -106,8 +107,8 @@
 
 
    :mutation/vote
-   (fn [{:keys [db node] :as ctx} {:keys [tagid left_item right_item attribute magnitude] :as args} _]
-     (let [db (queries/vote node args)]
+   (fn [{:keys [db node] :as ctx} {:keys [tagid] :as args} _]
+     (let [db (mutations/vote db node args)]
        (strip (queries/tag-info db tagid))))})
 
 (defn load-schema []
