@@ -39,9 +39,9 @@
                                     :vote/left-item left_item
                                     :vote/right-item right_item
                                     :vote/magnitude magnitude
-                                    :vote/owner tagid
+                                    :vote/owner userid
                                     :vote/attribute attribute
-                                    :vote/tag userid}]]))
+                                    :vote/tag tagid}]]))
   (xt/sync node)
   (comment
     (queries/votes-for-tag (xt/db node) "f734a5d2-1529-4565-8d38-0f086e7fd504" "default"))
