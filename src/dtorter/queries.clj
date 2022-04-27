@@ -136,6 +136,7 @@
       0))
 
 (defn tag-info [db tid]
+  (comment "TODO must have permissions on this query... use xtdb query functions")
   (let [[tag owner votes items] (first (xt/q db '[:find
                                                   (pull tid [*])
                                                   (pull owner [*])

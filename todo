@@ -1,5 +1,7 @@
-switch db to node
 get more actions to work
+
+fix
+  upsert on pair already inserted...
 
 
 fix frontend until it has parity, then host, THEN do performance.

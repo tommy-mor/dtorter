@@ -36,9 +36,10 @@
                                [::xt/put tx]))
           (xt/sync node)
           (xt/db node)))
+(def cookies (middlewares/session {:store (cookie/cookie-store)}))
 
 (defn enable-graphql [service-map schema]
-  (let [interceptors (lp/default-interceptors schema {:db db :node node})]
+  (let [interceptors (into [cookies] (lp/default-interceptors schema {:db db :node node}))]
     (-> service-map
         (update ::server/routes conj
                 ["/api" :post interceptors :route-name ::graphql-api]))))
@@ -59,7 +60,7 @@
       (enable-graphql schema)))
 
 (def common-interceptors
-  [(middlewares/session {:store (cookie/cookie-store)})
+  [cookies
    {:name ::load-db
     :enter (fn [ctx]
              (assoc ctx

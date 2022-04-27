@@ -60,7 +60,6 @@
   {:name ::login-done
    :enter (fn [ctx]
             
-            (reset! stest ctx)
             (let [{:keys [username password]} (:form-params (:request ctx))
                   user-doc (ffirst (xt/q (:db ctx)
                                          '[:find (pull e [*])

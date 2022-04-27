@@ -17,7 +17,7 @@
   (lacinia/execute (:gql-schema ctx)
                    query-string
                    args
-                   {:db (:db ctx)}))
+                   (select-keys ctx [:db :node :request])))
 
 (comment (def tagid "09044c15-3d3a-4268-9586-074d8ddf95d9")
          (def attribute "default"))

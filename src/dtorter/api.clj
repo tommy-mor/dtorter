@@ -13,6 +13,7 @@
             [dtorter.util :refer [strip]]))
 
 ;; TODO might be easier to to have tag-by-id return entire tag with all caluclations at once. would save some duplicate queries we are having...
+(defn grab-user [ctx] (-> ctx :request :session :user-id))
 (def resolver-map
   {:query/tag-by-id
    (fn [{:keys [db]} {:keys [id]} value]
@@ -27,14 +28,15 @@
      (strip (queries/items-for-tag db (:id value))))
    
    :Tag/votes
-   (fn [{:keys [db]} {:keys [attribute]} value]
-     (if (and (:items value)
-              (:votes value))
-       (let [id->item (apply hash-map (flatten (map (juxt :id identity) (:items value))))]
-         (map #(assoc %
-                      :left-item (id->item (:left-item %))
-                      :right-item (id->item (:right-item %))) (:votes value)))
-       (strip (queries/votes-for-tag db (:id value) attribute))))
+   (fn [{:keys [db] :as ctx} {:keys [attribute]} value]
+     (let [votes  (if (and (:items value)
+                           (:votes value))
+                    (let [id->item (apply hash-map (flatten (map (juxt :id identity) (:items value))))]
+                      (map #(assoc %
+                                   :left-item (id->item (:left-item %))
+                                   :right-item (id->item (:right-item %))) (:votes value)))
+                    (strip (queries/votes-for-tag db (:id value) attribute)))]
+       (filter #(= (:owner %) (grab-user ctx)) votes)))
    
    :Tag/votecount (fn [{:keys [db]} _ value]
                     (if (:votes value)
@@ -108,7 +110,7 @@
 
    :mutation/vote
    (fn [{:keys [db node] :as ctx} {:keys [tagid] :as args} _]
-     (let [db (mutations/vote db node args)]
+     (let [db (mutations/vote node args (grab-user ctx))]
        (strip (queries/tag-info db tagid))))})
 
 (defn load-schema []

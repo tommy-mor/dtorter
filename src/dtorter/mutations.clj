@@ -11,7 +11,7 @@
   s
   a)
 
-(defn vote [db node {:keys [tagid left_item right_item attribute magnitude] :as args}]
+(defn vote [node {:keys [tagid left_item right_item attribute magnitude] :as args} userid]
   (comment "TODO add checks here, using spec")
   (comment "TODO add user id to this")
 
@@ -23,6 +23,7 @@
                                               [[e :vote/tag tagid]
                                                [e :xt/id uuid]
                                                [e :vote/attribute atr]
+                                               [e :vote/owner uid]
                                                
                                                (or (and [e :vote/right-item id2]
                                                         [e :vote/left-item id])
@@ -31,17 +32,16 @@
                                left_item
                                right_item
                                attribute
-                               tagid))
+                               tagid
+                               userid))
                  (uuid))]
-    (show args)
-    
     (xt/submit-tx node  [[::xt/put {:xt/id uuid
                                     :vote/left-item left_item
                                     :vote/right-item right_item
                                     :vote/magnitude magnitude
                                     :vote/owner tagid
                                     :vote/attribute attribute
-                                    :vote/tag tagid}]]))
+                                    :vote/tag userid}]]))
   (xt/sync node)
   (comment
     (queries/votes-for-tag (xt/db node) "f734a5d2-1529-4565-8d38-0f086e7fd504" "default"))
