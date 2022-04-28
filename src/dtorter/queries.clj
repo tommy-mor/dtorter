@@ -135,50 +135,61 @@
                     tid))
       0))
 
-(defn tag-info [db tid]
+(defn get-voted-ids [votes]
+  (set
+   (flatten (map (juxt :left-item :right-item) (strip votes)))))
+
+(defn show [a]
+  (def s a)
+  s
+  a)
+                                        ; TODO add pair chosing...
+(defn tag-info [{:keys [node]} tid]
   (comment "TODO must have permissions on this query... use xtdb query functions")
-  (let [[tag owner votes items] (first (xt/q db '[:find
-                                                  (pull tid [*])
-                                                  (pull owner [*])
-                                                  (pull tid [{:vote/_tag [*]}])
-                                                  (pull tid [{:item/_tags [*]}])
-                                                  :in tid
-                                                  :where
-                                                  [tid :tag/owner owner]]
+  (xt/sync node)
+  (let [[tag owner votes items] (first (xt/q (xt/db node) '[:find
+                                                            (pull tid [*])
+                                                            (pull owner [*])
+                                                            (pull tid [{:vote/_tag [*]}])
+                                                            (pull tid [{:item/_tags [*]}])
+                                                            :in tid
+                                                            :where
+                                                            [tid :tag/owner owner]]
                                              tid))]
     (merge tag {:owner owner
                 :votes (:vote/_tag votes)
-                :items (:item/_tags items)})))
-                                        ; TODO add pair chosing...
+                :items (:item/_tags items)
+                :voted-ids (get-voted-ids (show (:vote/_tag votes)))})))
+
 (defn pair-for-tag [db tid]
   (def items (items-for-tag db tid))
   (if (> (count items) 2)
     {:left (first items) :right (second items)}
     nil))
 
-(defn show [a]
-  (clojure.pprint/pprint a)
-  a)
-
 (defn sorted-calc [items votes]
   (reverse (for [[elo item] (math/getranking (vec items) (vec votes))]
              (assoc item :elo elo))))
 
 (defn sorted [db tag attribute]
-  (def items (strip (items-for-tag db (:id tag))))
-  (def votes (strip (votes-for-tag db (:id tag) attribute)))
-  (sorted-calc items votes))
+  (let [votes (strip (votes-for-tag db (:id tag) attribute))
 
-(defn unsorted-calc [items votes]
-  (def voted-ids (set
-                  (flatten (map (juxt :left-item :right-item) votes))))
+        voted-ids (get-voted-ids votes)
+        items (filter #(voted-ids (:id %))
+                      (strip (items-for-tag db (:id tag))))]
+    
+    
+    (sorted-calc items votes)))
+
+(defn unsorted-calc [items votes voted-ids]
+  (def voted-ids)
   (filter #(not (voted-ids (:id %)))
           items))
 
 (defn unsorted [db tag attribute]
   (def items (items-for-tag db (:id tag)))
   (def votes (votes-for-tag db (:id tag) attribute))
-  (unsorted-calc items votes))
+  (unsorted-calc items votes (get-voted-ids votes)))
 
 ;; TODO make sure this nil works as intended..
 ;; TODO make this count attributes..

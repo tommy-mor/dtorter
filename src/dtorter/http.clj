@@ -30,6 +30,7 @@
             {:xtdb/index-store (lmdb-at "/tmp/idx")
              :xtdb/document-store (lmdb-at "/tmp/ds")
              :xtdb/tx-log (lmdb-at "/tmp/log")})))
+
 (def node (xt/start-node {}))
 (def db (do
           (xt/submit-tx node (for [tx (data/get-transactions)]
@@ -39,7 +40,7 @@
 (def cookies (middlewares/session {:store (cookie/cookie-store)}))
 
 (defn enable-graphql [service-map schema]
-  (let [interceptors (into [cookies] (lp/default-interceptors schema {:db db :node node}))]
+  (let [interceptors (into [cookies] (lp/default-interceptors schema {:node node}))]
     (-> service-map
         (update ::server/routes conj
                 ["/api" :post interceptors :route-name ::graphql-api]))))

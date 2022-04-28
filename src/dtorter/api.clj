@@ -10,110 +10,120 @@
             [dtorter.queries :as queries]
             [dtorter.mutations :as mutations]
             [dtorter.math :as math]
-            [dtorter.util :refer [strip]]))
+            [dtorter.util :refer [strip]]
+            [xtdb.api :as xt]))
 
 ;; TODO might be easier to to have tag-by-id return entire tag with all caluclations at once. would save some duplicate queries we are having...
+(defn show [x]
+  (def s x)
+  
+  x)
+
 (defn grab-user [ctx] (-> ctx :request :session :user-id))
 (def resolver-map
   {:query/tag-by-id
-   (fn [{:keys [db]} {:keys [id]} value]
-     (strip (queries/tag-info db id)))
+   (fn [ctx {:keys [id]} value]
+     (strip (queries/tag-info ctx id)))
    
    :query/all-tags
-   (fn [{:keys [db]} _ value]
-     (strip (queries/all-tags db)))
+   (fn [{:keys [node]} _ value]
+     (strip (queries/all-tags (xt/db node))))
    
    :Tag/items
-   (fn [{:keys [db]} {} value]
-     (strip (queries/items-for-tag db (:id value))))
+   (fn [{:keys [node]} {} value]
+     (strip (queries/items-for-tag (xt/db node) (:id value))))
    
    :Tag/votes
-   (fn [{:keys [db] :as ctx} {:keys [attribute]} value]
+   (fn [{:keys [node] :as ctx} {:keys [attribute]} value]
      (let [votes  (if (and (:items value)
                            (:votes value))
                     (let [id->item (apply hash-map (flatten (map (juxt :id identity) (:items value))))]
                       (map #(assoc %
                                    :left-item (id->item (:left-item %))
                                    :right-item (id->item (:right-item %))) (:votes value)))
-                    (strip (queries/votes-for-tag db (:id value) attribute)))]
+                    (strip (queries/votes-for-tag (xt/db node) (:id value) attribute)))]
        (filter #(= (:owner %) (grab-user ctx)) votes)))
    
-   :Tag/votecount (fn [{:keys [db]} _ value]
+   :Tag/votecount (fn [{:keys [node]} _ value]
                     (if (:votes value)
                       (count (:votes value))
-                      (queries/count-votes db (:id value) nil)))
-   :Tag/usercount (fn [{:keys [db]} _ value]
+                      (queries/count-votes (xt/db node) (:id value) nil)))
+   :Tag/usercount (fn [{:keys [node]} _ value]
                     (if (:votes value)
                       (->> value
                            :votes
                            (map :owner)
                            distinct
                            count)
-                      (strip (queries/count-users db (:id value)))))
-   :Tag/itemcount (fn [{:keys [db]} _ value]
+                      (strip (queries/count-users (xt/db node) (:id value)))))
+   :Tag/itemcount (fn [{:keys [node]} _ value]
                     (if (:items value)
                       (count (:items value))
-                      (strip (queries/count-items db (:id value)))))
+                      (strip (queries/count-items (xt/db node) (:id value)))))
    
 
    :Vote/tag
-   (fn [{:keys [db]} _ value]
-     (strip (queries/tag-by-id db (:tag value))))
+   (fn [{:keys [node]} _ value]
+     (strip (queries/tag-by-id (xt/db node) (:tag value))))
 
    :Vote/left-item
-   (fn [{:keys [db]} _ value]
+   (fn [{:keys [node]} _ value]
      (if (string? (:left-item value))
-       (strip (queries/item-by-id db (:left-item value)))
+       (strip (queries/item-by-id (xt/db node) (:left-item value)))
        (:left-item value)))
    
    :Vote/right-item
-   (fn [{:keys [db]} _ value]
+   (fn [{:keys [node]} _ value]
      (if (string? (:right-item value))
-       (strip (queries/item-by-id db (:right-item value)))
+       (strip (queries/item-by-id (xt/db node) (:right-item value)))
        (:right-item value)))
    
    ;; does calculations
    :Tag/sorted
-   (fn [{:keys [db]} {:keys [attribute]} value]
-     (let [{:keys [items votes]} value]
+   (fn [{:keys [node]} {:keys [attribute]} value]
+     (let [{:keys [items votes voted-ids]} value]
+       (show voted-ids)
        (if (and items votes)
-         (strip (queries/sorted-calc items votes))
-         (strip (queries/sorted db value attribute)))))
+         (strip (queries/sorted-calc (filter #(voted-ids (:id %)) items) votes))
+         (strip (queries/sorted (xt/db node) value attribute)))))
    
    :Tag/unsorted
-   (fn [{:keys [db]} {:keys [attribute]} value]
-     (let [{:keys [votes items]} value]
+   (fn [{:keys [node]} {:keys [attribute]} value]
+     (let [{:keys [votes items voted-ids]} value]
        (if (and votes items)
-         (queries/unsorted-calc items votes)
-         (strip (queries/unsorted db value attribute)))))
+         (queries/unsorted-calc items votes voted-ids)
+         (strip (queries/unsorted (xt/db node) value attribute)))))
    
    :Tag/attributes
-   (fn [{:keys [db]} {} value]
+   (fn [{:keys [node]} {} value]
      (if (:votes value)
        (distinct (map :attribute (:votes value)))
-       (strip (queries/attributes db value))))
+       (strip (queries/attributes (xt/db node) value))))
    
    :Tag/pair
-   (fn [{:keys [db]} {} value]
-     (strip (queries/pair-for-tag db (:id value))))
+   (fn [{:keys [node]} {} value]
+     (strip (queries/pair-for-tag (xt/db node) (:id value))))
 
    :Item/tags
-   (fn [{:keys [db]} {} item]
-     (strip (map #(queries/tag-by-id db %) (:tags item))))
+   (fn [{:keys [node]} {} item]
+     (strip (map #(queries/tag-by-id (xt/db node) %) (:tags item))))
 
    :All/owner
-   (fn [{:keys [db]} {} item]
+   (fn [{:keys [node]} {} item]
      (if (string? (:owner item))
-       (strip (queries/user-by-id db (:owner item)))
+       (strip (queries/user-by-id (xt/db node) (:owner item)))
        (:owner item)))
 
 
    :mutation/vote
-   (fn [{:keys [db node] :as ctx} {:keys [tagid] :as args} _] (let [db (mutations/vote node args (grab-user ctx))] (strip (queries/tag-info db tagid))))
+   (fn [{:keys [node] :as ctx} {:keys [tagid] :as args} _]
+     (do (mutations/vote node args (grab-user ctx))
+         (strip (queries/tag-info ctx tagid))))
+   
    :mutation/delvote
    (fn [ctx args _]
-     (let [[db tagid] (mutations/delvote ctx args)]
-       (strip (queries/tag-info db tagid))))})
+     (let [tagid (mutations/delvote ctx args)]
+       (strip (queries/tag-info ctx tagid))))})
 
 (defn load-schema []
   (-> (io/resource "schema.edn")
