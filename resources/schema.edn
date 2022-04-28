@@ -92,4 +92,13 @@
    :args {:voteid {:type (non-null ID)}
           :attribute {:type (non-null String)}}
    :resolve :mutation/delvote}
+
+  :additem
+  {:type (non-null :Tag)
+   :description "add an item"
+   :args {:tagid {:type (non-null ID)}
+          :name {:type (non-null String)}
+          :url {:type String}
+          :description {:type String}}
+   :resolve :mutation/additem}
   }}

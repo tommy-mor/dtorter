@@ -16,3 +16,4 @@ node_modules/
 package-lock.json
 .shadow-cljs/
 src/gen/
+.cpcache

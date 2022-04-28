@@ -24,7 +24,8 @@
 
 (def show-all {:vote_panel true
                :vote_edit true
-               :edit_tag true})
+               :edit_tag true
+               :add_items true})
 
 ;; TODO get rid of show map, should be calculated on clientside.
 (defn add-show [db]

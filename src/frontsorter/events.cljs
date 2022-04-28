@@ -79,6 +79,26 @@
  (fn [db [_ {:keys [data errors] :as payload}]]
    (merge db (:delvote data))))
 
+;; things that are part of ...appDB fragment, but not every mutation. these should be filled in always so state knows how to refresh itself.
+(def appdb-args
+  {:attribute "default" :tagid "tagid"}) ;; TODO make these real
+
+
+(reg-event-fx
+ :add-item
+ (fn [{:keys [db]} [_ item]]
+   (def t item)
+   {:dispatch [::re-graph/mutate
+               :add-item
+               qs/add-item
+               (merge item appdb-args)
+               [::refresh-db-add-item]]}))
+
+(reg-event-db
+ ::refresh-db-add-item interceptor-chain
+ (fn [db [_ {:keys [data errors] :as payload}]]
+   (merge db (:additem data))))
+
 
 
 

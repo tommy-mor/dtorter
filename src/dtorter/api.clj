@@ -123,7 +123,12 @@
    :mutation/delvote
    (fn [ctx args _]
      (let [tagid (mutations/delvote ctx args)]
-       (strip (queries/tag-info ctx tagid))))})
+       (strip (queries/tag-info ctx tagid))))
+   
+   :mutation/additem
+   (fn [ctx args _]
+     (strip (queries/tag-info ctx (:tagid args)))
+     )})
 
 (defn load-schema []
   (-> (io/resource "schema.edn")

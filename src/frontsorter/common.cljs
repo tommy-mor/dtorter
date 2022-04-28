@@ -13,7 +13,7 @@
         {:on-click (fn [e] (swap! collapsed not))}
         (if @collapsed
           (str "[+]  " title)
-          (str "[  ]  " title))]
+          (str "[–]  " title))]
        (if @collapsed
          nil
          children)])))

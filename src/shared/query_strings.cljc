@@ -37,6 +37,13 @@ fragment appDb on Tag {
 "
        fragments))
 
+(def add-item
+  (str "mutation AddItem($tagid: ID!, $attribute: String!, $name: String!, $url: String, $description: String)  {
+   additem(tagid: $tagid, name: $name, url: $url, description: $description) { ...appDb }
+} 
+"
+       fragments))
+
 (def del-vote
   (str "mutation DelVote($voteid: ID!, $attribute: String!)  {
    delvote(voteid: $voteid, attribute: $attribute) { ...appDb }

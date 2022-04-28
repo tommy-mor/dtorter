@@ -1,4 +1,5 @@
 get more actions to work
+add item. use the forms thing?? no, use existing thing.
 
 
 attributes, must fit in frequencies/counts into gql schema somehow... (could hack, put into string as last two characters...
