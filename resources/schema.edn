@@ -85,4 +85,11 @@
           :right_item {:type (non-null ID)}
           :attribute {:type (non-null String)}
           :magnitude {:type (non-null Int)}}
-   :resolve :mutation/vote}}}
+   :resolve :mutation/vote}
+  :delvote
+  {:type (non-null :Tag)
+   :description "delete a vote"
+   :args {:voteid {:type (non-null ID)}
+          :attribute {:type (non-null String)}}
+   :resolve :mutation/delvote}
+  }}

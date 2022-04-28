@@ -57,11 +57,27 @@
                 :magnitude (-> db :percent)}
                [::refresh-db-vote]]}))
 
+(reg-event-fx
+ :delete-vote
+ (fn [{:keys [db]} [_ vote]]
+   {:dispatch [::re-graph/mutate
+               :delete-vote
+               qs/del-vote
+               {:voteid (:id vote)
+                :attribute (:current-attribute db)}
+               [::refresh-db-delete-vote]]}))
+
 (reg-event-db
  ::refresh-db-vote
  interceptor-chain
  (fn [db [_ {:keys [data errors] :as payload}]]
    (merge db (:vote data) {:percent 50})))
+
+(reg-event-db
+ ::refresh-db-delete-vote
+ interceptor-chain
+ (fn [db [_ {:keys [data errors] :as payload}]]
+   (merge db (:delvote data))))
 
 
 

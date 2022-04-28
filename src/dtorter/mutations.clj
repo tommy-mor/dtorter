@@ -11,6 +11,8 @@
   s
   a)
 
+(defn grab-user [ctx] (-> ctx :request :session :user-id))
+
 (defn vote [node {:keys [tagid left_item right_item attribute magnitude] :as args} userid]
   (comment "TODO add checks here, using spec")
   (comment "TODO add user id to this")
@@ -43,9 +45,26 @@
                                     :vote/attribute attribute
                                     :vote/tag tagid}]]))
   (xt/sync node)
-  (comment
-    (queries/votes-for-tag (xt/db node) "f734a5d2-1529-4565-8d38-0f086e7fd504" "default"))
-
   (xt/db node))
+
+(defn delvote [{:keys [node db] :as ctx} {:keys [voteid] :as args}]
+  ;; TODO make sure we own this document...
+  (let [tagid (ffirst (xt/q (xt/db node) '{:find [tagid]
+                                           :in [vid owner]
+                                           :where
+                                           [[vid :vote/tag tagid]
+                                            [vid :vote/owner owner]]}
+                            voteid
+                            (grab-user ctx)))]
+    (if tagid
+      (do
+        (xt/submit-tx node [[::xt/delete voteid]])
+        (xt/sync node)
+        [(xt/db node) tagid])
+      "TODO error here better?")))
+
+
+
+
 
 

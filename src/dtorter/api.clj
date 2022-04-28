@@ -109,8 +109,10 @@
 
 
    :mutation/vote
-   (fn [{:keys [db node] :as ctx} {:keys [tagid] :as args} _]
-     (let [db (mutations/vote node args (grab-user ctx))]
+   (fn [{:keys [db node] :as ctx} {:keys [tagid] :as args} _] (let [db (mutations/vote node args (grab-user ctx))] (strip (queries/tag-info db tagid))))
+   :mutation/delvote
+   (fn [ctx args _]
+     (let [[db tagid] (mutations/delvote ctx args)]
        (strip (queries/tag-info db tagid))))})
 
 (defn load-schema []

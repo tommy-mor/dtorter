@@ -1,5 +1,11 @@
 get more actions to work
 
+
+attributes, must fit in frequencies/counts into gql schema somehow... (could hack, put into string as last two characters...
+
+
+permissions/schemas.... (after all actions are done..., and one pass over of cleaning)
+
 fix
   upsert on pair already inserted...
 
