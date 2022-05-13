@@ -32,17 +32,20 @@
    
    :Tag/items
    (fn [{:keys [node]} {} value]
-     (strip (queries/items-for-tag (xt/db node) (:id value))))
+     (or (:items value)
+         (strip (queries/items-for-tag (xt/db node) (:id value)))))
    
    :Tag/votes
    (fn [{:keys [node] :as ctx} {:keys [attribute]} value]
-     (let [votes  (if (and (:items value)
-                           (:votes value))
-                    (let [id->item (apply hash-map (flatten (map (juxt :id identity) (:items value))))]
-                      (map #(assoc %
-                                   :left-item (id->item (:left-item %))
-                                   :right-item (id->item (:right-item %))) (:votes value)))
-                    (strip (queries/votes-for-tag (xt/db node) (:id value) attribute)))]
+     (let [votes (if (and (:items value)
+                          (:votes value))
+                   (let [id->item (apply hash-map
+                                         (flatten
+                                          (map (juxt :id identity) (:items value))))]
+                     (map #(assoc %
+                                  :left-item (id->item (:left-item %))
+                                  :right-item (id->item (:right-item %))) (:votes value)))
+                   (strip (queries/votes-for-tag (xt/db node) (:id value) attribute)))]
        (filter #(= (:owner %) (grab-user ctx)) votes)))
    
    :Tag/votecount (fn [{:keys [node]} _ value]
@@ -128,7 +131,9 @@
    
    :mutation/additem
    (fn [ctx args _]
-     (strip (queries/tag-info ctx (:tagid args)))
+     (show args)
+     (do (mutations/add-item ctx args)
+         (strip (queries/tag-info ctx (:tagid args))))
      )})
 
 (defn load-schema []

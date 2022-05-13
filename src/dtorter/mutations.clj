@@ -60,10 +60,21 @@
                             (grab-user ctx)))]
     (if tagid
       (do
-        (let [tx (xt/submit-tx node [[::xt/delete voteid]])]
-          (xt/await-tx node tx))
+        (xt/await-tx node (xt/submit-tx node [[::xt/delete voteid]]))
         tagid)
       "TODO error here better?")))
+
+(defn add-item [{:keys [node] :as ctx}
+                {:keys [name url description tagid] :as args}]
+  (let [userid (grab-user ctx)
+        tx (xt/submit-tx node
+                         [[::xt/put {:xt/id (uuid)
+                                     :item/name name
+                                     :item/url url
+                                     :item/description description
+                                     :item/tags [tagid]
+                                     :item/owner userid}]])]
+    (xt/await-tx node tx)))
 
 
 

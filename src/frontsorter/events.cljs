@@ -80,8 +80,10 @@
    (merge db (:delvote data))))
 
 ;; things that are part of ...appDB fragment, but not every mutation. these should be filled in always so state knows how to refresh itself.
-(def appdb-args
-  {:attribute "default" :tagid "tagid"}) ;; TODO make these real
+(defn appdb-args [db]
+  {:attribute (-> db :current-attribute)
+   :tagid js/tagid})
+;; TODO make these real
 
 
 (reg-event-fx
@@ -91,7 +93,7 @@
    {:dispatch [::re-graph/mutate
                :add-item
                qs/add-item
-               (merge item appdb-args)
+               (merge item (appdb-args db))
                [::refresh-db-add-item]]}))
 
 (reg-event-db
