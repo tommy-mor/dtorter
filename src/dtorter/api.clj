@@ -20,6 +20,7 @@
   x)
 
 (defn grab-user [ctx] (-> ctx :request :session :user-id))
+
 (def resolver-map
   {:query/tag-by-id
    (fn [ctx {:keys [id]} value]
@@ -82,9 +83,9 @@
    :Tag/sorted
    (fn [{:keys [node]} {:keys [attribute]} value]
      (let [{:keys [items votes voted-ids]} value]
-       (show voted-ids)
        (if (and items votes)
-         (strip (queries/sorted-calc (filter #(voted-ids (:id %)) items) votes))
+         (strip (queries/sorted-calc (filter #(voted-ids (:id %)) items)
+                                     (filter #(= (:attribute %) attribute) votes)))
          (strip (queries/sorted (xt/db node) value attribute)))))
    
    :Tag/unsorted

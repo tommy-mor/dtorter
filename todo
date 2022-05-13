@@ -1,6 +1,13 @@
+update symex
+fix issuse where it ignores attribute
+
+asses
+  (probably get more actions to work..)
+
 get more actions to work
 add item. use the forms thing?? no, use existing thing.
 
+refactor to use component system...
 
 attributes, must fit in frequencies/counts into gql schema somehow... (could hack, put into string as last two characters...
 
@@ -38,3 +45,4 @@ add move button
 deploy (start using).
 integrate with discord api.
 
+switch to faster vector library
