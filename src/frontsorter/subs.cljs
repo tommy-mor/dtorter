@@ -82,8 +82,7 @@
 (reg-sub :sorted-not-empty :<- [:sorted-count] (complement zero?)) 
 
 (reg-sub :users :users)
-(reg-sub :selected-user :<- [:users] #(or (:user %) "all users"))
-(reg-sub :all-users :<- [:users] :users)
+(reg-sub :current-user :current-user)
 
 (reg-sub :unsorted :unsorted)
 (reg-sub :unsorted-count :<- [:unsorted] count)

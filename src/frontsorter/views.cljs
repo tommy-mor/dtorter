@@ -82,8 +82,8 @@
 (defn sortedlist [sorted sorted-count]
   (let [size @(subscribe [sorted-count])
         sorted @(subscribe [sorted])
-        all-users @(subscribe [:all-users])
-        selected-user @(subscribe [:selected-user])]
+        all-users @(subscribe [:users])
+        selected-user @(subscribe [:current-user])]
     
     [:div "by user "
      [:form {:autoComplete "off"}
@@ -92,7 +92,8 @@
                 :autoComplete "nope"}  
        [:option {:value "all users"} "all users combined"]
        (for [user all-users]
-         [:option {:key user :value user} user])]]
+         [:option {:key (:name user)
+                   :value (:id user)} (:name user)])]]
 
      
      [:table

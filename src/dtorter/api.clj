@@ -14,11 +14,6 @@
             [xtdb.api :as xt]))
 
 ;; TODO might be easier to to have tag-by-id return entire tag with all caluclations at once. would save some duplicate queries we are having...
-(defn show [x]
-  (def s x)
-  
-  x)
-
 (defn grab-user [ctx] (-> ctx :request :session :user-id))
 
 (def resolver-map
@@ -60,6 +55,15 @@
                            distinct
                            count)
                       (strip (queries/count-users (xt/db node) (:id value)))))
+   :Tag/users (fn [{:keys [node]} _ value]
+                (if (:votes value)
+                  (->> value
+                       :votes
+                       (map :owner)
+                       distinct
+                       (xt/pull-many (xt/db node) '[*])
+                       strip)
+                  (throw (ex-info "can't do this yet" value))))
    :Tag/itemcount (fn [{:keys [node]} _ value]
                     (if (:items value)
                       (count (:items value))
@@ -84,12 +88,16 @@
    
    ;; does calculations
    :Tag/sorted
-   (fn [{:keys [node]} {:keys [attribute]} value]
+   (fn [{:keys [node]} {:keys [attribute user] :as args} value]
      (let [{:keys [items votes voted-ids]} value]
        (if (and items votes)
          (strip (queries/sorted-calc (filter #(voted-ids (:id %)) items)
-                                     (filter #(= (:attribute %) attribute) votes)))
-         (strip (queries/sorted (xt/db node) value attribute)))))
+                                     (filter #(and (= (:attribute %) attribute)
+                                                   (or (not user)
+                                                       (= (:owner %) user)))
+                                             votes)))
+         (throw (ex-info "this data is wrong"
+                         (strip (queries/sorted (xt/db node) value attribute)))))))
    
    :Tag/unsorted
    (fn [{:keys [node]} {:keys [attribute]} value]
@@ -108,7 +116,7 @@
    (fn [{:keys [node]} {} value]
      (if (:frequencies value)
        (map second (:frequencies value))
-       (strip (queries/attributes (xt/db node) value))))
+       (throw (ex-info "don't know how to calculate this rn" value))))
    
    :Tag/pair
    (fn [{:keys [node]} {} value]

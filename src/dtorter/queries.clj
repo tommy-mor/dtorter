@@ -139,11 +139,7 @@
   (set
    (flatten (map (juxt :left-item :right-item) (strip votes)))))
 
-(defn show [a]
-  (def s a)
-  s
-  a)
-                                        ; TODO add pair chosing...
+; TODO add pair chosing...
 (defn tag-info [{:keys [node]} tid]
   (comment "TODO must have permissions on this query... use xtdb query functions")
   (xt/sync node)
@@ -157,11 +153,11 @@
                                                             [tid :tag/owner owner]]
                                              tid))]
     (let [votes (:vote/_tag votes)]
-      (show (merge tag {:owner owner
-                   :votes votes
-                   :items (:item/_tags items)
-                   :voted-ids (get-voted-ids votes)
-                   :frequencies (sort-by second (frequencies (map :vote/attribute votes)))})))))
+      (merge tag {:owner owner
+                  :votes votes
+                  :items (:item/_tags items)
+                  :voted-ids (get-voted-ids votes)
+                  :frequencies (sort-by second (frequencies (map :vote/attribute votes)))}))))
 
 (defn pair-for-tag [db tid]
   (def items (items-for-tag db tid))

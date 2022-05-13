@@ -13,13 +13,16 @@
     :description {:type String}
     :members {:type (list :Item)
               :resolve :Tag/items}
-    :votes {:args {:attribute {:type (non-null String)}}
+    :votes {:args {:attribute {:type (non-null String)}
+                   :user {:type ID}}
             :type (list :Vote)
             :resolve :Tag/votes}
-    :sorted {:args {:attribute {:type (non-null String)}}
+    :sorted {:args {:attribute {:type (non-null String)}
+                    :user {:type ID}}
              :type (list :Item)
              :resolve :Tag/sorted}
-    :unsorted {:args {:attribute {:type (non-null String)}}
+    :unsorted {:args {:attribute {:type (non-null String)}
+                      :user {:type ID}}
                :type (list :Item)
                :resolve :Tag/unsorted}
     :attributes {:type (list :String)
@@ -33,7 +36,10 @@
 
     :votecount {:type Int :resolve :Tag/votecount}
     :usercount {:type Int :resolve :Tag/usercount}
-    :itemcount {:type Int :resolve :Tag/itemcount}}}
+    :itemcount {:type Int :resolve :Tag/itemcount}
+
+    :users {:type (list :User) :resolve :Tag/users
+            :description "every user who has voted on this tag"}}}
   
   :Item
   {:description "a named url/link/item in the system that can be voted on"
@@ -72,6 +78,7 @@
    :description "return a tag based on its unique id, if it exists"
    :args {:id {:type ID}}
    :resolve :query/tag-by-id}
+  
   :all_tags
   {:type (list :Tag)
    :description "return a list of all (public) tags"

@@ -21,10 +21,6 @@
         node))
     m))
 
-(defn show [e]
-  (clojure.pprint/pprint e)
-  e)
-
 (defn strip-namespaces [kw]
   (when (keyword? kw)
     (keyword (name kw))))

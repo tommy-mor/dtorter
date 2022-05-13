@@ -29,8 +29,10 @@
 
 ;; TODO get rid of show map, should be calculated on clientside.
 (defn add-show [db]
-  (merge db {:show (cond-> show-all
-                     (nil? (:pair db)) (assoc :vote_panel false))}))
+  (merge {:show (cond-> show-all
+                  (nil? (:pair db)) (assoc :vote_panel false))
+          :current-user "all users"}
+         db))
 
 (defn get-throwing [map val]
   (let [got (get map val)]
@@ -51,20 +53,11 @@
       conformed)))
 
 
-(defn show [x]
-  (def shown x)
-  (comment (-> (q shown qs/app-db {:tagid tagid :attribute "default"})
-               :data
-               :tag_by_id
-               keys))
-  x)
-
 (defn jsonstring [ctx tag attribute]
   (def ctx ctx)
   (str "var tagid = '" (:xt/id tag) "';\n"
        "var itemid = false;\n"
        "var init = " (->> (gather-info ctx (:xt/id tag) attribute)
-                          show
                           strip
                           json/generate-string) ";"))
 

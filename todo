@@ -1,3 +1,6 @@
+default attribute on load, also "all users" thing
+
+
 attributes
   i want current attribute to get bounced back(no schema), i want attributecounts (schema)
 user selection (can select multiple?)
@@ -51,3 +54,5 @@ deploy (start using).
 integrate with discord api.
 
 switch to faster vector library
+
+eventually make url sync with user/attribute parameters

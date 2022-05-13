@@ -83,7 +83,8 @@
 ;; these should be filled in always so state knows how to refresh itself.
 (defn appdb-args [db]
   {:attribute (-> db :current-attribute)
-   :tagid js/tagid})
+   :tagid js/tagid
+   :user (-> db :current-user)})
 
 (reg-event-fx
  :add-item
@@ -129,7 +130,9 @@
  interceptor-chain
  (fn [{:keys [db]}
       [_ new-user]]
-   {:db (assoc-in db [:users :user] new-user)
+   {:db (assoc db :current-user (if (= "all users" new-user)
+                                  nil
+                                  new-user))
     :dispatch [:refresh-state [:left :right]]}))
 
 
@@ -175,10 +178,8 @@
           (fn [db _]
             (voting->item db))))
 
-(comment (as-> @re-frame.db/app-db $
-           ($ :sorted)
-           (map :elo $)
-           (apply + $)))
+(-> @re-frame.db/app-db
+    :users)
 
 
 ;; attribute system

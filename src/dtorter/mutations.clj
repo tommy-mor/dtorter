@@ -6,11 +6,6 @@
 
 (defn uuid [] (str (java.util.UUID/randomUUID)))
 
-(defn show [a]
-  (def s a)
-  s
-  a)
-
 (defn grab-user [ctx] (-> ctx :request :session :user-id))
 
 (defn vote [node {:keys [tagid left_item right_item attribute magnitude] :as args} userid]
