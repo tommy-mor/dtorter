@@ -4,28 +4,29 @@
                           reg-sub reg-fx
                           subscribe dispatch dispatch-sync]]
    [reagent.core :refer [atom]]
-   [frontsorter.common :as c]))
-
-;; inviariants : when no attribute is selected, :current-attribute is null
-;; 
+   [frontsorter.common :as c]
+   [frontsorter.events :as events]))
 
 (reg-sub :attributes :attributes)
+(reg-sub :attributecounts :attributecounts)
 (reg-sub :current-attribute :current-attribute)
 
 ;; eventually switch back to using counts, rn just make it work normally
+;; make attribute counts a separate array, same length
 
 (reg-event-fx :attribute-selected
+              events/interceptor-chain
               (fn [{:keys [db]} [_ attribute]]
-                (let [path [:attributes :chosen (keyword attribute)]]
-                  {:db (assoc db :current-attribute attribute)
-                   :dispatch [:refresh-state [:attributes]]}))) 
+                {:db (assoc db :current-attribute attribute)
+                 :dispatch [:refresh-state]})) 
 
 (defn attributes-panel []
   (let [editing (atom false)
         new-attr-name (atom "")]
     (fn []
       (let [current-attribute @(subscribe [:current-attribute])
-            attributes @(subscribe [:attributes])]
+            attributes @(subscribe [:attributes])
+            attributecounts @(subscribe [:attributecounts])]
         [:div {:style {:display "flex"}} "you are voting on"
          (if (not @editing)
            [:select
@@ -34,9 +35,9 @@
                              "[add new attribute]" (reset! editing true)
                              (dispatch-sync [:attribute-selected new-attr])))
              :value current-attribute}
-            (for [attribute attributes]
+            (for [[attribute attributecount] (reverse (map list attributes attributecounts))]
               [:option {:value attribute
-                        :key attribute} (str (name attribute) " (sst"  " votes)")])
+                        :key attribute} (str (name attribute) " (" attributecount " votes)")])
             [:option {:key "add new"} "[add new attribute]"]]
            
            [:<> [:input {:type "text"

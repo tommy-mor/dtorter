@@ -10,7 +10,10 @@ fragment appDb on Tag {
     votecount
     usercount
     itemcount
+
     attributes
+    attributecounts
+
     owner { id name }
     sorted(attribute: $attribute) {...itemInfo elo}
     unsorted(attribute: $attribute) {...itemInfo}
@@ -52,11 +55,11 @@ fragment appDb on Tag {
        fragments))
 
 (def app-db
-  (str fragments
-       "query starting_data($tagid: ID, $attribute: String)  {
+  (str "query starting_data($tagid: ID, $attribute: String)  {
   tag_by_id(id: $tagid) {
      ...appDb
   }
 }
    
-"))
+"
+       fragments))

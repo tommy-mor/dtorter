@@ -100,8 +100,14 @@
    
    :Tag/attributes
    (fn [{:keys [node]} {} value]
-     (if (:votes value)
-       (distinct (map :attribute (:votes value)))
+     (if (:frequencies value)
+       (map first (:frequencies value))
+       (strip (queries/attributes (xt/db node) value))))
+   
+   :Tag/attributecounts
+   (fn [{:keys [node]} {} value]
+     (if (:frequencies value)
+       (map second (:frequencies value))
        (strip (queries/attributes (xt/db node) value))))
    
    :Tag/pair
@@ -131,10 +137,8 @@
    
    :mutation/additem
    (fn [ctx args _]
-     (show args)
      (do (mutations/add-item ctx args)
-         (strip (queries/tag-info ctx (:tagid args))))
-     )})
+         (strip (queries/tag-info ctx (:tagid args)))))})
 
 (defn load-schema []
   (-> (io/resource "schema.edn")

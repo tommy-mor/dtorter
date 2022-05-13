@@ -1,5 +1,10 @@
-update symex
-fix issuse where it ignores attribute
+attributes
+  i want current attribute to get bounced back(no schema), i want attributecounts (schema)
+user selection (can select multiple?)
+
+pair chosing? (just do random and random)
+
+some elo is getting sucked up right now, IDK
 
 asses
   (probably get more actions to work..)

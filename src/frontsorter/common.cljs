@@ -72,7 +72,9 @@
                        :white-space "pre-line"}} (:paragraph (:content item))]])] ))
 
 (defn smallbutton [text fn & [style]]
-  [:a {:on-click fn :style style :class "sideeffect" :href "#"} text])
+  [:a {:on-click #(do (.preventDefault %)
+                      (fn))
+       :style style :class "sideeffect" :href "#"} text])
 
 (defn hoveritem [keys & children]
   (let [hovered (atom false)]

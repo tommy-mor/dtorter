@@ -24,6 +24,8 @@
                :resolve :Tag/unsorted}
     :attributes {:type (list :String)
                  :resolve :Tag/attributes}
+    :attributecounts {:type (list :Int)
+                      :resolve :Tag/attributecounts}
     :pair {:type :Pair
            :resolve :Tag/pair}
     :owner {:type :User

@@ -57,6 +57,12 @@
                 :magnitude (-> db :percent)}
                [::refresh-db-vote]]}))
 
+(reg-event-db
+ ::refresh-db-vote
+ interceptor-chain
+ (fn [db [_ {:keys [data errors] :as payload}]]
+   (merge db (:vote data) {:percent 50})))
+
 (reg-event-fx
  :delete-vote
  (fn [{:keys [db]} [_ vote]]
@@ -64,14 +70,8 @@
                :delete-vote
                qs/del-vote
                {:voteid (:id vote)
-                :attribute (:current-attribute db)}
+                :attribute (:attribute vote)}
                [::refresh-db-delete-vote]]}))
-
-(reg-event-db
- ::refresh-db-vote
- interceptor-chain
- (fn [db [_ {:keys [data errors] :as payload}]]
-   (merge db (:vote data) {:percent 50})))
 
 (reg-event-db
  ::refresh-db-delete-vote
@@ -79,12 +79,11 @@
  (fn [db [_ {:keys [data errors] :as payload}]]
    (merge db (:delvote data))))
 
-;; things that are part of ...appDB fragment, but not every mutation. these should be filled in always so state knows how to refresh itself.
+;; things that are part of ...appDB fragment, but not every mutation.
+;; these should be filled in always so state knows how to refresh itself.
 (defn appdb-args [db]
   {:attribute (-> db :current-attribute)
    :tagid js/tagid})
-;; TODO make these real
-
 
 (reg-event-fx
  :add-item
@@ -100,6 +99,19 @@
  ::refresh-db-add-item interceptor-chain
  (fn [db [_ {:keys [data errors] :as payload}]]
    (merge db (:additem data))))
+
+(reg-event-fx
+ :refresh-state interceptor-chain
+ (fn [{:keys [db]} _]
+   {:dispatch [::re-graph/query
+               :refresh
+               qs/app-db
+               (appdb-args db)
+               [::refresh-db-refresh-state]]}))
+(reg-event-db
+ ::refresh-db-refresh-state interceptor-chain
+ (fn [db [_ {:keys [data errors] :as payload}]]
+   (merge db (:tag_by_id data))))
 
 
 
@@ -119,6 +131,7 @@
       [_ new-user]]
    {:db (assoc-in db [:users :user] new-user)
     :dispatch [:refresh-state [:left :right]]}))
+
 
 (reg-event-db
  :delete-item-success
@@ -161,6 +174,12 @@
           interceptor-chain
           (fn [db _]
             (voting->item db))))
+
+(comment (as-> @re-frame.db/app-db $
+           ($ :sorted)
+           (map :elo $)
+           (apply + $)))
+
 
 ;; attribute system
 
