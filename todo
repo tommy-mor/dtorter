@@ -1,3 +1,12 @@
+{problem, in tag-info. get-voted-ids needs to be filtered by user and attribute.
+this means filtering needs to happen in tag-info. which means all other code can be simplified. this is a large refactor. DO THIS WHEN I GET HOME}
+
+fix not loading
+
+fix current attribute ui
+  so i can generate test for V
+  so i can test if bigger attributes than default win on load
+
 default attribute on load, also "all users" thing
 
 

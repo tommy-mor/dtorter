@@ -1,7 +1,8 @@
 (ns dtorter.data
   (:require [cheshire.core :refer :all]
             [clojure.pprint :refer [pprint]]
-            [dtorter.hashing :as hashing]))
+            [dtorter.hashing :as hashing]
+            [clojure.set]))
 
 (defn uuid [st] (java.util.UUID/fromString st))
 

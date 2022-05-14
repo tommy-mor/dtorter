@@ -30,8 +30,7 @@
  (fn [{:keys [db]} _]
    {:db (let [db (js->clj js/init :keywordize-keys true)]
           (assoc db
-                 :percent 50
-                 :current-attribute "default")) ;; TODO
+                 :percent 50)) ;; TODO
     :dispatch [::re-graph/init {:ws nil :http {:url "/api"}}]}))
 
 (reg-fx :delayed
@@ -179,7 +178,7 @@
             (voting->item db))))
 
 (-> @re-frame.db/app-db
-    :users)
+    :current-attribute)
 
 
 ;; attribute system

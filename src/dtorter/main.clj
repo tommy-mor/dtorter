@@ -1,7 +1,12 @@
 (ns dtorter.main
   (:require
-   [xtdb.api :as xt]
    [dtorter.data :as data]
-   [dtorter.http :as http]))
+   [dtorter.http :as http]
+   [dtorter.api :as api]
+   [com.stuartsierra.component :as component]))
 
-(http/start)
+
+(defn new-system []
+  (merge (component/system-map)
+         (http/new-server)
+         (api/new-schema-provider)))

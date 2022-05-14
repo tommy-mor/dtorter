@@ -14,16 +14,18 @@
             
             [ring.middleware.session.cookie :as cookie]
             [io.pedestal.http.ring-middlewares :as middlewares]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [clojure.tools.namespace.repl :refer [refresh]]
+            [com.stuartsierra.component :as component]))
+
 ;; TODO clean up this file by using
 ;; https://lacinia.readthedocs.io/en/latest/tutorial/component.html
 ;; this library/tutorial
 
-(def schema (api/load-schema))
-
 ;; database stuff
 
 
+(def schema {})
 (defn lmdb-at [f] {:kv-store {:xtdb/module 'xtdb.lmdb/->kv-store
                               :db-dir (io/file f)}})
 (comment (def node (xt/start-node
@@ -53,13 +55,6 @@
               (lp/graphiql-asset-routes "/assets/graphiql"))
       (assoc ::server/secure-headers nil)))
 
-(def service
-  (-> {:env :prod
-       ::server/type :jetty
-       ::server/port 8080
-       ::server/resource-path "/public"}
-      (enable-graphql schema)))
-
 (def common-interceptors
   [cookies
    {:name ::load-db
@@ -87,19 +82,18 @@
                                           (assoc-in [:headers "Content-Type"] "text/html"))))
                ctx))}])
 
-(defn refresh-routes []
+(defn refresh-routes [schema]
   "regather routes for dev thing"
-  (let [schema (api/load-schema)]
-    
-    (route/expand-routes
-     (::server/routes (-> {::server/routes (views/routes common-interceptors)}
-                          (enable-graphql schema)
-                          (enable-ide schema))))))
+  (route/expand-routes
+   (::server/routes (-> {::server/routes (views/routes common-interceptors)}
+                        (enable-graphql schema)
+                        (enable-ide schema)))))
 
     
 
 
 ;; taken from https://github.com/pedestal/pedestal/blob/50fe5ea89108998ac5a79a02a44432fd111ea6f8/samples/json-api/src/json_api/server.clj#L11
+(def service {})
 (defn run-dev
   "runs a service for the terminal"
   []
@@ -131,3 +125,38 @@
 
   (stop)
   (start))
+
+
+
+(defrecord Server [schema-provider server]
+  component/Lifecycle
+  (start [this]
+    (assoc this :server
+           (-> {:env :dev
+                ::server/type :jetty
+                ::server/port 8080
+                ::server/resource-path "/public"
+                ::server/routes (views/routes common-interceptors)}
+               
+               (enable-graphql (:schema schema-provider))
+               (enable-ide (:schema schema-provider))
+
+               (update ::server/routes route/expand-routes)
+               
+               (merge {::server/join? false
+                       ::server/allowed-origin {:creds true :allowed-origins (constantly true)}})
+
+               
+
+               server/default-interceptors
+               server/dev-interceptors
+               server/create-server
+               server/start)))
+  
+  (stop [this]
+    (server/stop server)
+    (assoc this :server nil)))
+
+(defn new-server []
+  {:server (component/using (map->Server {})
+                            [:schema-provider])})

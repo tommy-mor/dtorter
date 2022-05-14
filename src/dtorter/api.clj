@@ -11,12 +11,14 @@
             [dtorter.mutations :as mutations]
             [dtorter.math :as math]
             [dtorter.util :refer [strip]]
-            [xtdb.api :as xt]))
+            [xtdb.api :as xt]
+
+            [com.stuartsierra.component :as component]))
 
 ;; TODO might be easier to to have tag-by-id return entire tag with all caluclations at once. would save some duplicate queries we are having...
 (defn grab-user [ctx] (-> ctx :request :session :user-id))
 
-(def resolver-map
+(defn resolver-map [component]
   {:query/tag-by-id
    (fn [ctx {:keys [id]} value]
      (strip (queries/tag-info ctx id)))
@@ -33,13 +35,13 @@
    :Tag/votes
    (fn [{:keys [node] :as ctx} {:keys [attribute]} value]
      (let [votes (if (and (:items value)
-                          (:votes value))
+                          (:allvotes value))
                    (let [id->item (apply hash-map
                                          (flatten
                                           (map (juxt :id identity) (:items value))))]
                      (map #(assoc %
                                   :left-item (id->item (:left-item %))
-                                  :right-item (id->item (:right-item %))) (:votes value)))
+                                  :right-item (id->item (:right-item %))) (:allvotes value)))
                    (strip (queries/votes-for-tag (xt/db node) (:id value) attribute)))]
        (filter #(= (:owner %) (grab-user ctx)) votes)))
    
@@ -89,13 +91,13 @@
    ;; does calculations
    :Tag/sorted
    (fn [{:keys [node]} {:keys [attribute user] :as args} value]
-     (let [{:keys [items votes voted-ids]} value]
-       (if (and items votes)
+     (let [{:keys [items allvotes voted-ids]} value]
+       (if (and items allvotes)
          (strip (queries/sorted-calc (filter #(voted-ids (:id %)) items)
                                      (filter #(and (= (:attribute %) attribute)
                                                    (or (not user)
                                                        (= (:owner %) user)))
-                                             votes)))
+                                             allvotes)))
          (throw (ex-info "this data is wrong"
                          (strip (queries/sorted (xt/db node) value attribute)))))))
    
@@ -146,18 +148,30 @@
    :mutation/additem
    (fn [ctx args _]
      (do (mutations/add-item ctx args)
-         (strip (queries/tag-info ctx (:tagid args)))))})
+         (strip (queries/tag-info ctx (:tagid args)))))} )
 
-(defn load-schema []
+(defn load-schema [component]
   (-> (io/resource "schema.edn")
       slurp
       edn/read-string
-      (util/attach-resolvers resolver-map)      schema/compile))
+      (util/attach-resolvers (resolver-map component))
+      schema/compile))
 
 (defn q [query-string]
     (def schema (load-schema))
     (lacinia/execute schema query-string nil nil))
 
 (comment (q "{ tag_by_id(id: \"foo\") {id name}}"))
+
+(defrecord SchemaProvider [schema]
+  component/Lifecycle
+  (start [this]
+    (assoc this :schema (load-schema this)))
+  
+  (stop [this]
+    (assoc this :schema nil)))
+
+(defn new-schema-provider []
+  {:schema-provideor (map->SchemaProvider {})})
 
 

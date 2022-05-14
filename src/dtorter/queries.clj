@@ -154,7 +154,7 @@
                                              tid))]
     (let [votes (:vote/_tag votes)]
       (merge tag {:owner owner
-                  :votes votes
+                  :allvotes votes
                   :items (:item/_tags items)
                   :voted-ids (get-voted-ids votes)
                   :frequencies (sort-by second (frequencies (map :vote/attribute votes)))}))))

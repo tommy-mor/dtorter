@@ -30,9 +30,12 @@
 ;; TODO get rid of show map, should be calculated on clientside.
 (defn add-show [db]
   (merge {:show (cond-> show-all
-                  (nil? (:pair db)) (assoc :vote_panel false))
-          :current-user "all users"}
+                  (nil? (:pair db)) (assoc :vote_panel false))}
          db))
+
+(defn chose-default-attr [db]
+  "TODO maybe get this from url"
+  (assoc db :current-attribute (or (last (:attributes db)) "default")))
 
 (defn get-throwing [map val]
   (let [got (get map val)]
@@ -40,11 +43,17 @@
       (throw (ex-info "couldnt find key in map" {:map map :key val}))
       got)))
 
+(defn trace [x]
+  (def t x)
+  x)
+
 (defn gather-info [ctx tid attribute]
   (->  (q ctx qs/app-db {:tagid tid :attribute attribute})
        (get-throwing :data)
        :tag_by_id
-       add-show))
+       add-show
+       chose-default-attr
+       trace))
 
 (defn conform-throwing [spec x]
   (let [conformed (s/conform spec x)]
