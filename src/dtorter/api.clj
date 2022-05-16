@@ -154,7 +154,7 @@
   (-> (io/resource "schema.edn")
       slurp
       edn/read-string
-      (util/attach-resolvers node)
+      (util/attach-resolvers (resolver-map node))
       schema/compile))
 
 (defn q [query-string]

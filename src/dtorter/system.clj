@@ -23,7 +23,7 @@ rewrite:
 
 
 "
-(defn new-system []
+#_(defn new-system []
   (merge (component/system-map)
          (http/new-server)
          (api/new-schema-provider)
