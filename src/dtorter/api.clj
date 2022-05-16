@@ -19,136 +19,139 @@
 (defn grab-user [ctx] (-> ctx :request :session :user-id))
 
 (defn resolver-map [component]
-  {:query/tag-by-id
-   (fn [ctx {:keys [id]} value]
-     (strip (queries/tag-info ctx id)))
-   
-   :query/all-tags
-   (fn [{:keys [node]} _ value]
-     (strip (queries/all-tags (xt/db node))))
-   
-   :Tag/items
-   (fn [{:keys [node]} {} value]
-     (or (:items value)
-         (strip (queries/items-for-tag (xt/db node) (:id value)))))
-   
-   :Tag/votes
-   (fn [{:keys [node] :as ctx} {:keys [attribute]} value]
-     (let [votes (if (and (:items value)
-                          (:allvotes value))
-                   (let [id->item (apply hash-map
-                                         (flatten
-                                          (map (juxt :id identity) (:items value))))]
-                     (map #(assoc %
-                                  :left-item (id->item (:left-item %))
-                                  :right-item (id->item (:right-item %))) (:allvotes value)))
-                   (strip (queries/votes-for-tag (xt/db node) (:id value) attribute)))]
-       (filter #(= (:owner %) (grab-user ctx)) votes)))
-   
-   :Tag/votecount (fn [{:keys [node]} _ value]
-                    (if (:votes value)
-                      (count (:votes value))
-                      (queries/count-votes (xt/db node) (:id value) nil)))
-   :Tag/usercount (fn [{:keys [node]} _ value]
-                    (if (:votes value)
-                      (->> value
-                           :votes
-                           (map :owner)
-                           distinct
-                           count)
-                      (strip (queries/count-users (xt/db node) (:id value)))))
-   :Tag/users (fn [{:keys [node]} _ value]
-                (if (:votes value)
-                  (->> value
-                       :votes
-                       (map :owner)
-                       distinct
-                       (xt/pull-many (xt/db node) '[*])
-                       strip)
-                  (throw (ex-info "can't do this yet" value))))
-   :Tag/itemcount (fn [{:keys [node]} _ value]
-                    (if (:items value)
-                      (count (:items value))
-                      (strip (queries/count-items (xt/db node) (:id value)))))
-   
+  (comment "how to get one open-db per lacinia request...")
+  (let [node (-> component :db :node)]
+    {:query/tag-by-id
+     (fn [ctx {:keys [id]} value]
+       (strip (queries/tag-info ctx node id)))
+     
+     :query/all-tags
+     (fn [ctx _ value]
+       (strip (queries/all-tags ctx node)))
+     
+     :Tag/items
+     (fn [_ {} value]
+       (or (:items value)
+           (throw (ex-info "not implemented" value))))
+     
+     :Tag/votes
+     (fn [ctx {:keys [attribute]} value]
+       (let [votes (if (and (:items value)
+                            (:allvotes value))
+                     (let [id->item (apply hash-map
+                                           (flatten
+                                            (map (juxt :id identity) (:items value))))]
+                       (map #(assoc %
+                                    :left-item (id->item (:left-item %))
+                                    :right-item (id->item (:right-item %))) (:allvotes value)))
+                     (throw (ex-info "not implemented" value)))]
+         (filter #(= (:owner %) (grab-user ctx)) votes)))
+     
+     :Tag/votecount (fn [_ _ value]
+                      (def t value)
+                      (-> t keys)
+                      (if (:allvotes value)
+                        (count (:allvotes value))
+                        (throw (ex-info "not implemented" value))))
+     :Tag/usercount (fn [_ _ value]
+                      (if (:votes value)
+                        (->> value
+                             :votes
+                             (map :owner)
+                             distinct
+                             count)
+                        (throw (ex-info "not implemented" value))))
+     :Tag/users (fn [_ _ value]
+                  (if (:votes value)
+                    (->> value
+                         :votes
+                         (map :owner)
+                         distinct
+                         (xt/pull-many (xt/db node) '[*])
+                         strip)
+                    (throw (ex-info "can't do this yet" value))))
+     :Tag/itemcount (fn [_ _ value]
+                      (if (:items value)
+                        (count (:items value))
+                        (throw (ex-info "not implemented" value))))
+     
 
-   :Vote/tag
-   (fn [{:keys [node]} _ value]
-     (strip (queries/tag-by-id (xt/db node) (:tag value))))
+     :Vote/tag
+     (fn [ctx _ value]
+       (strip (queries/tag-by-id ctx node (:tag value))))
 
-   :Vote/left-item
-   (fn [{:keys [node]} _ value]
-     (if (string? (:left-item value))
-       (strip (queries/item-by-id (xt/db node) (:left-item value)))
-       (:left-item value)))
-   
-   :Vote/right-item
-   (fn [{:keys [node]} _ value]
-     (if (string? (:right-item value))
-       (strip (queries/item-by-id (xt/db node) (:right-item value)))
-       (:right-item value)))
-   
-   ;; does calculations
-   :Tag/sorted
-   (fn [{:keys [node]} {:keys [attribute user] :as args} value]
-     (let [{:keys [items allvotes voted-ids]} value]
-       (if (and items allvotes)
-         (strip (queries/sorted-calc (filter #(voted-ids (:id %)) items)
-                                     (filter #(and (= (:attribute %) attribute)
-                                                   (or (not user)
-                                                       (= (:owner %) user)))
-                                             allvotes)))
-         (throw (ex-info "this data is wrong"
-                         (strip (queries/sorted (xt/db node) value attribute)))))))
-   
-   :Tag/unsorted
-   (fn [{:keys [node]} {:keys [attribute]} value]
-     (let [{:keys [votes items voted-ids]} value]
-       (if (and votes items)
-         (queries/unsorted-calc items votes voted-ids)
-         (strip (queries/unsorted (xt/db node) value attribute)))))
-   
-   :Tag/attributes
-   (fn [{:keys [node]} {} value]
-     (if (:frequencies value)
-       (map first (:frequencies value))
-       (strip (queries/attributes (xt/db node) value))))
-   
-   :Tag/attributecounts
-   (fn [{:keys [node]} {} value]
-     (if (:frequencies value)
-       (map second (:frequencies value))
-       (throw (ex-info "don't know how to calculate this rn" value))))
-   
-   :Tag/pair
-   (fn [{:keys [node]} {} value]
-     (strip (queries/pair-for-tag (xt/db node) (:id value))))
+     :Vote/left-item
+     (fn [ctx _ value]
+       (if (string? (:left-item value))
+         (strip (queries/item-by-id ctx node (:left-item value)))
+         (:left-item value)))
+     
+     :Vote/right-item
+     (fn [ctx _ value]
+       (if (string? (:right-item value))
+         (strip (queries/item-by-id ctx node (:right-item value)))
+         (:right-item value)))
+     
+     ;; does calculations
+     :Tag/sorted
+     (fn [ctx {:keys [attribute user] :as args} value]
+       (let [{:keys [items allvotes voted-ids]} value]
+         (if (and items allvotes)
+           (strip (queries/sorted-calc (filter #(voted-ids (:id %)) items)
+                                       (filter #(and (= (:attribute %) attribute)
+                                                     (or (not user)
+                                                         (= (:owner %) user)))
+                                               allvotes)))
+           (throw (ex-info "this data is wrong" value)))))
+     
+     :Tag/unsorted
+     (fn [ctx {:keys [attribute]} value]
+       (let [{:keys [votes items voted-ids]} value]
+         (if (and votes items)
+           (queries/unsorted-calc items votes voted-ids)
+           (throw (ex-info "not implemented" value)))))
+     
+     :Tag/attributes
+     (fn [ctx {} value]
+       (if (:frequencies value)
+         (map first (:frequencies value))
+         (throw (ex-info "what" value))))
+     
+     :Tag/attributecounts
+     (fn [ctx {} value]
+       (if (:frequencies value)
+         (map second (:frequencies value))
+         (throw (ex-info "don't know how to calculate this rn" value))))
+     
+     :Tag/pair
+     (fn [ctx {} value]
+       (strip (queries/pair-for-tag ctx node (:id value))))
 
-   :Item/tags
-   (fn [{:keys [node]} {} item]
-     (strip (map #(queries/tag-by-id (xt/db node) %) (:tags item))))
+     :Item/tags
+     (fn [ctx {} item]
+       (strip (map #(queries/tag-by-id ctx node %) (:tags item))))
 
-   :All/owner
-   (fn [{:keys [node]} {} item]
-     (if (string? (:owner item))
-       (strip (queries/user-by-id (xt/db node) (:owner item)))
-       (:owner item)))
+     :All/owner
+     (fn [ctx {} item]
+       (if (string? (:owner item))
+         (strip (queries/user-by-id ctx node (:owner item)))
+         (:owner item)))
 
 
-   :mutation/vote
-   (fn [{:keys [node] :as ctx} {:keys [tagid] :as args} _]
-     (do (mutations/vote node args (grab-user ctx))
-         (strip (queries/tag-info ctx tagid))))
-   
-   :mutation/delvote
-   (fn [ctx args _]
-     (let [tagid (mutations/delvote ctx args)]
-       (strip (queries/tag-info ctx tagid))))
-   
-   :mutation/additem
-   (fn [ctx args _]
-     (do (mutations/add-item ctx args)
-         (strip (queries/tag-info ctx (:tagid args)))))} )
+     :mutation/vote
+     (fn [ctx {:keys [tagid] :as args} _]
+       (do (mutations/vote ctx node args)
+           (strip (queries/tag-info ctx node tagid))))
+     
+     :mutation/delvote
+     (fn [ctx args _]
+       (let [tagid (mutations/delvote ctx node args)]
+         (strip (queries/tag-info ctx node tagid))))
+     
+     :mutation/additem
+     (fn [ctx args _]
+       (do (mutations/add-item ctx node args)
+           (strip (queries/tag-info ctx node (:tagid args)))))}) )
 
 (defn load-schema [component]
   (-> (io/resource "schema.edn")
@@ -166,12 +169,13 @@
 (defrecord SchemaProvider [schema]
   component/Lifecycle
   (start [this]
+    (println "starting schemaprovidor")
     (assoc this :schema (load-schema this)))
   
   (stop [this]
     (assoc this :schema nil)))
 
 (defn new-schema-provider []
-  {:schema-provideor (map->SchemaProvider {})})
+  (map->SchemaProvider {}))
 
 

@@ -20,8 +20,9 @@
                  [re-graph "0.1.17"]
                  [criterium "0.4.6"]
 
-                 [com.stuartsierra/component "0.3.2"]]
+                 [integrant "0.8.0"]]
   
   
-  :repl-options {:init-ns dev-resources.main}
+  
+  :repl-options {:init-ns dev-resources.user}
   :repositories [["sonatype snapshots" {:url "https://s01.oss.sonatype.org/content/repositories/snapshots"}]])

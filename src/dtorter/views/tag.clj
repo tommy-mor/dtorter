@@ -72,9 +72,9 @@
 
 (def tag-page
   {:name ::tag-page
-   :enter (fn [{:keys [db request] :as ctx}]
+   :enter (fn [{:keys [node request] :as ctx}]
             (let [tidp (-> request :path-params :tagid)
-                  tag (queries/tag-by-id db tidp)
+                  tag (queries/tag-by-id ctx node tidp)
                   attribute (or (-> request :path-params :attribute)
                                 "default")] ;; TODO find better default attribute
               (assoc ctx :response {:status 200 :html

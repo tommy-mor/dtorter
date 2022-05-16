@@ -3,48 +3,48 @@
             [dtorter.math :as math]
             [dtorter.util :refer [strip]]))
 
-(defn user-by-id [db e]
-  (ffirst (xt/q db
+(defn user-by-id [ctx node e]
+  (ffirst (xt/q (xt/db node)
                 '[:find (pull e [*])
                   :in e
                   :where
                   [e :user/name _]]
                 e)))
 
-(defn tag-by-id [db e]
-  (ffirst (xt/q db
-                '[:find (pull e [*])
-                  :in e
-                  :where
-                  [e :tag/owner _]]
-                e)))
-
-(defn item-by-id [db e]
-  (ffirst (xt/q db
+(defn item-by-id [ctx node e]
+  (ffirst (xt/q (xt/db node)
                 '[:find (pull e [*])
                   :in e
                   :where
                   [e :item/owner _]]
                 e)))
 
-(defn all-tags [db]
+(defn tag-by-id [ctx node e]
+  (ffirst (xt/q (xt/db node)
+                '[:find (pull e [*])
+                  :in e
+                  :where
+                  [e :tag/owner _]]
+                e)))
+
+(defn all-tags [ctx node]
   (map first
-       (xt/q db
+       (xt/q (xt/db node)
              '[:find (pull e [*])
                :where
                [e :tag/name nme]
                [e :tag/description desc]])))
 
-(defn items-for-tag [db tid]
-  (map first (xt/q db
+(defn items-for-tag [ctx node tid]
+  (map first (xt/q (xt/db node)
                    '[:find (pull e [*])
                      :in tid
                      :where
                      [e :item/tags tid]]
                    tid)))
 
-(defn votes-for-tag [db tid attribute]
-  (map first (xt/q db
+(defn votes-for-tag [ctx node tid attribute]
+  (map first (xt/q (xt/db node)
                    '[:find (pull vote [*])
                      :in tid
                      :where
@@ -105,18 +105,18 @@
 
 
 
-(defn count-votes [db tid attribute]
-(or (ffirst (xt/q db
-                  '[:find (count vote)
-                    :in tid
-                    :where
-                    [vote :vote/tag tid]
-                    [vote :vote/attribute attribute]]
-                  tid
-                  attribute))
+(defn count-votes [ctx db tid attribute]
+  (or (ffirst (xt/q db
+                    '[:find (count vote)
+                      :in tid
+                      :where
+                      [vote :vote/tag tid]
+                      [vote :vote/attribute attribute]]
+                    tid
+                    attribute))
       0))
 
-(defn count-users [db tid]
+(defn count-users [ctx db tid]
   (or (ffirst (xt/q db
                     '[:find (count-distinct user)
                       :in tid
@@ -126,7 +126,7 @@
                     tid))
       0))
 
-(defn count-items [db tid]
+(defn count-items [ctx db tid]
   (or (ffirst (xt/q db
                     '[:find (count item)
                       :in tid
@@ -139,8 +139,7 @@
   (set
    (flatten (map (juxt :left-item :right-item) (strip votes)))))
 
-; TODO add pair chosing...
-(defn tag-info [{:keys [node]} tid]
+(defn tag-info [ctx node tid]
   (comment "TODO must have permissions on this query... use xtdb query functions")
   (xt/sync node)
   (let [[tag owner votes items] (first (xt/q (xt/db node) '[:find
@@ -159,8 +158,8 @@
                   :voted-ids (get-voted-ids votes)
                   :frequencies (sort-by second (frequencies (map :vote/attribute votes)))}))))
 
-(defn pair-for-tag [db tid]
-  (def items (items-for-tag db tid))
+(defn pair-for-tag [ctx node tid]
+  (def items (items-for-tag ctx node tid))
   (if (> (count items) 2)
     {:left (first items) :right (second items)}
     nil))
@@ -169,36 +168,11 @@
   (reverse (for [[elo item] (math/getranking (vec items) (vec votes))]
              (assoc item :elo elo))))
 
-(defn sorted [db tag attribute]
-  (let [votes (strip (votes-for-tag db (:id tag) attribute))
-
-        voted-ids (get-voted-ids votes)
-        items (filter #(voted-ids (:id %))
-                      (strip (items-for-tag db (:id tag))))]
-    
-    
-    (sorted-calc items votes)))
-
 (defn unsorted-calc [items votes voted-ids]
   (def voted-ids)
   (filter #(not (voted-ids (:id %)))
           items))
 
-(defn unsorted [db tag attribute]
-  (def items (items-for-tag db (:id tag)))
-  (def votes (votes-for-tag db (:id tag) attribute))
-  (unsorted-calc items votes (get-voted-ids votes)))
-
-;; TODO make sure this nil works as intended..
-;; TODO make this count attributes..
-(defn attributes [db tag]
-  (def votes (votes-for-tag db (:id tag) nil))
-  (distinct (map :vote/attribute votes)))
-
-;; (def db dtorter.http/db)
-;; (def tag {:id "1a260ec6-9580-4dec-ab44-256a9c5c43b1"})
-
-;(sorted dtorter.http/db tag)
 
 (comment 
 

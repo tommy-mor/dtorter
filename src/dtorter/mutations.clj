@@ -8,7 +8,7 @@
 
 (defn grab-user [ctx] (-> ctx :request :session :user-id))
 
-(defn vote [node {:keys [tagid left_item right_item attribute magnitude] :as args} userid]
+(defn vote [ctx node {:keys [tagid left_item right_item attribute magnitude] :as args} userid]
   (comment "TODO add checks here, using spec")
   (comment "TODO add user id to this")
 
@@ -44,7 +44,7 @@
     (xt/await-tx node tx))
   (xt/db node))
 
-(defn delvote [{:keys [node] :as ctx} {:keys [voteid] :as args}]
+(defn delvote [ctx node {:keys [voteid] :as args}]
   ;; TODO make sure we own this document...
   (let [tagid (ffirst (xt/q (xt/db node) '{:find [tagid]
                                            :in [vid owner]
@@ -59,7 +59,8 @@
         tagid)
       "TODO error here better?")))
 
-(defn add-item [{:keys [node] :as ctx}
+(defn add-item [ctx node
+                
                 {:keys [name url description tagid] :as args}]
   (let [userid (grab-user ctx)
         tx (xt/submit-tx node
