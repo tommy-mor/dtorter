@@ -8,6 +8,8 @@
 
 (comment (->> @re-frame.db/app-db
               (s/valid? ::sp/db))
+         (-> @re-frame.db/app-db
+             (select-keys [:attributes :attributecounts :current-attribute]))
          (->> @re-frame.db/app-db
               keys))
 

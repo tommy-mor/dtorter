@@ -35,7 +35,9 @@
 
 (defn chose-default-attr [db]
   "TODO maybe get this from url"
-  (assoc db :current-attribute (or (last (:attributes db)) "default")))
+  (if-let [attr (last (:attributes db))]
+    (assoc db :current-attribute attr)
+    db))
 
 (defn get-throwing [map val]
   (let [got (get map val)]

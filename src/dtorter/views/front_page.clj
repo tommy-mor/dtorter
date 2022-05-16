@@ -24,8 +24,8 @@
 
 (def front-page
   {:name ::front-page
-   :enter (fn [{:keys [db request] :as ctx}]
-            (let [tags (queries/all-tags db)]
+   :enter (fn [{:keys [node request] :as ctx}]
+            (let [tags (queries/all-tags ctx node)]
               (assoc ctx
                      :response
                      {:status 200
@@ -51,17 +51,17 @@
 (:form-params (clojure.pprint/pprint (keys @stest)))
 
 (comment (ffirst (xt/q dtorter.http/db
-                '[:find (pull e [*])
-                  :in username
-                  :where [e :user/name username]]
-                "tommy")))
+                       '[:find (pull e [*])
+                         :in username
+                         :where [e :user/name username]]
+                       "tommy")))
 
 (def login-done
   {:name ::login-done
    :enter (fn [ctx]
             
             (let [{:keys [username password]} (:form-params (:request ctx))
-                  user-doc (ffirst (xt/q (:db ctx)
+                  user-doc (ffirst (xt/q (xt/db (:node ctx))
                                          '[:find (pull e [*])
                                            :in username
                                            :where [e :user/name username]]

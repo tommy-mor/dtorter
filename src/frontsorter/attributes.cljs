@@ -7,9 +7,24 @@
    [frontsorter.common :as c]
    [frontsorter.events :as events]))
 
-(reg-sub :attributes :attributes)
+(reg-sub :current-attribute (some-fn :current-attribute
+                                     (constantly ::empty)))
+
+(reg-sub :raw-attributes :attributes)
 (reg-sub :attributecounts :attributecounts)
-(reg-sub :current-attribute :current-attribute)
+(reg-sub :attributes
+         :<- [:current-attribute]
+         :<- [:raw-attributes]
+         :<- [:attributecounts]
+         (fn [[ca attrs counts] _]
+           (if (or (contains? (set attrs) ca)
+                   (#{::empty} ca))
+             [attrs counts]
+             [(conj attrs ca)
+              (conj counts 0)])))
+
+(-> @re-frame.db/app-db
+    :current-attribute)
 
 ;; eventually switch back to using counts, rn just make it work normally
 ;; make attribute counts a separate array, same length
@@ -18,17 +33,21 @@
               events/interceptor-chain
               (fn [{:keys [db]} [_ attribute]]
                 {:db (assoc db :current-attribute attribute)
-                 :dispatch [:refresh-state]})) 
+                 :dispatch [:refresh-state]}))
+@(subscribe [:current-attribute])
+@(subscribe [:raw-attributes])
+@(subscribe [:attributes])
+(contains? (set [1,2,3]) 3 )
 
 (defn attributes-panel []
   (let [editing (atom false)
         new-attr-name (atom "")]
     (fn []
       (let [current-attribute @(subscribe [:current-attribute])
-            attributes @(subscribe [:attributes])
-            attributecounts @(subscribe [:attributecounts])]
+            [attributes attributecounts] @(subscribe [:attributes])]
         [:div {:style {:display "flex"}} "you are voting on"
-         (if (not @editing)
+         (if (and (not (empty? attributes))
+                  (not @editing))
            [:select
             {:on-change #(let [new-attr (.. % -target -value)]
                            (case new-attr
@@ -52,3 +71,6 @@
                            (reset! new-attr-name ""))}
              "chose"]])
          "attribute"]))))
+(def a [[1,2,3,4] ["a", "b" "c"]])
+
+(map list (first a) (second a))
