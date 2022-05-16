@@ -8,8 +8,8 @@
             
             [ring.middleware.session.cookie :as cookie]
             [io.pedestal.http.ring-middlewares :as middlewares]
-            
-            [com.stuartsierra.component :as component]))
+            [dtorter.db :as db]
+            [dtorter.api]))
 
 
 (def cookies (middlewares/session {:store (cookie/cookie-store)}))
@@ -52,36 +52,41 @@
                                           (assoc-in [:headers "Content-Type"] "text/html"))))
                ctx))}])
 
-(defrecord Server [server schema-provider db]
-  component/Lifecycle
-  (start [this]
-    (println "starting server")
-    (assoc this :server
-           (-> {:env :dev
-                ::server/type :jetty
-                ::server/port 8080
-                ::server/resource-path "/public"
-                ::server/routes (views/routes (common-interceptors (:schema schema-provider)
-                                                                   (:node db)))}
-               
-               (enable-graphql (:schema schema-provider))
-               (enable-ide (:schema schema-provider))
+(def server (atom nil))
 
-               (update ::server/routes route/expand-routes)
-               
-               (merge {::server/join? false
-                       ::server/allowed-origin {:creds true :allowed-origins (constantly true)}})
+(def node (dtorter.db/start))
+(def resolver (dtorter.api/load-schema node))
 
-               
 
-               server/default-interceptors
-               server/dev-interceptors
-               server/create-server
-               server/start)))
-  
-  (stop [this]
-    (server/stop (:server this))
-    (assoc this :server nil)))
 
-(defn new-server []
-  (map->Server {}))
+(defn start [db api]
+  (-> {:env :dev
+       ::server/type :jetty
+       ::server/port 8080
+       ::server/resource-path "/public"
+       ::server/routes (views/routes (common-interceptors resolver
+                                                          db))}
+      
+      (enable-graphql resolver)
+      (enable-ide resolver)
+
+      (update ::server/routes route/expand-routes)
+      
+      (merge {::server/join? false
+              ::server/allowed-origin {:creds true :allowed-origins (constantly true)}})
+
+      
+
+      server/default-interceptors
+      server/dev-interceptors
+      server/create-server
+      server/start
+      (as-> $ (reset! server $))))
+
+(defn stop []
+  (server/stop @server))
+
+(comment
+  (start))
+
+
