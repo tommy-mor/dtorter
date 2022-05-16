@@ -151,12 +151,15 @@
                                                             :where
                                                             [tid :tag/owner owner]]
                                              tid))]
-    (let [votes (:vote/_tag votes)]
+
+    (let [votes (or (:vote/_tag votes)
+                    [])]
       (merge tag {:owner owner
                   :allvotes votes
                   :items (:item/_tags items)
                   :voted-ids (get-voted-ids votes)
                   :frequencies (sort-by second (frequencies (map :vote/attribute votes)))}))))
+
 
 (defn pair-for-tag [ctx node tid]
   (def items (items-for-tag ctx node tid))

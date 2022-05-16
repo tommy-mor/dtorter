@@ -16,6 +16,7 @@
 ;; TODO might be easier to to have tag-by-id return entire tag with all caluclations at once. would save some duplicate queries we are having...
 (defn grab-user [ctx] (-> ctx :request :session :user-id))
 
+
 (defn resolver-map [node]
   (comment "how to get one open-db per lacinia request...")
   {:query/tag-by-id
@@ -45,13 +46,11 @@
        (filter #(= (:owner %) (grab-user ctx)) votes)))
    
    :Tag/votecount (fn [_ _ value]
-                    (def t value)
-                    (-> t keys)
                     (if (:allvotes value)
                       (count (:allvotes value))
                       (throw (ex-info "not implemented" value))))
    :Tag/usercount (fn [_ _ value]
-                    (if (:votes value)
+                    (if-not (nil? (:allvotes value))
                       (->> value
                            :votes
                            (map :owner)
@@ -59,9 +58,9 @@
                            count)
                       (throw (ex-info "not implemented" value))))
    :Tag/users (fn [_ _ value]
-                (if (:votes value)
+                (if (:allvotes value)
                   (->> value
-                       :votes
+                       :allvotes
                        (map :owner)
                        distinct
                        (xt/pull-many (xt/db node) '[*])
@@ -103,9 +102,9 @@
    
    :Tag/unsorted
    (fn [ctx {:keys [attribute]} value]
-     (let [{:keys [votes items voted-ids]} value]
-       (if (and votes items)
-         (queries/unsorted-calc items votes voted-ids)
+     (let [{:keys [allvotes items voted-ids]} value]
+       (if (and allvotes items)
+         (queries/unsorted-calc items allvotes voted-ids)
          (throw (ex-info "not implemented" value)))))
    
    :Tag/attributes

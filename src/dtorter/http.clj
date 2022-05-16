@@ -59,18 +59,25 @@
 
 
 
-(defn start [db api]
+(defn start [node api]
   (-> {:env :dev
        ::server/type :jetty
        ::server/port 8080
        ::server/resource-path "/public"
        ::server/routes (views/routes (common-interceptors resolver
-                                                          db))}
+                                                          node))}
       
       (enable-graphql resolver)
       (enable-ide resolver)
 
-      (update ::server/routes route/expand-routes)
+      #_(update ::server/routes route/expand-routes)
+      (assoc ::server/routes #(-> {::server/routes
+                                   (views/routes (common-interceptors
+                                                  (dtorter.api/load-schema node) node))}
+                               (enable-graphql resolver)
+                               (enable-ide resolver)
+                               ::server/routes
+                               route/expand-routes))
       
       (merge {::server/join? false
               ::server/allowed-origin {:creds true :allowed-origins (constantly true)}})
@@ -86,7 +93,13 @@
 (defn stop []
   (server/stop @server))
 
-(comment
-  (start))
+(defn reset []
+  (when @server
+    (stop))
+  (start node resolver))
+
+(reset)
+
+
 
 
