@@ -1,7 +1,3 @@
-make sure all filtering happens in tag-info
-fix 0 usercount
-
-fix to parity, then refactor api more to to the note i wrote there
 
 {problem, in tag-info. get-voted-ids needs to be filtered by user and attribute.
 this means filtering needs to happen in tag-info. which means all other code can be simplified. this is a large refactor. DO THIS WHEN I GET HOME}

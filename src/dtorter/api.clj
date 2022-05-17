@@ -44,8 +44,10 @@
                      (map #(assoc %
                                   :left-item (id->item (:left-item %))
                                   :right-item (id->item (:right-item %))) allvotes))
-                   (throw (ex-info "not implemented" value)))]
-       (filter #(= (:owner %) (grab-user ctx)) votes)))
+                   (throw (ex-info "not implemented" value)))
+           user (grab-user ctx)]
+       (filter #(and (= (:owner %) user)
+                     (= (:attribute %) attribute)) votes)))
    
    :Tag/votecount (fn [_ _ value]
                     (if (:allvotes value)
