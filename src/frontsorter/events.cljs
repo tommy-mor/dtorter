@@ -39,6 +39,15 @@
            #(re-frame.core/dispatch event)
            3000)))
 
+(defn appdb-args [db]
+  " things that are part of ...appDB fragment, but not every mutation.
+   these should be filled in always so state knows how to refresh itself.
+  "
+  {:attribute (-> db :current-attribute)
+   :tagid js/tagid
+   :user (-> db :current-user)})
+
+
 ;; TODO make this only clear the correct error
 (reg-event-db :clear-errors interceptor-chain #(assoc % :errors []))
 
@@ -49,11 +58,12 @@
    {:dispatch [::re-graph/mutate
                :vote
                qs/vote
-               {:tagid js/tagid
-                :left_item (-> db :pair :left :id)
-                :right_item (-> db :pair :right :id)
-                :attribute (-> db :current-attribute)
-                :magnitude (-> db :percent)}
+               (merge (appdb-args db)
+                      {:tagid js/tagid
+                       :left_item (-> db :pair :left :id)
+                       :right_item (-> db :pair :right :id)
+                       :attribute (-> db :current-attribute)
+                       :magnitude (-> db :percent)})
                [::refresh-db-vote]]}))
 
 (reg-event-db
@@ -68,8 +78,9 @@
    {:dispatch [::re-graph/mutate
                :delete-vote
                qs/del-vote
-               {:voteid (:id vote)
-                :attribute (:attribute vote)}
+               (merge (appdb-args db)
+                      {:voteid (:id vote)
+                       :attribute (:attribute vote)})
                [::refresh-db-delete-vote]]}))
 
 (reg-event-db
@@ -78,21 +89,13 @@
  (fn [db [_ {:keys [data errors] :as payload}]]
    (merge db (:delvote data))))
 
-;; things that are part of ...appDB fragment, but not every mutation.
-;; these should be filled in always so state knows how to refresh itself.
-(defn appdb-args [db]
-  {:attribute (-> db :current-attribute)
-   :tagid js/tagid
-   :user (-> db :current-user)})
-
 (reg-event-fx
  :add-item
  (fn [{:keys [db]} [_ item]]
-   (def t item)
    {:dispatch [::re-graph/mutate
                :add-item
                qs/add-item
-               (merge item (appdb-args db))
+               (merge (appdb-args db) item)
                [::refresh-db-add-item]]}))
 
 (reg-event-db

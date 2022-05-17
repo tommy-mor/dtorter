@@ -33,12 +33,6 @@
                   (nil? (:pair db)) (assoc :vote_panel false))}
          db))
 
-(defn chose-default-attr [db]
-  "TODO maybe get this from url"
-  (if-let [attr (last (:attributes db))]
-    (assoc db :current-attribute attr)
-    db))
-
 (defn get-throwing [map val]
   (let [got (get map val)]
     (if (nil? got)
@@ -47,15 +41,19 @@
 
 (defn trace [x]
   (def t x)
+  (-> t
+      :sorted)
   x)
 
+;; PROBLEM: we need to chose default attr before running q.
 (defn gather-info [ctx tid attribute]
-  (->  (q ctx qs/app-db {:tagid tid :attribute attribute})
-       (get-throwing :data)
-       :tag_by_id
-       add-show
-       chose-default-attr
-       trace))
+  (let [attr (queries/biggest-attribute ctx (:node ctx) {:tagid tid})]
+    (->  (q ctx qs/app-db {:tagid tid :attribute attr})
+         (get-throwing :data)
+         :tag_by_id
+         add-show
+         (assoc :current-attribute attr)
+         trace)))
 
 (defn conform-throwing [spec x]
   (let [conformed (s/conform spec x)]

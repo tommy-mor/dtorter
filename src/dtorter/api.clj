@@ -20,8 +20,11 @@
 (defn resolver-map [node]
   (comment "how to get one open-db per lacinia request...")
   {:query/tag-by-id
-   (fn [ctx {:keys [id]} value]
-     (strip (queries/tag-info ctx node id)))
+   (fn [ctx {:keys [id] :as args} value]
+     (comment "args doesn't have user or attribute because it cant by design,
+                those not included by gql")
+     (def t args)
+     (strip (queries/tag-info ctx node args)))
    
    :query/all-tags
    (fn [ctx _ value]
@@ -33,15 +36,14 @@
          (throw (ex-info "not implemented" value))))
    
    :Tag/votes
-   (fn [ctx {:keys [attribute]} value]
-     (let [votes (if (and (:items value)
-                          (:allvotes value))
+   (fn [ctx {:keys [attribute]} {:keys [allitems allvotes] :as value}]
+     (let [votes (if (and allitems allvotes)
                    (let [id->item (apply hash-map
                                          (flatten
-                                          (map (juxt :id identity) (:items value))))]
+                                          (map (juxt :id identity) allitems)))]
                      (map #(assoc %
                                   :left-item (id->item (:left-item %))
-                                  :right-item (id->item (:right-item %))) (:allvotes value)))
+                                  :right-item (id->item (:right-item %))) allvotes))
                    (throw (ex-info "not implemented" value)))]
        (filter #(= (:owner %) (grab-user ctx)) votes)))
    
@@ -52,7 +54,7 @@
    :Tag/usercount (fn [_ _ value]
                     (if-not (nil? (:allvotes value))
                       (->> value
-                           :votes
+                           :allvotes
                            (map :owner)
                            distinct
                            count)
@@ -67,8 +69,8 @@
                        strip)
                   (throw (ex-info "can't do this yet" value))))
    :Tag/itemcount (fn [_ _ value]
-                    (if (:items value)
-                      (count (:items value))
+                    (if (:allitems value)
+                      (count (:allitems value))
                       (throw (ex-info "not implemented" value))))
    
 
@@ -90,22 +92,17 @@
    
    ;; does calculations
    :Tag/sorted
-   (fn [ctx {:keys [attribute user] :as args} value]
-     (let [{:keys [items allvotes voted-ids]} value]
-       (if (and items allvotes)
-         (strip (queries/sorted-calc (filter #(voted-ids (:id %)) items)
-                                     (filter #(and (= (:attribute %) attribute)
-                                                   (or (not user)
-                                                       (= (:owner %) user)))
-                                             allvotes)))
-         (throw (ex-info "this data is wrong" value)))))
+   (fn [ctx {:keys [user] :as args} {:keys [filteredvotes voteditems] :as value}]
+     (if (and filteredvotes voteditems)
+       (strip (queries/sorted-calc voteditems
+                                   filteredvotes))
+       (throw (ex-info "this data is wrong" value))))
    
    :Tag/unsorted
-   (fn [ctx {:keys [attribute]} value]
-     (let [{:keys [allvotes items voted-ids]} value]
-       (if (and allvotes items)
-         (queries/unsorted-calc items allvotes voted-ids)
-         (throw (ex-info "not implemented" value)))))
+   (fn [ctx _ {:keys [unvoteditems] :as value}]
+     (if (and unvoteditems)
+       unvoteditems
+       (throw (ex-info "not implemented" value))))
    
    :Tag/attributes
    (fn [ctx {} value]
@@ -137,17 +134,17 @@
    :mutation/vote
    (fn [ctx {:keys [tagid] :as args} _]
      (do (mutations/vote ctx node args)
-         (strip (queries/tag-info ctx node tagid))))
+         (strip (queries/tag-info ctx node args))))
    
    :mutation/delvote
    (fn [ctx args _]
      (let [tagid (mutations/delvote ctx node args)]
-       (strip (queries/tag-info ctx node tagid))))
+       (strip (queries/tag-info ctx node (assoc args :tagid tagid)))))
    
    :mutation/additem
    (fn [ctx args _]
      (do (mutations/add-item ctx node args)
-         (strip (queries/tag-info ctx node (:tagid args)))))})
+         (strip (queries/tag-info ctx node args))))})
 
 (defn load-schema [node]
   (-> (io/resource "schema.edn")

@@ -76,7 +76,8 @@
  {:tag_by_id
   {:type :Tag
    :description "return a tag based on its unique id, if it exists"
-   :args {:id {:type ID}}
+   :args {:tagid {:type (non-null ID)}
+          :attribute {:type String}}
    :resolve :query/tag-by-id}
   
   :all_tags

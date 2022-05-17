@@ -48,7 +48,7 @@ fragment appDb on Tag {
        fragments))
 
 (def del-vote
-  (str "mutation DelVote($voteid: ID!, $attribute: String!)  {
+  (str "mutation DelVote($voteid: ID!, $attribute: String!, $user: ID)  {
    delvote(voteid: $voteid, attribute: $attribute) { ...appDb }
 } 
 "
@@ -56,7 +56,7 @@ fragment appDb on Tag {
 
 (def app-db
   (str "query starting_data($tagid: ID!, $attribute: String, $user: ID)  {
-  tag_by_id(id: $tagid) {
+  tag_by_id(tagid: $tagid, attribute: $attribute) {
      ...appDb
   }
 }

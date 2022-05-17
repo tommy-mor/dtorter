@@ -24,7 +24,8 @@
               (conj counts 0)])))
 
 (-> @re-frame.db/app-db
-    :current-attribute)
+    
+    )
 
 ;; eventually switch back to using counts, rn just make it work normally
 ;; make attribute counts a separate array, same length

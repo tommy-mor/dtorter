@@ -52,7 +52,7 @@
                                           (assoc-in [:headers "Content-Type"] "text/html"))))
                ctx))}])
 
-(def server (atom nil))
+(defonce server (atom nil))
 
 (def node (dtorter.db/start))
 (def resolver (dtorter.api/load-schema node))
@@ -71,13 +71,14 @@
       (enable-ide resolver)
 
       #_(update ::server/routes route/expand-routes)
-      (assoc ::server/routes #(-> {::server/routes
-                                   (views/routes (common-interceptors
-                                                  (dtorter.api/load-schema node) node))}
-                               (enable-graphql resolver)
-                               (enable-ide resolver)
-                               ::server/routes
-                               route/expand-routes))
+      (assoc ::server/routes #(let [resolver (dtorter.api/load-schema node)]
+                                (-> {::server/routes
+                                     (views/routes (common-interceptors
+                                                    resolver node))}
+                                    (enable-graphql resolver)
+                                    (enable-ide resolver)
+                                    ::server/routes
+                                    route/expand-routes)))
       
       (merge {::server/join? false
               ::server/allowed-origin {:creds true :allowed-origins (constantly true)}})
@@ -97,6 +98,7 @@
   (when @server
     (stop))
   (start node resolver))
+@server
 
 (comment (reset))
 

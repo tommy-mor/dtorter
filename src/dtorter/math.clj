@@ -23,15 +23,15 @@
 (defn getranking [items votes]
   (def nitems (count items))
   (def nvotes (count votes))
+  
   (if (or (< nitems 1)
           (< nvotes 1))
     (sorted-map)
     (do
       
       (def A (m/ensure-mutable (m/new-matrix nitems nitems)))
-      (first items)
-
       (def item->idx (into {} (mapv (fn [i n] [(:id i) n]) items (range))))
+      
       (doseq [{:keys [id left-item right-item magnitude] :as vote} votes]
         (def leftscore (- 100 magnitude))
         (def rightscore magnitude)

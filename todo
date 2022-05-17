@@ -1,3 +1,6 @@
+make sure all filtering happens in tag-info
+fix 0 usercount
+
 fix to parity, then refactor api more to to the note i wrote there
 
 {problem, in tag-info. get-voted-ids needs to be filtered by user and attribute.

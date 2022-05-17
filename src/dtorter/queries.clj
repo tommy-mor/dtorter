@@ -139,7 +139,23 @@
   (set
    (flatten (map (juxt :left-item :right-item) (strip votes)))))
 
-(defn tag-info [ctx node tid]
+(defn biggest-attribute [ctx node {:keys [tagid]}]
+  (def node node)
+  (def tagid tagid)
+
+  (->> (xt/q (xt/db node)
+             '[:find atr e
+               :in tid
+               :where
+               [e :vote/tag tid]
+               [e :vote/attribute atr]] tagid)
+       (map first)
+       frequencies
+       (sort-by second)
+       last
+       first))
+
+(defn tag-info [ctx node {:keys [attribute user tagid] :as args}]
   (comment "TODO must have permissions on this query... use xtdb query functions")
   (xt/sync node)
   (let [[tag owner votes items] (first (xt/q (xt/db node) '[:find
@@ -150,15 +166,42 @@
                                                             :in tid
                                                             :where
                                                             [tid :tag/owner owner]]
-                                             tid))]
+                                             tagid))]
 
-    (let [votes (or (:vote/_tag votes)
-                    [])]
+    (when (some nil? [tag owner votes items])
+      (throw (ex-info (str "found a null" (prn-str args)) args)))
+    
+    
+    
+    (println (prn-str args))
+    (let [votes (strip (or (:vote/_tag votes) []))
+          items (strip (or (:item/_tags items) []))
+
+          freqs (sort-by second (frequencies (map :attribute votes)))
+          filteredvotes (filter #(and (= (:attribute %) attribute) 
+                                      (or (not user)
+                                          (= (:owner %) user)))
+                                votes)
+          voted-ids (get-voted-ids filteredvotes) 
+          stuff (group-by #(nil? (voted-ids (:id %))) items)
+          voted-items (or (get stuff false) [])
+          unvoted-items (or (get stuff true) [])]
+      
+      (def t [votes items freqs attribute filteredvotes voted-ids stuff voted-items unvoted-items args])
+      (let [items (nth t 1)
+            voted-ids (nth t 5)
+            attr (nth t 3)
+            args (last t)]
+        args)
+      (-> t
+          (nth 2))
       (merge tag {:owner owner
                   :allvotes votes
-                  :items (:item/_tags items)
-                  :voted-ids (get-voted-ids votes)
-                  :frequencies (sort-by second (frequencies (map :vote/attribute votes)))}))))
+                  :allitems items
+                  :filteredvotes filteredvotes
+                  :voteditems voted-items
+                  :unvoteditems unvoted-items
+                  :frequencies freqs}))))
 
 
 (defn pair-for-tag [ctx node tid]
