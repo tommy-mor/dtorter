@@ -36,7 +36,7 @@
          (throw (ex-info "not implemented" value))))
    
    :Tag/votes
-   (fn [ctx {:keys [attribute]} {:keys [allitems allvotes] :as value}]
+   (fn [ctx {{:keys [attribute]} :info} {:keys [allitems allvotes] :as value}]
      (let [votes (if (and allitems allvotes)
                    (let [id->item (apply hash-map
                                          (flatten
@@ -94,7 +94,7 @@
    
    ;; does calculations
    :Tag/sorted
-   (fn [ctx {:keys [user] :as args} {:keys [filteredvotes voteditems] :as value}]
+   (fn [ctx _ {:keys [filteredvotes voteditems] :as value}]
      (if (and filteredvotes voteditems)
        (strip (queries/sorted-calc voteditems
                                    filteredvotes))
@@ -107,46 +107,46 @@
        (throw (ex-info "not implemented" value))))
    
    :Tag/attributes
-   (fn [ctx {} value]
+   (fn [ctx _ value]
      (if (:frequencies value)
        (map first (:frequencies value))
        (throw (ex-info "what" value))))
    
    :Tag/attributecounts
-   (fn [ctx {} value]
+   (fn [ctx _ value]
      (if (:frequencies value)
        (map second (:frequencies value))
        (throw (ex-info "don't know how to calculate this rn" value))))
    
    :Tag/pair
-   (fn [ctx {} value]
+   (fn [ctx _ value]
      (strip (queries/pair-for-tag ctx node (:id value))))
 
    :Item/tags
-   (fn [ctx {} item]
+   (fn [ctx _ item]
      (strip (map #(queries/tag-by-id ctx node %) (:tags item))))
 
    :All/owner
-   (fn [ctx {} item]
+   (fn [ctx _ item]
      (if (string? (:owner item))
        (strip (queries/user-by-id ctx node (:owner item)))
        (:owner item)))
 
 
+   
+   
+   
    :mutation/vote
-   (fn [ctx {:keys [tagid] :as args} _]
-     (do (mutations/vote ctx node args)
-         (strip (queries/tag-info ctx node args))))
+   (fn [ctx args _]
+     (mutations/vote ctx node args))
    
    :mutation/delvote
    (fn [ctx args _]
-     (let [tagid (mutations/delvote ctx node args)]
-       (strip (queries/tag-info ctx node (assoc args :tagid tagid)))))
+     (mutations/delvote ctx node args))
    
    :mutation/additem
    (fn [ctx args _]
-     (do (mutations/add-item ctx node args)
-         (strip (queries/tag-info ctx node args))))})
+     (mutations/add-item ctx node args))})
 
 (defn load-schema [node]
   (-> (io/resource "schema.edn")

@@ -43,15 +43,22 @@
   " things that are part of ...appDB fragment, but not every mutation.
    these should be filled in always so state knows how to refresh itself.
   "
-  {:attribute (-> db :current-attribute)
-   :tagid js/tagid
-   :user (-> db :current-user)})
+  {:info {:attribute (-> db :current-attribute)
+          :tagid js/tagid
+          :user (-> db :current-user)}})
 
 
 ;; TODO make this only clear the correct error
 (reg-event-db :clear-errors interceptor-chain #(assoc % :errors []))
 
 ;; TODO add current-attribute to special part of spec
+(reg-event-db
+ ::refresh-db
+ interceptor-chain
+ (fn [db [_ {:keys [data errors] :as payload}]]
+   (merge db (:tag_by_id data) {:percent 50})))
+
+
 (reg-event-fx
  :vote
  (fn [{:keys [db]} _]
@@ -59,18 +66,12 @@
                :vote
                qs/vote
                (merge (appdb-args db)
-                      {:tagid js/tagid
-                       :left_item (-> db :pair :left :id)
-                       :right_item (-> db :pair :right :id)
-                       :attribute (-> db :current-attribute)
-                       :magnitude (-> db :percent)})
-               [::refresh-db-vote]]}))
-
-(reg-event-db
- ::refresh-db-vote
- interceptor-chain
- (fn [db [_ {:keys [data errors] :as payload}]]
-   (merge db (:vote data) {:percent 50})))
+                      {:vote_info {:tagid js/tagid
+                                   :left_item (-> db :pair :left :id)
+                                   :right_item (-> db :pair :right :id)
+                                   :attribute (-> db :current-attribute)
+                                   :magnitude (-> db :percent)}})
+               [::refresh-db]]}))
 
 (reg-event-fx
  :delete-vote
@@ -79,15 +80,8 @@
                :delete-vote
                qs/del-vote
                (merge (appdb-args db)
-                      {:voteid (:id vote)
-                       :attribute (:attribute vote)})
-               [::refresh-db-delete-vote]]}))
-
-(reg-event-db
- ::refresh-db-delete-vote
- interceptor-chain
- (fn [db [_ {:keys [data errors] :as payload}]]
-   (merge db (:delvote data))))
+                      {:voteid (:id vote)})
+               [::refresh-db]]}))
 
 (reg-event-fx
  :add-item
@@ -95,30 +89,17 @@
    {:dispatch [::re-graph/mutate
                :add-item
                qs/add-item
-               (merge (appdb-args db) item)
-               [::refresh-db-add-item]]}))
-
-(reg-event-db
- ::refresh-db-add-item interceptor-chain
- (fn [db [_ {:keys [data errors] :as payload}]]
-   (merge db (:additem data))))
+               (merge (appdb-args db) {:item_info (merge {:tagid js/tagid} item)})
+               [::refresh-db]]}))
 
 (reg-event-fx
  :refresh-state interceptor-chain
  (fn [{:keys [db]} _]
-   {:dispatch [::re-graph/query
+   {:dispatch [::re-graph/mutate
                :refresh
                qs/app-db
                (appdb-args db)
-               [::refresh-db-refresh-state]]}))
-(reg-event-db
- ::refresh-db-refresh-state interceptor-chain
- (fn [db [_ {:keys [data errors] :as payload}]]
-   (merge db (:tag_by_id data))))
-
-
-
-
+               [::refresh-db]]}))
 ;; ui events
 
 (reg-event-db

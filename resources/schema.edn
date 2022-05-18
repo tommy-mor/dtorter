@@ -13,16 +13,13 @@
     :description {:type String}
     :members {:type (list :Item)
               :resolve :Tag/items}
-    :votes {:args {:attribute {:type (non-null String)}
-                   :user {:type ID}}
+    :votes {:args {:info {:type (non-null :Tagrefreshinfo)}}
             :type (list :Vote)
             :resolve :Tag/votes}
-    :sorted {:args {:attribute {:type (non-null String)}
-                    :user {:type ID}}
+    :sorted {:args {:info {:type (non-null :Tagrefreshinfo)}}
              :type (list :Item)
              :resolve :Tag/sorted}
-    :unsorted {:args {:attribute {:type (non-null String)}
-                      :user {:type ID}}
+    :unsorted {:args {:info {:type (non-null :Tagrefreshinfo)}}
                :type (list :Item)
                :resolve :Tag/unsorted}
     :attributes {:type (list :String)
@@ -73,43 +70,56 @@
   
 
  :queries
- {:tag_by_id
-  {:type :Tag
-   :description "return a tag based on its unique id, if it exists"
-   :args {:tagid {:type (non-null ID)}
-          :attribute {:type String}
-          :user {:type ID}}
-   :resolve :query/tag-by-id}
-  
-  :all_tags
+ {:all_tags
   {:type (list :Tag)
    :description "return a list of all (public) tags"
    :args {}
    :resolve :query/all-tags}}
 
+ :input-objects
+ {:Tagrefreshinfo
+  {:description "the info needed to render a full tag page"
+   :fields
+   {:tagid {:type (non-null ID)}
+    :attribute {:type String}
+    :user {:type ID}}}
+  :VoteInputs
+  {:description "the info needed to create a new vote"
+   :fields
+   {:tagid {:type (non-null ID)}
+    :left_item {:type (non-null ID)}
+    :right_item {:type (non-null ID)}
+    :attribute {:type (non-null String)}
+    :magnitude {:type (non-null Int)}}}
+  :ItemInputs
+  {:description "the info needed to create/edit an item"
+   :fields
+   {:tagid {:type (non-null ID)}
+    :name {:type (non-null String)}
+    :url {:type String}
+    :description {:type String}}}}
+ 
  :mutations
- {:vote
-  {:type (non-null :Tag)
+ {:tag_by_id
+  {:type :Tag
+   :description "return a tag based on its unique id, if it exists"
+   :args {:info {:type :Tagrefreshinfo}}
+   :resolve :query/tag-by-id}
+  
+  :vote
+  {:type (non-null :Vote)
    :description "vote on an item"
-   :args {:tagid {:type (non-null ID)}
-          :left_item {:type (non-null ID)}
-          :right_item {:type (non-null ID)}
-          :attribute {:type (non-null String)}
-          :magnitude {:type (non-null Int)}}
+   :args {:vote_info {:type (non-null :VoteInputs)}}
    :resolve :mutation/vote}
+  
   :delvote
-  {:type (non-null :Tag)
+  {:type (non-null :Vote)
    :description "delete a vote"
-   :args {:voteid {:type (non-null ID)}
-          :attribute {:type (non-null String)}}
+   :args {:voteid {:type (non-null ID)}}
    :resolve :mutation/delvote}
 
   :additem
-  {:type (non-null :Tag)
+  {:type (non-null :Item)
    :description "add an item"
-   :args {:tagid {:type (non-null ID)}
-          :name {:type (non-null String)}
-          :url {:type String}
-          :description {:type String}}
-   :resolve :mutation/additem}
-  }}
+   :args {:item_info {:type (non-null :ItemInputs)}}
+   :resolve :mutation/additem}}}

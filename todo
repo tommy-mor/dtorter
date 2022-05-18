@@ -1,68 +1,15 @@
 
-{problem, in tag-info. get-voted-ids needs to be filtered by user and attribute.
-this means filtering needs to happen in tag-info. which means all other code can be simplified. this is a large refactor. DO THIS WHEN I GET HOME}
-
-fix not loading
-
-fix current attribute ui
-  so i can generate test for V
-  so i can test if bigger attributes than default win on load
-
-default attribute on load, also "all users" thing
+gql can have input types, might be useful for vote mutations
 
 
-attributes
-  i want current attribute to get bounced back(no schema), i want attributecounts (schema)
-user selection (can select multiple?)
+do tag page (finish today...)
+do add item form...
 
 pair chosing? (just do random and random)
 
 some elo is getting sucked up right now, IDK
 
-asses
-  (probably get more actions to work..)
-
-get more actions to work
-add item. use the forms thing?? no, use existing thing.
-
-refactor to use component system...
-
-attributes, must fit in frequencies/counts into gql schema somehow... (could hack, put into string as last two characters...
-
-
 permissions/schemas.... (after all actions are done..., and one pass over of cleaning)
 
-fix
-  upsert on pair already inserted...
-
-
-fix frontend until it has parity, then host, THEN do performance.
-  PROBLEM: the (xt/db that everyone is using is actually frozen in time, so it wont have the right keys)
-
-  do 20 minutes of performacne stuff, the go home
-
-  attribute selection
-  user selection
-  
-
-
-
-look into performance, ask on zulip before giving up.
- ask: use criterium to compare things on xtdb, compare to postgres
-  use synthetic benchmark
-
-get attributes rendering.
-get pair rendering
-
-
-
-make baseline render properly/fix issues
-start adding in important mutations
-permissions/schema
-add move button
-deploy (start using).
-integrate with discord api.
-
 switch to faster vector library
-
 eventually make url sync with user/attribute parameters

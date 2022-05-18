@@ -155,7 +155,7 @@
        last
        first))
 
-(defn tag-info [ctx node {:keys [attribute user tagid] :as args}]
+(defn tag-info [ctx node {{:keys [attribute user tagid]} :info :as args}]
   (comment "TODO must have permissions on this query... use xtdb query functions")
   (xt/sync node)
   (let [[tag owner votes items] (first (xt/q (xt/db node) '[:find

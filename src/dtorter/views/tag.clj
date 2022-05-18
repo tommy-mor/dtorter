@@ -48,7 +48,7 @@
 ;; PROBLEM: we need to chose default attr before running q.
 (defn gather-info [ctx tid attribute]
   (let [attr (queries/biggest-attribute ctx (:node ctx) {:tagid tid})]
-    (->  (q ctx qs/app-db {:tagid tid :attribute attr})
+    (->  (q ctx qs/app-db {:info {:tagid tid :attribute attr}})
          (get-throwing :data)
          :tag_by_id
          add-show

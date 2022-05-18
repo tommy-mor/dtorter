@@ -14,13 +14,13 @@ fragment appDb on Tag {
     attributecounts
 
     owner { id name }
-    sorted(attribute: $attribute, user: $user) {...itemInfo elo}
-    unsorted(attribute: $attribute, user: $user) {...itemInfo}
+    sorted(info: $info) {...itemInfo elo}
+    unsorted(info: $info) {...itemInfo}
     pair {
       left {...itemInfo}
       right {...itemInfo}
     }
-    votes(attribute: $attribute) {
+    votes(info: $info) {
       id
       left_item {...itemInfo}
       right_item {...itemInfo}
@@ -31,35 +31,40 @@ fragment appDb on Tag {
 }
 ")
 
+(def refresh-db
+  "tag_by_id(info: $info) {
+     ...appDb
+  }")
 
+
+(def app-db
+  (str "mutation starting_data($info: Tagrefreshinfo!)  {"
+       refresh-db
+       "}"
+       fragments))
+
+;; mutations
 (def vote
-  (str "mutation Vote($tagid: ID!, $user: ID, $left_item: ID!, $right_item: ID!, $attribute: String!, $magnitude: Int!)  {
-   vote(tagid: $tagid, left_item: $left_item, right_item: $right_item,
-        attribute: $attribute, magnitude: $magnitude) { ...appDb }
-} 
+  (str "mutation Vote ($vote_info: VoteInputs!, $info: Tagrefreshinfo!) {
+            vote(vote_info: $vote_info) { id } 
 "
+       refresh-db
+       "}"
        fragments))
 
 (def add-item
-  (str "mutation AddItem($tagid: ID!, $attribute: String!, $user: ID, $name: String!, $url: String, $description: String)  {
-   additem(tagid: $tagid, name: $name, url: $url, description: $description) { ...appDb }
-} 
+  (str "mutation AddItem($item_info: ItemInputs!, $info: Tagrefreshinfo!) {
+   additem(item_info: $item_info) { id }
+ 
 "
+       refresh-db
+       "}"
        fragments))
 
 (def del-vote
-  (str "mutation DelVote($voteid: ID!, $attribute: String!, $user: ID)  {
-   delvote(voteid: $voteid, attribute: $attribute) { ...appDb }
-} 
+  (str "mutation DelVote($voteid: ID!, $info: Tagrefreshinfo)  {
+   delvote(voteid: $voteid) { id }
 "
-       fragments))
-
-(def app-db
-  (str "query starting_data($tagid: ID!, $attribute: String, $user: ID)  {
-  tag_by_id(tagid: $tagid, attribute: $attribute, user: $user) {
-     ...appDb
-  }
-}
-   
-"
+       refresh-db
+       "}"
        fragments))

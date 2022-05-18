@@ -55,7 +55,7 @@
 (s/def ::pair (s/nilable (s/keys :req-un [::left ::right])))
 ;; eventually this will be (s/coll-of [attribute count])
 (s/def ::attributes (s/coll-of string?))
-(s/def ::current-attribute string?)
+(s/def ::current-attribute (s/or :none nil? :exists string?))
 (s/def ::percent :vote/magnitude)
 
 (s/def ::db (s/keys :req-un [:tag/name :tag/description :tag/owner :tag/votecount :tag/usercount

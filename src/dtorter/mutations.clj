@@ -8,9 +8,12 @@
 
 (defn grab-user [ctx] (-> ctx :request :session :user-id))
 
-(defn vote [ctx node {:keys [tagid left_item right_item attribute magnitude] :as args}]
+(defn vote [ctx node {{:keys [tagid left_item right_item attribute magnitude] :as args} :vote_info}]
   (comment "TODO add checks here, using spec")
-  (comment "TODO add user id to this")
+  
+  (when (some nil? [tagid left_item right_item attribute magnitude])
+    (throw (ex-info "missing arguments" args)))
+  
   (let [userid (grab-user ctx)]
 
     (when (not userid) (throw (Exception. "must be logged in to vote")))
@@ -42,8 +45,8 @@
                                              :vote/owner userid
                                              :vote/attribute attribute
                                              :vote/tag tagid}]])]
-      (xt/await-tx node tx))
-    (xt/db node)))
+      (xt/await-tx node tx)
+      {:id uuid})))
 
 (defn delvote [ctx node {:keys [voteid] :as args}]
   ;; TODO make sure we own this document...
@@ -57,21 +60,23 @@
     (if tagid
       (do
         (xt/await-tx node (xt/submit-tx node [[::xt/delete voteid]]))
-        tagid)
+        {:id voteid})
       "TODO error here better?")))
 
 (defn add-item [ctx node
-                
-                {:keys [name url description tagid] :as args}]
+                {{:keys [name url description tagid] :as args} :item_info}]
+  
   (let [userid (grab-user ctx)
+        uuid (uuid)
         tx (xt/submit-tx node
-                         [[::xt/put {:xt/id (uuid)
+                         [[::xt/put {:xt/id uuid
                                      :item/name name
                                      :item/url url
                                      :item/description description
                                      :item/tags [tagid]
                                      :item/owner userid}]])]
-    (xt/await-tx node tx)))
+    (xt/await-tx node tx)
+    {:id uuid}))
 
 
 
