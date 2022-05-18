@@ -27,3 +27,9 @@
 
 (defn strip [map]
   (walk/postwalk (some-fn strip-namespaces identity) map))
+
+(defn get-throwing [map val]
+  (let [got (get map val)]
+    (if (nil? got)
+      (throw (ex-info "couldnt find key in map" {:map map :key val}))
+      got)))

@@ -10,11 +10,8 @@
             [dtorter.queries :as queries]
             [cheshire.core :as json]
             [dtorter.views.tag :as tag]
+            [dtorter.views.item :as item]
             [dtorter.views.common :refer [layout]]))
-
-
-(def thing (atom nil))
-(comment (first (queries/all-tags dtorter.http/db)))
 
 
 (defn render-tag [tag]
@@ -47,15 +44,6 @@
   {:status 200
    :html (layout req [:h1 "users"])})
 
-(def stest (atom nil))
-(:form-params (clojure.pprint/pprint (keys @stest)))
-
-(comment (ffirst (xt/q dtorter.http/db
-                       '[:find (pull e [*])
-                         :in username
-                         :where [e :user/name username]]
-                       "tommy")))
-
 (def login-done
   {:name ::login-done
    :enter (fn [ctx]
@@ -82,8 +70,6 @@
                 (assoc :response (-> (ring-resp/redirect (url-for :front-page))
                                      (assoc :session nil)))))})
 
-(:path-params (:request @stest))
-
 ;; TODO put these into arguments to init/bang, not here
 (defn routes [common-interceptors]
   #{["/" :get
@@ -98,6 +84,8 @@
      (into common-interceptors [log-off]) :route-name :log-off]
 
     ["/t/:tagid" :get
-     (into common-interceptors [tag/tag-page]) :route-name :tag-page]})
+     (into common-interceptors [tag/tag-page]) :route-name :tag-page]
+    ["/t/:tagid/:itemid" :get
+     (into common-interceptors [tag/item-page]) :route-name :item-page]})
 
 

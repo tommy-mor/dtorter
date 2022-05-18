@@ -1,5 +1,12 @@
 (ns dtorter.views.common
-  (:require [io.pedestal.http.route :refer [url-for]]))
+  (:require [io.pedestal.http.route :refer [url-for]]
+            [com.walmartlabs.lacinia :as lacinia]))
+
+(defn q [ctx query-string args]
+  (lacinia/execute (:gql-schema ctx)
+                   query-string
+                   args
+                   (select-keys ctx [:node :request])))
 
 (defn layout [{:keys [session]} inner]
   [:html

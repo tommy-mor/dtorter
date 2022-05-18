@@ -21,9 +21,6 @@
   (comment "how to get one open-db per lacinia request...")
   {:query/tag-by-id
    (fn [ctx {:keys [id] :as args} value]
-     (comment "args doesn't have user or attribute because it cant by design,
-                those not included by gql")
-     (def t args)
      (strip (queries/tag-info ctx node args)))
    
    :query/all-tags

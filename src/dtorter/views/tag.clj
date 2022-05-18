@@ -1,26 +1,13 @@
 (ns dtorter.views.tag
   (:require [io.pedestal.http.route :refer [url-for]]
-            [xtdb.api :as xt]
             [dtorter.queries :as queries]
             [cheshire.core :as json]
-            [dtorter.views.common :refer [layout]]
-            [com.walmartlabs.lacinia :as lacinia]
-
-            [dtorter.util :refer [strip]]
+            [dtorter.views.common :refer [layout q]]
+            [dtorter.util :refer [strip get-throwing]]
             
             [shared.query-strings :as qs]
             [shared.specs :as sp]
-            [clojure.spec.alpha :as s]
-            [clojure.walk :refer [postwalk]]))
-
-(defn q [ctx query-string args]
-  (lacinia/execute (:gql-schema ctx)
-                   query-string
-                   args
-                   (select-keys ctx [:db :node :request])))
-
-(comment (def tagid "09044c15-3d3a-4268-9586-074d8ddf95d9")
-         (def attribute "default"))
+            [clojure.spec.alpha :as s]))
 
 (def show-all {:vote_panel true
                :vote_edit true
@@ -33,22 +20,10 @@
                   (nil? (:pair db)) (assoc :vote_panel false))}
          db))
 
-(defn get-throwing [map val]
-  (let [got (get map val)]
-    (if (nil? got)
-      (throw (ex-info "couldnt find key in map" {:map map :key val}))
-      got)))
-
-(defn trace [x]
-  (def t x)
-  (-> t
-      :sorted)
-  x)
-
 ;; PROBLEM: we need to chose default attr before running q.
-(defn gather-info [ctx tid attribute]
-  (let [attr (queries/biggest-attribute ctx (:node ctx) {:tagid tid})]
-    (->  (q ctx qs/app-db {:info {:tagid tid :attribute attr}})
+(defn gather-info [ctx tagid itemid]
+  (let [attr (queries/biggest-attribute ctx (:node ctx) {:tagid tagid})]
+    (->  (q ctx qs/app-db {:info {:tagid tagid :attribute attr}})
          (get-throwing :data)
          :tag_by_id
          add-show
@@ -62,29 +37,43 @@
       conformed)))
 
 
-(defn jsonstring [ctx tag attribute]
-  (def ctx ctx)
-  (str "var tagid = '" (:xt/id tag) "';\n"
-       "var itemid = false;\n"
-       "var init = " (->> (gather-info ctx (:xt/id tag) attribute)
+(defn jsonstring [ctx tagid itemid]
+  (str "var tagid = '" tagid "';\n"
+       "var itemid = '" itemid "';\n"
+       "var init = " (->> (gather-info ctx tagid itemid)
                           strip
                           json/generate-string) ";"))
 
 (def tag-page
   {:name ::tag-page
    :enter (fn [{:keys [node request] :as ctx}]
-            (let [tidp (-> request :path-params :tagid)
-                  tag (queries/tag-by-id ctx node tidp)
-                  attribute (or (-> request :path-params :attribute)
-                                "default")] ;; TODO find better default attribute
+            (let [tagid (-> request :path-params :tagid)] ;; TODO find better default attribute
               (assoc ctx :response {:status 200 :html
                                     (layout request [:div
                                                      ;; [:span (json/generate-string tag)]
                                                      [:div#app.appbody]
                                                      [:script {:type "text/javascript"}
-                                                      (jsonstring ctx tag attribute)]
+                                                      (jsonstring ctx tagid false)]
                                                      [:script {:type "text/javascript"
                                                                :src "/js/app.js"}]
                                                      [:script {:type "text/javascript"}
                                                       "frontsorter.tag.init_BANG_()"]])})))})
+(def item-page
+  {:name ::item-page
+   :enter (fn [{:keys [node request] :as ctx}]
+            (let [tagid (-> request :path-params :tagid)
+                  itemid (-> request :path-params :itemid)]
+              (assoc ctx :response {:status 200 :html
+                                    (layout request
+                                            [:div
+                                             ;; [:span (json/generate-string tag)]
+                                             [:div#app.appbody]
+                                             [:script {:type "text/javascript"}
+                                              (jsonstring ctx tagid itemid)]
+                                             [:script {:type "text/javascript"
+                                                       :src "/js/app.js"}]
+                                             [:script {:type "text/javascript"
+                                                       :src "/js/item.js"}]
+                                             [:script {:type "text/javascript"}
+                                              "frontsorter.item.init_BANG_()"]])})))})
 
