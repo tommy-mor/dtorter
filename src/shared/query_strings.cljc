@@ -56,7 +56,7 @@ fragment appDb on Tag {
 
 (def app-db
   (str "query starting_data($tagid: ID!, $attribute: String, $user: ID)  {
-  tag_by_id(tagid: $tagid, attribute: $attribute) {
+  tag_by_id(tagid: $tagid, attribute: $attribute, user: $user) {
      ...appDb
   }
 }
