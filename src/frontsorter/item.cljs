@@ -10,7 +10,9 @@
    ["./../tagpage/CreateTagPage" :as foo]
    [frontsorter.attributes :as attrs]))
 
-(dispatch-sync [:init-db])
+(dispatch-sync [:init-db {}])
+
+
 
 
 
@@ -19,8 +21,8 @@
 ;; views --
 
 (defn back []
-  (let [tag @(subscribe [:tag])]
-    [:a {:href (str "/t/" (:id tag))} " << " (:title tag)]))
+  (let [name @(subscribe [:name])]
+    [:a {:href (str "/t/" js/tagid)} " << " name]))
 
 (defn item-edit [show]
   (let [callback #(reset! show false)]

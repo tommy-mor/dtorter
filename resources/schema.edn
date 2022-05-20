@@ -44,6 +44,7 @@
    {:id {:type (non-null ID)}
     :name {:type (non-null String)}
     :paragraph {:type String}
+    :url {:type String}
     :elo {:type Float}
     :tags {:type (list :Tag)
            :resolve :Item/tags}}}
@@ -78,9 +79,10 @@
 
  :input-objects
  {:Tagrefreshinfo
-  {:description "the info needed to render a full tag page"
+  {:description "the info needed to render a full tag/item page"
    :fields
    {:tagid {:type (non-null ID)}
+    :itemid {:type ID}
     :attribute {:type String}
     :user {:type ID}}}
   :VoteInputs
@@ -105,6 +107,11 @@
    :description "return a tag based on its unique id, if it exists"
    :args {:info {:type :Tagrefreshinfo}}
    :resolve :query/tag-by-id}
+  :item_by_id
+  {:type :Item
+   :description "return an item based on its id, if it exists"
+   :args {:id {:type (non-null ID)}}
+   :resolve :query/item-by-id}
   
   :vote
   {:type (non-null :Vote)

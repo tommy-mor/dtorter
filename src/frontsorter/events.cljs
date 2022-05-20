@@ -27,17 +27,10 @@
  :init-db
  interceptor-chain
  ;; TODO add spec checking here
- (fn [{:keys [db]} _]
+ (fn [{:keys [db]} [_ mergee]]
    {:db (let [db (js->clj js/init :keywordize-keys true)]
-          (assoc db
-                 :percent 50)) ;; TODO
+          (merge db mergee))
     :dispatch [::re-graph/init {:ws nil :http {:url "/api"}}]}))
-
-(reg-fx :delayed
-        (fn [event]
-          (js/setTimeout
-           #(re-frame.core/dispatch event)
-           3000)))
 
 (defn appdb-args [db]
   " things that are part of ...appDB fragment, but not every mutation.

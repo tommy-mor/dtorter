@@ -12,7 +12,7 @@
 ;; println now does console.log
 (enable-console-print!)
 
-(dispatch-sync [:init-db])
+(dispatch-sync [:init-db {:percent 50}])
 
 ;; initialize app
 (defn mount-root []

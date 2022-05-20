@@ -10,7 +10,6 @@
             [dtorter.queries :as queries]
             [cheshire.core :as json]
             [dtorter.views.tag :as tag]
-            [dtorter.views.item :as item]
             [dtorter.views.common :refer [layout]]))
 
 

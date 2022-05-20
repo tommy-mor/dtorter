@@ -20,8 +20,12 @@
 (defn resolver-map [node]
   (comment "how to get one open-db per lacinia request...")
   {:query/tag-by-id
-   (fn [ctx {:keys [id] :as args} value]
+   (fn [ctx args _]
      (strip (queries/tag-info ctx node args)))
+   
+   :query/item-by-id
+   (fn [ctx {:keys [id]} _]
+     (strip (queries/item-by-id ctx node id)))
    
    :query/all-tags
    (fn [ctx _ value]

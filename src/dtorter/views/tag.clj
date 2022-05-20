@@ -15,20 +15,26 @@
                :add_items true})
 
 ;; TODO get rid of show map, should be calculated on clientside.
-(defn add-show [db]
-  (merge {:show (cond-> show-all
-                  (nil? (:pair db)) (assoc :vote_panel false))}
-         db))
+(defn add-show [{db :tag_by_id item :item_by_id} attr]
+  (cond-> db
+    true (assoc :show show-all)
+    (nil? (:pair db)) (assoc-in [:show :vote_panel] false)
+    
+    item (assoc :item item)
+    attr (assoc :current-attribute attr)))
 
 ;; PROBLEM: we need to chose default attr before running q.
 (defn gather-info [ctx tagid itemid]
+  (def t itemid)
   (let [attr (queries/biggest-attribute ctx (:node ctx) {:tagid tagid})]
-    (->  (q ctx qs/app-db {:info {:tagid tagid :attribute attr}})
+    (->  (q ctx (if itemid
+                  qs/app-db
+                  qs/item-app-db)
+            {:info (cond-> {:tagid tagid :attribute attr}
+                     itemid (assoc :itemid itemid))})
          (get-throwing :data)
-         :tag_by_id
-         add-show
-         (assoc :current-attribute attr)
-         trace)))
+         (select-keys [:tag_by_id :item_by_id])
+         (add-show attr))))
 
 (defn conform-throwing [spec x]
   (let [conformed (s/conform spec x)]

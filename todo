@@ -1,3 +1,4 @@
+question: put itemid into tagrefreshinfo? yes
 
 gql can have input types, might be useful for vote mutations
 
@@ -13,3 +14,5 @@ permissions/schemas.... (after all actions are done..., and one pass over of cle
 
 switch to faster vector library
 eventually make url sync with user/attribute parameters
+
+design: put the parent tag as a vertical text skinny box to left of item panel. 

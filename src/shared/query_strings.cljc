@@ -68,3 +68,34 @@ fragment appDb on Tag {
        refresh-db
        "}"
        fragments))
+
+
+;; for item page
+
+(def item-page-fragments
+  "
+
+fragment tagAppDb on Tag {
+  name
+  attributes
+  attributecounts
+  sorted(info: $info) { id name }
+  unsorted(info: $info) { id name }
+  votes(info: $info) {
+    id
+    left_item { id name }
+    right_item { id name }
+    attribute
+    magnitude
+  }
+  users { id name }
+}
+")
+
+(def item-app-db
+  (str "mutation starting_item_data($info: Tagrefreshinfo!, $itemid: ID!) {
+            tag_by_id(info: $info) { ...tagAppDb }
+            item_by_id(id: $itemid) { name paragraph url }
+        }"
+       item-page-fragments
+       ))

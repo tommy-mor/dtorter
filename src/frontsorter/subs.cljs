@@ -106,11 +106,9 @@
 (reg-sub :item-stage
          (fn [db _]
            (cond
-             (and (:left db)
-                  (:right db)
+             (and (:pair db)
                   (not (:item db))) :voting
              (and (:item db)
-                  (not (:left db))
-                  (not (:right db))) :itemview
+                  (not (:pair db))) :itemview
              true (js/console.log "bad state"))))
 
