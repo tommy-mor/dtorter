@@ -22,7 +22,8 @@
 
                  [integrant "0.8.0"]
 
-                 [babashka/fs "0.1.6"]]
+                 [babashka/fs "0.1.6"]
+                 [garden "1.3.10"]]
   
   
   
