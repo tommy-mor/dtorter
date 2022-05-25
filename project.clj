@@ -20,7 +20,9 @@
                  [re-graph "0.1.17"]
                  [criterium "0.4.6"]
 
-                 [integrant "0.8.0"]]
+                 [integrant "0.8.0"]
+
+                 [babashka/fs "0.1.6"]]
   
   
   

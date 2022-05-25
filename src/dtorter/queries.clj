@@ -139,10 +139,10 @@
   (set
    (flatten (map (juxt :left-item :right-item) (strip votes)))))
 
+
 (defn biggest-attribute [ctx node {:keys [tagid]}]
   (def node node)
   (def tagid tagid)
-
   (->> (xt/q (xt/db node)
              '[:find atr e
                :in tid
@@ -154,6 +154,7 @@
        (sort-by second)
        last
        first))
+
 
 (defn tag-info [ctx node {{:keys [attribute user tagid]} :info :as args}]
   (comment "TODO must have permissions on this query... use xtdb query functions")

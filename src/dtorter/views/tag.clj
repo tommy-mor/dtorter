@@ -25,11 +25,13 @@
 
 ;; PROBLEM: we need to chose default attr before running q.
 (defn gather-info [ctx tagid itemid]
-  (def t itemid)
+  (def ctx ctx)
+  (def tagid tagid)
+  (def itemid itemid)
   (let [attr (queries/biggest-attribute ctx (:node ctx) {:tagid tagid})]
     (->  (q ctx (if itemid
-                  qs/app-db
-                  qs/item-app-db)
+                  qs/item-app-db
+                  qs/app-db)
             {:info (cond-> {:tagid tagid :attribute attr}
                      itemid (assoc :itemid itemid))})
          (get-throwing :data)
