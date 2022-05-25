@@ -23,5 +23,7 @@
                           
                           :graph
                           {:entries [frontsorter.graph] :depends-on #{:shared}}
-                          }
+
+                          :tdsl
+                          {:entries [frontdsl.page] :depends-on #{:shared}}}
                 :devtools   {:after-load frontsorter.item/mount-root}}}}
