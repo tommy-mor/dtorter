@@ -1,6 +1,7 @@
 (ns dtorter.views.front-page
   (:require [io.pedestal.http.route :refer [url-for]]
             [io.pedestal.http.body-params :as body-params]
+            [io.pedestal.interceptor.chain :refer [terminate]]
             [hiccup.core :refer [html]]
             [cryptohash-clj.api :as c]
             [cryptohash-clj.encode :as enc]
@@ -10,7 +11,9 @@
             [dtorter.queries :as queries]
             [cheshire.core :as json]
             [dtorter.views.tag :as tag]
-            [dtorter.views.common :refer [layout]]))
+            [dtorter.views.common :refer [layout]]
+
+            [tdsl.show]))
 
 
 (defn render-tag [tag]
@@ -85,6 +88,15 @@
     ["/t/:tagid" :get
      (into common-interceptors [tag/tag-page]) :route-name :tag-page]
     ["/t/:tagid/:itemid" :get
-     (into common-interceptors [tag/item-page]) :route-name :item-page]})
+     (into common-interceptors [tag/item-page]) :route-name :item-page]
+
+    ["/tdsl" :get
+     (into common-interceptors [{:name :filter :enter
+                                 #(if (-> % :request :session :user-name #{"tommy"})
+                                    %
+                                    (terminate
+                                     (assoc % :response {:status 404})))}
+                                tdsl.show/page])
+     :route-name :tdsl-page]})
 
 
