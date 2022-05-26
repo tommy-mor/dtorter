@@ -52,14 +52,12 @@
                                           (assoc-in [:headers "Content-Type"] "text/html"))))
                ctx))}])
 
-(defonce server (atom nil))
+(defn start []
+  (defonce server (atom nil))
 
-(def node (dtorter.db/start))
-(def resolver (dtorter.api/load-schema node))
-
-
-
-(defn start [node api]
+  (def node (dtorter.db/start))
+  (def resolver (dtorter.api/load-schema node))
+  
   (-> {:env :dev
        ::server/type :jetty
        ::server/port 8080
@@ -97,10 +95,9 @@
 (defn reset []
   (when @server
     (stop))
-  (start node resolver))
-@server
+  (start))
 
-(comment (reset))
+(comment (start))
 
 
 

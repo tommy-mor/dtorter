@@ -1,8 +1,8 @@
 (ns tdsl.parse
   (:require [clojure.string :as str]
-            [babashka.fs :as fs]))
-
-(def notes (slurp "/home/tommy/programming/tdsl/test/notes.tdsl" ))
+            [babashka.fs :as fs]
+            [clojure.java.io :as io]
+            [clojure.java.shell :as shell]))
 
 (defn parse-block [st]
   (def st st)
@@ -17,9 +17,10 @@
 
 
 (defn parse-files []
-  (for [f (fs/glob "/home/tommy/programming/tdsl/" "**/*.tdsl")]
+  (for [f (fs/glob "../tdsl/" "**/*.tdsl")]
     (parse-file f)))
 
-(first (parse-files))
-
-
+(defn update-files []
+  (if (fs/directory? "../tdsl")
+    (shell/sh "git" "pull" :dir "../tdsl")
+    (shell/sh "git" "clone" "git@github.com:tommy-mor/tdsl.git" :dir "../")))

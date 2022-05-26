@@ -2,7 +2,8 @@
   (:require [cheshire.core :refer :all]
             [clojure.pprint :refer [pprint]]
             [dtorter.hashing :as hashing]
-            [clojure.set]))
+            [clojure.set]
+            [clojure.java.io :as io]))
 
 (defn uuid [st] (java.util.UUID/fromString st))
 
@@ -32,7 +33,7 @@
     ))
 
 (defn parse-file [typ]
-  (let [slurped (slurp (str "/home/tommy/programming/dtorter/src/dtorter/data/" typ ".json"))]
+  (let [slurped (slurp (io/resource (str "data/" typ ".json")))]
     (-> slurped
         (parse-string true)
         :lines

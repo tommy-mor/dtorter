@@ -3,6 +3,7 @@
             [reagent.dom :as rdom]
             [clojure.string :as str]
             [reitit.frontend :as rf]
+            [reitit.core]
             [reitit.frontend.easy :as rfe]))
 
 (defonce todos (r/atom {}))
@@ -13,6 +14,9 @@
   (-> @match
       :query-params
       :q))
+
+(defn encoded-string-from-match []
+  (reitit.core/match->path @match {:q (query-from-match)}))
 
 (defn filter-input []
   [:input {:type "text"
@@ -33,7 +37,11 @@
                                       (filter #(if (not (empty? q))
                                                  (str/includes? (str (first %)) q)
                                                  (constantly true))))]
-                [:tr [:td.kw [:pre.swag (str kw)]] [:td [:pre thought]]]))]]]))
+                [:tr [:td.kw [:pre.swag (str kw)]] [:td [:pre thought]]]))]]
+     [:a {:href "/tdsl/refresh"
+          :on-click #(set! js/document.cookie (str"query=" (encoded-string-from-match)))}
+      "refresh from git"]
+     ]))
 
 (def routes
   [["/"

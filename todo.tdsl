@@ -1,0 +1,14 @@
+:sorter.impl/todo
+  do tag page (finish today...)
+  do add item form...
+
+  pair chosing? (just do random and random)
+
+  some elo is getting sucked up right now, IDK
+
+  permissions/schemas.... (after all actions are done..., and one pass over of cleaning)
+
+  switch to faster vector library
+  eventually make url sync with user/attribute parameters
+
+  design: put the parent tag as a vertical text skinny box to left of item panel. 
