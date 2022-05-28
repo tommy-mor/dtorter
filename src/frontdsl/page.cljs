@@ -7,7 +7,7 @@
             [reitit.frontend.easy :as rfe]))
 
 (defonce todos (r/atom {}))
-(defonce filterbox (r/atom ""))
+
 
 (defonce match (r/atom nil))
 (defn query-from-match []

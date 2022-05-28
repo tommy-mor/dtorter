@@ -102,3 +102,15 @@
 
 
 
+(comment (defn sorter
+           ([kw] 
+            `(sorter ~kw [1 2 3 4]))
+           ([kw body]
+            `(sorter ~kw)))
+
+         (dtorter.http/sorter :books))
+
+
+
+
+

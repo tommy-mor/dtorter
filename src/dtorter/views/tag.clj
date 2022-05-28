@@ -29,11 +29,12 @@
   (def tagid tagid)
   (def itemid itemid)
   (let [attr (queries/biggest-attribute ctx (:node ctx) {:tagid tagid})]
+    (def attr attr)
     (->  (q ctx (if itemid
                   qs/item-app-db
                   qs/app-db)
-            {:info (cond-> {:tagid tagid :attribute attr}
-                     itemid (assoc :itemid itemid))})
+            (cond-> {:info {:tagid tagid :attribute attr}}
+              itemid (assoc :itemid itemid)))
          (get-throwing :data)
          (select-keys [:tag_by_id :item_by_id])
          (add-show attr))))
@@ -52,6 +53,7 @@
                           strip
                           json/generate-string) ";"))
 
+(gather-info ctx tagid itemid)
 (def tag-page
   {:name ::tag-page
    :enter (fn [{:keys [node request] :as ctx}]
