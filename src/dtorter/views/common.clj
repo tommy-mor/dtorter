@@ -8,7 +8,7 @@
                    args
                    (select-keys ctx [:node :request])))
 
-(defn layout [{:keys [session]} inner]
+(defn layout [{:keys [session]} inner {:keys [title]}]
   [:html
    [:head
     [:meta {:charset "utf-8"}]
@@ -19,7 +19,7 @@
             :type "text/css"}]
     [:script {:src "/js/shared.js"
               :type "text/javascript"}]
-    [:title "sorter"]]
+    [:title (or (str title ", sorter") "sorter")]]
    [:div.topbar
     [:span (prn-str session)]
     [:div.topleft

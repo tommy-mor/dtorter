@@ -14,6 +14,9 @@
   (when (some nil? [tagid left_item right_item attribute magnitude])
     (throw (ex-info "missing arguments" args)))
   
+  (when (= left_item right_item)
+    (throw (ex-info "cant vote on self")))
+  
   (let [userid (grab-user ctx)]
 
     (when (not userid) (throw (Exception. "must be logged in to vote")))

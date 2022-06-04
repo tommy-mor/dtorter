@@ -25,16 +25,12 @@
 
 ;; PROBLEM: we need to chose default attr before running q.
 (defn gather-info [ctx tagid itemid]
-  (def ctx ctx)
-  (def tagid tagid)
-  (def itemid itemid)
   (let [attr (queries/biggest-attribute ctx (:node ctx) {:tagid tagid})]
-    (def attr attr)
     (->  (q ctx (if itemid
                   qs/item-app-db
                   qs/app-db)
-            (cond-> {:info {:tagid tagid :attribute attr}}
-              itemid (assoc :itemid itemid)))
+            {:info (cond-> {:tagid tagid :attribute attr}
+                     itemid (assoc :itemid itemid))})
          (get-throwing :data)
          (select-keys [:tag_by_id :item_by_id])
          (add-show attr))))
@@ -47,43 +43,49 @@
 
 
 (defn jsonstring [ctx tagid itemid]
-  (str "var tagid = '" tagid "';\n"
-       "var itemid = '" itemid "';\n"
-       "var init = " (->> (gather-info ctx tagid itemid)
-                          strip
-                          json/generate-string) ";"))
+  (let [info (strip (gather-info ctx tagid itemid))]
+    (def info info) ; for use by test snippets in comment blocks in math.clj
+    {:string (str "var tagid = '" tagid "';\n"
+                  "var itemid = " (if itemid
+                                    (str "'" itemid "'")
+                                    itemid) ";\n"
+                  "var init = " (json/generate-string info) ";")
+     :info info} ))
 
-(gather-info ctx tagid itemid)
 (def tag-page
   {:name ::tag-page
    :enter (fn [{:keys [node request] :as ctx}]
-            (let [tagid (-> request :path-params :tagid)] ;; TODO find better default attribute
+            (let [tagid (-> request :path-params :tagid)
+                  {:keys [string info]} (jsonstring ctx tagid false)]
               (assoc ctx :response {:status 200 :html
                                     (layout request [:div
                                                      ;; [:span (json/generate-string tag)]
                                                      [:div#app.appbody]
-                                                     [:script {:type "text/javascript"}
-                                                      (jsonstring ctx tagid false)]
+                                                     [:script {:type "text/javascript"} string]
                                                      [:script {:type "text/javascript"
                                                                :src "/js/app.js"}]
                                                      [:script {:type "text/javascript"}
-                                                      "frontsorter.tag.init_BANG_()"]])})))})
+                                                      "frontsorter.tag.init_BANG_()"]]
+                                            {:title (:name info)})})))})
+
 (def item-page
   {:name ::item-page
    :enter (fn [{:keys [node request] :as ctx}]
             (let [tagid (-> request :path-params :tagid)
-                  itemid (-> request :path-params :itemid)]
+                  itemid (-> request :path-params :itemid)
+                  {:keys [string info]} (jsonstring ctx tagid itemid)]
               (assoc ctx :response {:status 200 :html
                                     (layout request
                                             [:div
                                              ;; [:span (json/generate-string tag)]
                                              [:div#app.appbody]
                                              [:script {:type "text/javascript"}
-                                              (jsonstring ctx tagid itemid)]
+                                              string]
                                              [:script {:type "text/javascript"
                                                        :src "/js/app.js"}]
                                              [:script {:type "text/javascript"
                                                        :src "/js/item.js"}]
                                              [:script {:type "text/javascript"}
-                                              "frontsorter.item.init_BANG_()"]])})))})
+                                              "frontsorter.item.init_BANG_()"]]
+                                            {:title (-> info :item :name) })})))})
 

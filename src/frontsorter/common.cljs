@@ -53,19 +53,22 @@
       
       true [:span "unknown format"])))
 
+(-> re-frame.db/app-db
+    deref
+    :pair)
+
 ;; TODO get rid fo format map here, can dislpay any item. format restriction happens only on server
 (defn itemview [side]
-  (let [format @(subscribe [:format])
-        item @(subscribe [:item side])]
+  (let [item @(subscribe [:item side])]
     [:div.item 
      {:class (case side :right "rightitem" :left "leftitem" "")
       :style (when (not (= side :item))
                {:transform (str "translateY(-" @(subscribe [:side-height side]) "px)")})}
-     (when (:name format)
+     (when (:name item)
        [:h1 {:style {:margin-bottom "4px"}} (:name item)])
-     (when (:url format)
+     (when (:url item)
        [url-displayer side])
-     (when (:paragraph format)
+     (when (:paragraph name)
        [:<> 
         [:br]
         [:pre {:style {:color "red"

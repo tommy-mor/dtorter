@@ -1,9 +1,7 @@
 (ns shared.query-strings)
 
-(def fragments
-  "
-fragment itemInfo on Item { id name }
-fragment appDb on Tag {
+(def fragments "fragment itemInfo on Item { id name }
+    fragment appDb on Tag {
     name
     description
     votecount
@@ -14,7 +12,7 @@ fragment appDb on Tag {
     attributecounts
 
     owner { id name }
-    sorted(info: $info) {...itemInfo elo}
+    sorted(info: $info) {...itemInfo elo votecount }
     unsorted(info: $info) {...itemInfo}
     pair {
       left {...itemInfo}
@@ -44,13 +42,15 @@ fragment appDb on Tag {
        fragments))
 
 ;; mutations
-(def vote
+(defn vote-fn [refresh-db fragments]
   (str "mutation Vote ($vote_info: VoteInputs!, $info: Tagrefreshinfo!) {
             vote(vote_info: $vote_info) { id } 
 "
        refresh-db
        "}"
        fragments))
+
+(def vote (vote-fn refresh-db fragments))
 
 (def add-item
   (str "mutation AddItem($item_info: ItemInputs!, $info: Tagrefreshinfo!) {
@@ -79,7 +79,7 @@ fragment tagAppDb on Tag {
   name
   attributes
   attributecounts
-  sorted(info: $info) { id name }
+  sorted(info: $info) { id name elo votecount }
   unsorted(info: $info) { id name }
   votes(info: $info) {
     id
@@ -92,10 +92,16 @@ fragment tagAppDb on Tag {
 }
 ")
 
-(def item-app-db
-  (str "mutation starting_item_data($info: Tagrefreshinfo!, $itemid: ID!) {
+(def item-page-refresh-db "
             tag_by_id(info: $info) { ...tagAppDb }
-            item_by_id(id: $itemid) { name paragraph url }
-        }"
+            item_by_id(info: $info) { id name paragraph url }
+")
+
+(def item-app-db
+  (str "mutation starting_item_data($info: Tagrefreshinfo!, $itemid: ID!) {"
+       item-page-refresh-db
+       "}"
        item-page-fragments
        ))
+
+(def vote-item (vote-fn item-page-refresh-db item-page-fragments))

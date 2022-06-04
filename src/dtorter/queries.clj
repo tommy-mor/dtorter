@@ -136,7 +136,7 @@
       0))
 
 (defn get-voted-ids [votes]
-  (set
+  (frequencies
    (flatten (map (juxt :left-item :right-item) (strip votes)))))
 
 
@@ -154,6 +154,11 @@
        (sort-by second)
        last
        first))
+
+
+(defn sorted-calc [items votes]
+  (reverse (for [[elo item] (math/getranking (vec items) (vec votes))]
+             (assoc item :elo elo))))
 
 
 (defn tag-info [ctx node {{:keys [attribute user tagid]} :info :as args}]
@@ -174,7 +179,6 @@
     
     
     
-    (println (prn-str args))
     (let [votes (strip (or (:vote/_tag votes) []))
           items (strip (or (:item/_tags items) []))
 
@@ -183,37 +187,32 @@
                                       (or (not user)
                                           (= (:owner %) user)))
                                 votes)
-          voted-ids (get-voted-ids filteredvotes) 
-          stuff (group-by #(nil? (voted-ids (:id %))) items)
+          item-vote-counts (get-voted-ids filteredvotes)
+          items (map #(assoc % :votecount (item-vote-counts (:id %))) items)
+          stuff (group-by #(nil? (item-vote-counts (:id %))) items)
           voted-items (or (get stuff false) [])
-          unvoted-items (or (get stuff true) [])]
-      
-      (def t [votes items freqs attribute filteredvotes voted-ids stuff voted-items unvoted-items args])
-      (let [items (nth t 1)
-            voted-ids (nth t 5)
-            attr (nth t 3)
-            args (last t)]
-        args)
-      (-> t
-          (nth 2))
-      (merge tag {:owner owner
-                  :allvotes votes
-                  :allitems items
-                  :filteredvotes filteredvotes
-                  :voteditems voted-items
-                  :unvoteditems unvoted-items
-                  :frequencies freqs}))))
-
+          unvoted-items (or (get stuff true) [])
+          id->item (into {} (map (juxt :id identity) items))
+          sorted (sorted-calc voted-items filteredvotes)]
+      (def t items)
+      (def rawinfo (merge tag {:owner owner
+                               :allvotes votes
+                               :allitems items
+                               :filteredvotes filteredvotes
+                               :voteditems voted-items
+                               :unvoteditems unvoted-items
+                               :itemvotecounts item-vote-counts
+                               :frequencies freqs
+                               :id->item id->item
+                               :sorted sorted}))
+      (math/getpair rawinfo)
+      rawinfo)))
 
 (defn pair-for-tag [ctx node tid]
   (def items (items-for-tag ctx node tid))
   (if (> (count items) 2)
     {:left (first items) :right (second items)}
     nil))
-
-(defn sorted-calc [items votes]
-  (reverse (for [[elo item] (math/getranking (vec items) (vec votes))]
-             (assoc item :elo elo))))
 
 (defn unsorted-calc [items votes voted-ids]
   (def voted-ids)

@@ -23,7 +23,10 @@
                  [integrant "0.8.0"]
 
                  [babashka/fs "0.1.6"]
-                 [garden "1.3.10"]]
+                 [garden "1.3.10"]
+                 [kixi/stats "0.5.0"]
+                 
+                 [org.clojure/data.priority-map "1.1.0"]]
   
   
   

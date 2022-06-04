@@ -61,7 +61,10 @@
              :left (/ (max 0 (- 50 percent)) 2)
              0)))
 
-(reg-sub :item (fn [db [_ side]] ((comp side :pair) db)))
+(reg-sub :item (fn [db [_ side]] 
+                 (if-let [x (side db)]
+                   x
+                   ((comp side :pair) db))))
 (reg-sub :urls
          (fn [[_ side]] (subscribe [:item side]))
          (fn [item [_ side]]

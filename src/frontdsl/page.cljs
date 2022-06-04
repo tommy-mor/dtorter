@@ -8,8 +8,8 @@
 
 (defonce todos (r/atom {}))
 
-
 (defonce match (r/atom nil))
+
 (defn query-from-match []
   (-> @match
       :query-params
@@ -18,13 +18,13 @@
 (defn encoded-string-from-match []
   (reitit.core/match->path @match {:q (query-from-match)}))
 
-(defn filter-input []
+(defn filter-input-inner []
   [:input {:type "text"
            :value (query-from-match)
            :on-change #(rfe/push-state ::tdsl {} {:q (-> % .-target .-value)})}])
 
 (def filter-input 
-  (with-meta filter-input
+  (with-meta filter-input-inner
     {:component-did-mount #(.focus (rdom/dom-node %))}))
 
 (defn tdsl-app []
@@ -36,7 +36,7 @@
        (doall (for [[kw thought] (->> @todos
                                       (filter #(if (not (empty? q))
                                                  (str/includes? (str (first %)) q)
-                                                 (constantly true))))]
+                                                 true)))]
                 [:tr [:td.kw [:pre.swag (str kw)]] [:td [:pre thought]]]))]]
      [:a {:href "/tdsl/refresh"
           :on-click #(set! js/document.cookie (str"query=" (encoded-string-from-match)))}

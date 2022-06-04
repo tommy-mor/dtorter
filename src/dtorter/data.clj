@@ -185,3 +185,12 @@
 ;; maybe use uuid type everywhere?
 
 ;; YOOOOOOOOOOOOO restrictions on data is done by dynamically cretaing a spec, or even just putting an entire spec in the DB as data....
+
+
+;; compare :youtube-url "tartsar" with :url "artarstioen"
+;; :youtube.code "tartarts"
+;; :youtube.timestamp 321
+
+;; use regal inspired regex library to parse urls maintainably
+;; spec to enforce is just set of  allowed, set of required keys.
+;; maybe put actual spec in the database.....

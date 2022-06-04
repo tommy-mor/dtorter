@@ -10,13 +10,17 @@
 
 ;; spec checking from
 ;; https://github.com/day8/re-frame/blob/master/examples/todomvc/src/todomvc/events.cljs#L49
+;; TODO check spec differently for tag page
 (defn check-and-throw
   "Throws an exception if `db` doesn't match the Spec `a-spec`."
   [a-spec db]
-  (when-not (s/valid? a-spec db)
-    (throw (ex-info (str "spec check failed: " (s/explain-str a-spec db)) {}))))
+  (when (not js/itemid) ;; TODO bad
+    (when-not (s/valid? a-spec db)
+      (throw (ex-info (str "spec check failed: " (s/explain-str a-spec db)) {})))))
 
 (def check-spec-interceptor (after (partial check-and-throw ::sp/db)))
+
+(js/console.log "stw")
 
 ;; maybe add (path [:tagpage]) to this?
 (def interceptor-chain [check-spec-interceptor])
@@ -36,10 +40,10 @@
   " things that are part of ...appDB fragment, but not every mutation.
    these should be filled in always so state knows how to refresh itself.
   "
-  {:info {:attribute (-> db :current-attribute)
-          :tagid js/tagid
-          :user (-> db :current-user)}})
-
+  {:info (cond-> {:attribute (-> db :current-attribute)
+                  :tagid js/tagid
+                  :user (-> db :current-user)}
+           js/itemid (assoc :itemid js/itemid))})
 
 ;; TODO make this only clear the correct error
 (reg-event-db :clear-errors interceptor-chain #(assoc % :errors []))
@@ -49,15 +53,25 @@
  ::refresh-db
  interceptor-chain
  (fn [db [_ {:keys [data errors] :as payload}]]
-   (merge db (:tag_by_id data) {:percent 50})))
+   (let [itemdata (:item_by_id data)]
+     (merge db (:tag_by_id data) {:percent 50} (when itemdata
+                                                 {:item itemdata})))
+   ;; PROBLEM: t has pair
+   ))
 
+
+(defn cancel-vote [db]
+  (-> db
+      (assoc :item (-> db :pair :left))
+      (dissoc :pair :percent)))
 
 (reg-event-fx
  :vote
  (fn [{:keys [db]} _]
-   {:dispatch [::re-graph/mutate
+   {:db (cancel-vote db)
+    :dispatch [::re-graph/mutate
                :vote
-               qs/vote
+               (if js/itemid qs/vote-item qs/vote)
                (merge (appdb-args db)
                       {:vote_info {:tagid js/tagid
                                    :left_item (-> db :pair :left :id)
@@ -142,20 +156,20 @@
  interceptor-chain
  (fn [db [_ vote leftitem rightitem]]
    (-> db
-       (assoc :left leftitem
-              :right rightitem
+       (assoc :pair {:left leftitem
+                     :right rightitem}
               :percent (second
                         (frontsorter.common/calcmag vote (:id leftitem))))
        (dissoc :item))))
 
-(comment (reg-event-db
-          :cancelvote
-          interceptor-chain
-          (fn [db _]
-            (voting->item db))))
+(reg-event-db
+ :cancelvote
+ interceptor-chain
+ (fn [db _]
+   (cancel-vote db)))
 
-(-> @re-frame.db/app-db
-    :current-attribute)
+
+
 
 
 ;; attribute system

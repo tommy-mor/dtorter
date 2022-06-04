@@ -1,6 +1,9 @@
 (ns dtorter.math
   (:require [clojure.core.matrix :as m]
-            [clojure.core.matrix.random :as mr]))
+            [clojure.core.matrix.random :as mr]
+            [kixi.stats.core :refer [standard-deviation correlation]]
+            [kixi.stats.distribution :refer [draw sample binomial]]
+            [clojure.data.priority-map :as pm]))
 
 (m/set-current-implementation :vectorz)
 
@@ -86,16 +89,114 @@
                            [(m/slice stable (item->idx (:id item)))
                             item])))))
 
-(comment
-  (def db dtorter.http/db)
-  (def alltags (dtorter.queries/all-tags db))
-  (distinct (map keys alltags))
-  (def test-tag (first (filter #(= "ASCII smiley" (:tag/name %)) alltags)))
-  (def tid (:xt/id test-tag))
-  (def items (dtorter.queries/items-for-tag db tid))
-  (def votes (dtorter.queries/votes-for-tag db tid))
-  (count votes)
+;; TODO fix, this is also in queries..
+(defn sorted-calc [items votes]
+  (reverse (for [[elo item] (getranking (vec items) (vec votes))]
+             (assoc item :elo elo))))
 
+
+(defn draw-coll [coll dist]
+  (when (not-empty coll)
+    (nth coll (int (* (count coll) (draw dist))))))
+
+(defn sigmoid [y]
+  "https://stackoverflow.com/questions/10097891/inverse-logistic-function-reverse-sigmoid-function
+   takes ratio into [0,1] "
+  (/ 1 (inc (Math/exp (- y)))))
+
+(defn getpair [{:keys [voteditems filteredvotes itemvotecounts unvoteditems id->item
+                       sorted] :as ctx}]
+  (def ctx ctx)
+  (def voteditems voteditems)
+  (def filteredvotes filteredvotes)
+  (def itemvotecounts itemvotecounts)
+  (def unvoteditems unvoteditems)
+  (def sorted sorted)
+  (def id->item id->item)
+
+  (def itemid->elo (into {} (map (juxt :id :elo) sorted)))
+  
+  ;; item->{votes}
+  (def itemid->votes (apply merge-with into
+                            (for [{left :left-item right :right-item :as vote}  filteredvotes]
+                              {left #{vote} right #{vote}})))
+
+  (defn vote-ratio [itemid votes]
+    (apply /
+           (reduce (fn [[numerator denominator] {:keys [left-item right-item magnitude]}]
+                     (let [edutingam (- 100 magnitude)]
+                       (condp = itemid
+                         left-item [(+ numerator edutingam)
+                                    (+ denominator magnitude)]
+                         right-item [(+ numerator magnitude)
+                                     (+ denominator edutingam)]))) [0 0] votes)))
+  
+  ;; TODO use vote-ratio thing for left item, use beta distr to use that
+  
+  (def sorted-ratios
+    (into (pm/priority-map) (for [[itemid _] itemvotecounts]
+                              {itemid (let [x (vote-ratio itemid (itemid->votes itemid))]
+                                        (if (< x 1.0)
+                                          (Math/pow x -1.0)
+                                          (float x)))})))
+
+  (defn sample-size [denominator] (max (int (/ (count sorted-ratios) denominator))
+                                       1))
+  
+  ;; todo make way to switch between these ors
+  (def leftitem (or
+                 ;; TODO make this remember the score, to give rightitem a relative direction?
+                 (rand-nth (take (sample-size 30) (reverse sorted-ratios)))
+                 (comment
+                   (id->item (some (fn [[itemid votecount]]
+                                     (when (< votecount 3) itemid))
+                                   itemvotecounts))
+                   (draw-coll voteditems (kixi.stats.distribution/beta {:a 2 :b 3.3})))))
+  
+  (def rightitem (or (draw-coll unvoteditems (kixi.stats.distribution/uniform 0 1))
+                     (->> (into (pm/priority-map)
+                                (for [item sorted]
+                                  {(:id item) (Math/abs (- (:elo item)
+                                                           (itemid->elo (first leftitem))))}))
+                          (drop 1)
+                          (take (sample-size 12))
+                          rand-nth
+                          first
+                          id->item)
+                     
+                     (comment " https://stackoverflow.com/questions/10097891/inverse-logistic-function-reverse-sigmoid-functionthing where it finds the win/loss ratio")
+                     ))
+
+  ;; TODO make this do loop
+  (assert (not (= leftitem rightitem)))
+  {:left-item}
+  
+  ;; TODO match items who want losses with items who want wins
+  
+
+  ;; if less than 2 exists, find those. then do unequal ratio strategy
+  ;; 
+  filteredvotes
+  itemvotecounts
+
+  ;; TODO have to see how this works with baby tags, maybe 3 is too high for baby tags
+  ;; QUESTION: left item prioritize >3 votes over distrobution
+
+  ;; righ item: gather empty, otherwise focus on low item scores
+  
+  
+  
+
+
+  ;; httpus://www.desmos.com/calculator/pct1rbpkgv
+  )
+
+; random idea: clojure defn macro that makes all args global ...
+;; defnFREEZE
+(comment
+  (def info dtorter.views.tag/info)
+  (getpair (-> dtorter.queries/rawinfo dtorter.util/strip))
+  
   (binding [*epsilon* 0.000001]
     (for [n (range 10)]
       (apply max (keys (getranking items votes))))))

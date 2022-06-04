@@ -31,7 +31,8 @@
                                              [:h1 "front page"]
                                              [:ul
                                               (for [tag tags]
-                                                (render-tag tag))]])})))})
+                                                (render-tag tag))]]
+                                    {:title "sorter frontpage"})})))})
 
 (defn login-page [req]
   {:status 200
@@ -39,7 +40,8 @@
                              :method "POST"}
                       [:input {:required true :type "text" :name "username" :placeholder "user"}]
                       [:input {:required true :type "password" :name "password" :placeholder "pass"}]
-                      [:input {:type "submit" :value "login"}]])})
+                      [:input {:type "submit" :value "login"}]]
+                 {:title "sorter login"})})
 
 (defn users-page [req]
   {:status 200

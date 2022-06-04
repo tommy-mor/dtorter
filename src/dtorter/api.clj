@@ -24,8 +24,8 @@
      (strip (queries/tag-info ctx node args)))
    
    :query/item-by-id
-   (fn [ctx {:keys [id]} _]
-     (strip (queries/item-by-id ctx node id)))
+   (fn [ctx {{:keys [itemid]} :info} _]
+     (strip (queries/item-by-id ctx node itemid)))
    
    :query/all-tags
    (fn [ctx _ value]
@@ -33,18 +33,16 @@
    
    :Tag/items
    (fn [_ {} value]
-     (or (:items value)
+     (or (:allitems value)
          (throw (ex-info "not implemented" value))))
    
    :Tag/votes
-   (fn [ctx {{:keys [attribute]} :info} {:keys [allitems allvotes] :as value}]
+   (fn [ctx {{:keys [attribute]} :info} {:keys [allitems allvotes id->item] :as value}]
+     (def allitems allitems)
      (let [votes (if (and allitems allvotes)
-                   (let [id->item (apply hash-map
-                                         (flatten
-                                          (map (juxt :id identity) allitems)))]
-                     (map #(assoc %
-                                  :left-item (id->item (:left-item %))
-                                  :right-item (id->item (:right-item %))) allvotes))
+                   (map #(assoc %
+                                :left-item (id->item (:left-item %))
+                                :right-item (id->item (:right-item %))) allvotes)
                    (throw (ex-info "not implemented" value)))
            user (grab-user ctx)]
        (filter #(and (= (:owner %) user)
@@ -95,10 +93,10 @@
    
    ;; does calculations
    :Tag/sorted
-   (fn [ctx _ {:keys [filteredvotes voteditems] :as value}]
-     (if (and filteredvotes voteditems)
-       (strip (queries/sorted-calc voteditems
-                                   filteredvotes))
+   (fn [ctx _ {:keys [sorted] :as value}]
+     (if (and sorted)
+       (strip sorted)
+       
        (throw (ex-info "this data is wrong" value))))
    
    :Tag/unsorted

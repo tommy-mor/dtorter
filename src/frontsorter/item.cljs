@@ -45,13 +45,10 @@
 (defn votepanel [rowitem]
   (let [vote @(subscribe [:vote-on rowitem])
         [mag mag2] (c/calcmag vote (:id rowitem))
-        ignoreitem @(subscribe [:item :item])
-        editfn (fn [e]
-                 (.stopPropagation e)
-                 (dispatch [:voteonpair vote ignoreitem rowitem]))
-        delfn (fn [e]
-                (.stopPropagation e)
-                (dispatch [:delete-vote vote]))]
+        ignoreitem (or @(subscribe [:item :item])
+                       @(subscribe [:item :left]))
+        editfn #(dispatch [:voteonpair vote ignoreitem rowitem])
+        delfn #(dispatch [:delete-vote vote])]
     (if vote
       [:div.vote
        [:td [:<> "" [:b mag] " vs " [:b mag2] "  " (:name ignoreitem)]]
@@ -60,36 +57,43 @@
        [:td]
        [:td 
         [c/smallbutton " delete" delfn]]]
-      (if (= (:id rowitem) (:id ignoreitem))
+      (if (= (:id rowitem) js/itemid)
         [:td "--"]
         [:td [c/smallbutton "vote" editfn]]))))
 
 
-(defn fixelo [elo size]
-  (let [elo 
-        (.toFixed (* 10 size elo)  2)]
-    elo))
-
 (defn rowitem [rowitem]
-  (let [size @(subscribe [:sorted-count])
-        show @(subscribe [:show])]
+  (let [show @(subscribe [:show])]
+    (def rowitem rowitem)
+    rowitem
+    
+    (:id rowitem)
+    
     [:tr 
-     [:td (fixelo (:elo rowitem) size)]
+     [:td (.toFixed (:elo rowitem) 2)]
      ;; customize by type (display url for links?)
      
      [:td (:votecount rowitem)]
+     [:td [:b (if (= js/itemid (:id rowitem))
+                "x"
+                " ")]]
      [:td (let [url (str "/t/" js/tagid "/" (:id rowitem))
                 name [:div
                       {:onClick (fn [] (set! js/window.location.href url))}
                       (:name rowitem)]
                 id (:id rowitem)
-                item-id @(subscribe [:item-id])
-                right @(subscribe [:item :left])]
+                right @(subscribe [:item :right])]
+            (def right right)
+            right
             (cond
               (and right
                    (= id (:id right))) [:b name]
-              (= id item-id) [:b name]
+              (= id js/itemid) [:b name]
               true name))]
+     
+     [:td [:b (if (= (:id @(subscribe [:item :right])) (:id rowitem))
+                "x"
+                " ")]]
      
      (if (:vote_edit show)
        [votepanel rowitem])]))
@@ -98,8 +102,7 @@
   ;; (js/console.log "rank")
   ;; (js/console.log (clj->js  @rank))
   
-  (let [sorted @(subscribe [:sorted])
-        count @(subscribe [:sorted-count])]
+  (let [sorted @(subscribe [:sorted])]
     [:table
      [:thead
       [:tr [:th "elo"] [:th "#votes"] [:th ""]]]

@@ -42,12 +42,15 @@
   {:description "a named url/link/item in the system that can be voted on"
    :fields
    {:id {:type (non-null ID)}
+    
     :name {:type (non-null String)}
     :paragraph {:type String}
     :url {:type String}
+    
     :elo {:type Float}
     :tags {:type (list :Tag)
-           :resolve :Item/tags}}}
+           :resolve :Item/tags}
+    :votecount {:type Int}}}
   
   :Pair
   {:description "two items, to be voted on"
@@ -107,10 +110,11 @@
    :description "return a tag based on its unique id, if it exists"
    :args {:info {:type :Tagrefreshinfo}}
    :resolve :query/tag-by-id}
+  
   :item_by_id
   {:type :Item
    :description "return an item based on its id, if it exists"
-   :args {:id {:type (non-null ID)}}
+   :args {:info {:type :Tagrefreshinfo}}
    :resolve :query/item-by-id}
   
   :vote

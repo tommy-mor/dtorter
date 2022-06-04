@@ -97,7 +97,7 @@
     (stop))
   (start))
 
-(comment (start))
+(comment (reset))
 
 
 
@@ -109,6 +109,11 @@
             `(sorter ~kw)))
 
          (dtorter.http/sorter :books))
+
+
+
+
+
 
 
 
