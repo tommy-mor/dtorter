@@ -156,25 +156,16 @@
        first))
 
 
+(def ^:dynamic *testing* false)
+
 (defn sorted-calc [items votes]
   (reverse (for [[elo item] (math/getranking (vec items) (vec votes))]
              (assoc item :elo elo))))
 
+(defn tag-info-calc [query {{:keys [attribute user]} :info :as args}]
+  (let [[tag owner votes items] query]
 
-(defn tag-info [ctx node {{:keys [attribute user tagid]} :info :as args}]
-  (comment "TODO must have permissions on this query... use xtdb query functions")
-  (xt/sync node)
-  (let [[tag owner votes items] (first (xt/q (xt/db node) '[:find
-                                                            (pull tid [*])
-                                                            (pull owner [*])
-                                                            (pull tid [{:vote/_tag [*]}])
-                                                            (pull tid [{:item/_tags [*]}])
-                                                            :in tid
-                                                            :where
-                                                            [tid :tag/owner owner]]
-                                             tagid))]
-
-    (when (some nil? [tag owner votes items])
+    (when (and (not *testing*) (some nil? [tag owner votes items]))
       (throw (ex-info (str "found a null" (prn-str args)) args)))
     
     
@@ -207,6 +198,22 @@
                                :sorted sorted}))
       (math/getpair rawinfo)
       rawinfo)))
+
+
+(defn tag-info [ctx node {:keys [tagid] :as args}]
+  (comment "TODO must have permissions on this query... use xtdb query functions")
+  (xt/sync node)
+  (let [query (first (xt/q (xt/db node) '[:find
+                                          (pull tid [*])
+                                          (pull owner [*])
+                                          (pull tid [{:vote/_tag [*]}])
+                                          (pull tid [{:item/_tags [*]}])
+                                          :in tid
+                                          :where
+                                          [tid :tag/owner owner]]
+                           tagid))]
+
+    (tag-info-calc query args)))
 
 (defn pair-for-tag [ctx node tid]
   (def items (items-for-tag ctx node tid))

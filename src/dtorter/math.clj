@@ -3,7 +3,8 @@
             [clojure.core.matrix.random :as mr]
             [kixi.stats.core :refer [standard-deviation correlation]]
             [kixi.stats.distribution :refer [draw sample binomial]]
-            [clojure.data.priority-map :as pm]))
+            [clojure.data.priority-map :as pm]
+            [dtorter.util :as util]))
 
 (m/set-current-implementation :vectorz)
 
@@ -146,7 +147,9 @@
   ;; todo make way to switch between these ors
   (def leftitem (or
                  ;; TODO make this remember the score, to give rightitem a relative direction?
-                 (rand-nth (take (sample-size 30) (reverse sorted-ratios)))
+                 (-> (rand-nth (take (sample-size 30) (reverse sorted-ratios)))
+                     first
+                     id->item)
                  (comment
                    (id->item (some (fn [[itemid votecount]]
                                      (when (< votecount 3) itemid))
@@ -162,22 +165,17 @@
                           (take (sample-size 12))
                           rand-nth
                           first
-                          id->item)
-                     
-                     (comment " https://stackoverflow.com/questions/10097891/inverse-logistic-function-reverse-sigmoid-functionthing where it finds the win/loss ratio")
-                     ))
+                          id->item)))
 
   ;; TODO make this do loop
   (assert (not (= leftitem rightitem)))
-  {:left-item}
-  
   ;; TODO match items who want losses with items who want wins
   
 
   ;; if less than 2 exists, find those. then do unequal ratio strategy
   ;; 
-  filteredvotes
-  itemvotecounts
+  {:left-item leftitem
+   :right-item rightitem}
 
   ;; TODO have to see how this works with baby tags, maybe 3 is too high for baby tags
   ;; QUESTION: left item prioritize >3 votes over distrobution
@@ -195,7 +193,7 @@
 ;; defnFREEZE
 (comment
   (def info dtorter.views.tag/info)
-  (getpair (-> dtorter.queries/rawinfo dtorter.util/strip))
+  ;; (getpair (-> dtorter.queries/rawinfo dtorter.util/strip))
   
   (binding [*epsilon* 0.000001]
     (for [n (range 10)]
