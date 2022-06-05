@@ -119,7 +119,9 @@
    
    :Tag/pair
    (fn [ctx _ value]
-     (strip (queries/pair-for-tag ctx node (:id value))))
+     (if (:pair value)
+       (strip (:pair value))
+       (throw (ex-info "should have pair" value))))
 
    :Item/tags
    (fn [ctx _ item]

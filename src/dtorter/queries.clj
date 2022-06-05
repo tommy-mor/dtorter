@@ -162,7 +162,7 @@
   (reverse (for [[elo item] (math/getranking (vec items) (vec votes))]
              (assoc item :elo elo))))
 
-(defn tag-info-calc [query {{:keys [attribute user]} :info :as args}]
+(defn tag-info-calc [ctx query {{:keys [attribute user]} :info :as args}]
   (let [[tag owner votes items] query]
 
     (when (and (not *testing*) (some nil? [tag owner votes items]))
@@ -196,10 +196,8 @@
                                :frequencies freqs
                                :id->item id->item
                                :sorted sorted}))
-      #_(:unvoteditems :itemvotecounts :frequencies :sorted :allitems :allvotes :tag/owner :tag/name :xt/id :filteredvotes :voteditems :tag/description :id->item :owner)
-      
-      (math/getpair rawinfo)
-      rawinfo)))
+
+      (merge rawinfo {:pair (math/getpair ctx rawinfo)}))))
 
 
 (defn tag-info [ctx node {{:keys [tagid]} :info :as args }]
@@ -217,13 +215,7 @@
                                           [tid :tag/owner owner]]
                            tagid))]
 
-    (tag-info-calc query args)))
-
-(defn pair-for-tag [ctx node tid]
-  (def items (items-for-tag ctx node tid))
-  (if (> (count items) 2)
-    {:left (first items) :right (second items)}
-    nil))
+    (tag-info-calc ctx query args)))
 
 (defn unsorted-calc [items votes voted-ids]
   (def voted-ids)
