@@ -114,7 +114,7 @@
   (def unvoteditems unvoteditems)
   (def sorted sorted)
   (def id->item id->item)
-
+  
   (def itemid->elo (into {} (map (juxt :id :elo) sorted)))
   
   ;; item->{votes}
@@ -147,7 +147,7 @@
   ;; todo make way to switch between these ors
   (def leftitem (or
                  ;; TODO make this remember the score, to give rightitem a relative direction?
-                 (-> (rand-nth (take (sample-size 30) (reverse sorted-ratios)))
+                 (-> (rand-nth (take (sample-size 3) (reverse sorted-ratios)))
                      first
                      id->item)
                  (comment
@@ -160,7 +160,7 @@
                      (->> (into (pm/priority-map)
                                 (for [item sorted]
                                   {(:id item) (Math/abs (- (:elo item)
-                                                           (itemid->elo (first leftitem))))}))
+                                                           (itemid->elo (:id leftitem))))}))
                           (drop 1)
                           (take (sample-size 12))
                           rand-nth

@@ -20,8 +20,6 @@
 
 (def check-spec-interceptor (after (partial check-and-throw ::sp/db)))
 
-(js/console.log "stw")
-
 ;; maybe add (path [:tagpage]) to this?
 (def interceptor-chain [check-spec-interceptor])
 
@@ -53,6 +51,9 @@
  ::refresh-db
  interceptor-chain
  (fn [db [_ {:keys [data errors] :as payload}]]
+   (def db db)
+   ;; TODO add errors to error element
+   (def payload payload)
    (let [itemdata (:item_by_id data)]
      (merge db (:tag_by_id data) {:percent 50} (when itemdata
                                                  {:item itemdata})))
@@ -61,6 +62,7 @@
 
 
 (defn cancel-vote [db]
+  (js/console.log "ratrst")
   (-> db
       (assoc :item (-> db :pair :left))
       (dissoc :pair :percent)))
@@ -68,7 +70,9 @@
 (reg-event-fx
  :vote
  (fn [{:keys [db]} _]
-   {:db (cancel-vote db)
+   {:db (if js/itemid
+          (cancel-vote db)
+          db)
     :dispatch [::re-graph/mutate
                :vote
                (if js/itemid qs/vote-item qs/vote)
@@ -155,6 +159,7 @@
  :voteonpair
  interceptor-chain
  (fn [db [_ vote leftitem rightitem]]
+   (js/console.log "strst")
    (-> db
        (assoc :pair {:left leftitem
                      :right rightitem}

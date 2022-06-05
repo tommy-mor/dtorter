@@ -196,11 +196,15 @@
                                :frequencies freqs
                                :id->item id->item
                                :sorted sorted}))
+      #_(:unvoteditems :itemvotecounts :frequencies :sorted :allitems :allvotes :tag/owner :tag/name :xt/id :filteredvotes :voteditems :tag/description :id->item :owner)
+      
       (math/getpair rawinfo)
       rawinfo)))
 
 
-(defn tag-info [ctx node {:keys [tagid] :as args}]
+(defn tag-info [ctx node {{:keys [tagid]} :info :as args }]
+
+  
   (comment "TODO must have permissions on this query... use xtdb query functions")
   (xt/sync node)
   (let [query (first (xt/q (xt/db node) '[:find
