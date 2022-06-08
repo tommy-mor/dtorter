@@ -57,6 +57,8 @@
     deref
     :pair)
 
+;; i feel like spec could be good enough instead of graphql...
+
 ;; TODO get rid fo format map here, can dislpay any item. format restriction happens only on server
 (defn itemview [side]
   (let [item @(subscribe [:item side])]
@@ -64,6 +66,8 @@
      {:class (case side :right "rightitem" :left "leftitem" "")
       :style (when (not (= side :item))
                {:transform (str "translateY(-" @(subscribe [:side-height side]) "px)")})}
+     [:a {:href (:id item)
+          :target "_blank"} (:id item)]
      (when (:name item)
        [:h1 {:style {:margin-bottom "4px"}} (:name item)])
      (when (:url item)

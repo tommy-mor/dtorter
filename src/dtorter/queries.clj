@@ -166,7 +166,7 @@
   (let [[tag owner votes items] query]
 
     (when (and (not *testing*) (some nil? [tag owner votes items]))
-      (throw (ex-info (str "found a null" (prn-str args)) args)))
+      (throw (ex-info (str "found a null" (prn-str query)) args)))
     
     
     

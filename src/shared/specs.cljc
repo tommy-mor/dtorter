@@ -9,7 +9,8 @@
 (def uuid-regex #"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
 
 (def uuid-str #(re-matches uuid-regex %))
-(s/def :xt/id uuid-str)
+#_(s/def :xt/id uuid-str)
+(s/def :xt/id string?)
 
 (s/def ::user (s/keys :req-un [:xt/id :user/name]))
 

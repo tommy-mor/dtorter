@@ -37,11 +37,10 @@
                                       (filter #(if (not (empty? q))
                                                  (str/includes? (str (first %)) q)
                                                  true)))]
-                [:tr [:td.kw [:pre.swag (str kw)]] [:td [:pre thought]]]))]]
+                [:tr {:key (str kw thought)} [:td.kw [:pre.swag (str kw)]] [:td [:pre thought]]]))]]
      [:a {:href "/tdsl/refresh"
           :on-click #(set! js/document.cookie (str"query=" (encoded-string-from-match)))}
-      "refresh from git"]
-     ]))
+      "refresh from git"]]))
 
 (def routes
   [["/"

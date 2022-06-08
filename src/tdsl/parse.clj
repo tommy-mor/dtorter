@@ -11,9 +11,11 @@
               rst)))
 
 (defn parse-blocks [st] (map parse-block (str/split st #"\n:")))
-(defn parse-file [file] (with-meta
-                          (parse-blocks (slurp (fs/file file)))
-                          {:source-file file}))
+(defn parse-file [file]
+  (def file file)
+  (with-meta
+    (parse-blocks (str/replace-first (slurp (fs/file file)) #"\(ns.*\n" ""))
+    {:source-file file}))
 
 
 (defn parse-files []
