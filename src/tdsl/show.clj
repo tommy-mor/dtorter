@@ -10,12 +10,17 @@
   (def files (parse/parse-files))
   (def thoughts (sort-by first (apply concat (for [f files]
                                                (for [thought f]
-                                                 (first thought))))))
+                                                 (conj (first thought) (-> f
+                                                                           meta
+                                                                           :source-file
+                                                                           str)))))))
   thoughts)
+
 
 (def styles
   (css [:.test {:background-color "pink"}]
-       [:.swag {:background-color "lightblue"}]
+       [:.swag {:background-color "lightblue"
+                :max-width "120"}]
        [:.kw {:vertical-align "top"}]))
 
 (defn only-users [users]
@@ -55,10 +60,11 @@
               (assoc ctx :response (ring-resp/redirect (str (url-for :tdsl-page) "#" qs)))))})
 
 
+(def users #{"tommy" "owner"})
 (defn routes [common-interceptors]
   #{["/tdsl" :get
-     (into common-interceptors [page (only-users #{"tommy"})])
+     (into common-interceptors [page (only-users users)])
      :route-name :tdsl-page]
     ["/tdsl/refresh" :get
-     (into common-interceptors [refresh (only-users #{"tommy"})])
+     (into common-interceptors [refresh (only-users users)])
      :route-name :tdsl-refresh]})

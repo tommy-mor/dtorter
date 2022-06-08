@@ -33,11 +33,11 @@
      [filter-input]
      [:table 
       [:tbody
-       (doall (for [[kw thought] (->> @todos
+       (doall (for [[kw thought url] (->> @todos
                                       (filter #(if (not (empty? q))
                                                  (str/includes? (str (first %)) q)
                                                  true)))]
-                [:tr {:key (str kw thought)} [:td.kw [:pre.swag (str kw)]] [:td [:pre thought]]]))]]
+                [:tr {:key (str kw thought)} [:td.kw [:pre.swag (str kw)] [:a {:href url} (last (str/split url #"/"))]] [:td [:pre thought]]]))]]
      [:a {:href "/tdsl/refresh"
           :on-click #(set! js/document.cookie (str"query=" (encoded-string-from-match)))}
       "refresh from git"]]))
