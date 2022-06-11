@@ -139,13 +139,12 @@
                                     (+ denominator magnitude)]
                          right-item [(+ numerator magnitude)
                                      (+ denominator edutingam)]))) [0 0] votes)))
-  
-  
   ;; use include in ratio the amount of votes, prioritize ones with less.
   ;; PROBLEM, the ones near top will have winning/unbalanced ratios...
   ;; maybe this strategy only works well at the beginning.
-  (defn sample-size [denominator] (max (int (/ (count (id->item (first (last sorted-ratios)))) denominator))
-                                       1))
+  (defn sample-size [denominator]
+    (max (int (/ (count voteditems) denominator))
+         1))
 
   (def sorted-ratios
     (into (pm/priority-map) (for [{itemid :id} (-> sorted vec (sample-coll (sample-size 2) (kixi.stats.distribution/beta {:a 2 :b 3.3})))]
@@ -157,6 +156,8 @@
   ;; todo make way to switch between these ors
   (def leftitem (or
                  ;; TODO make this remember the score, to give rightitem a relative direction?
+                 (when (empty? voteditems)
+                   (rand-nth unvoteditems))
                  (-> (rand-nth (take (sample-size 3) (reverse sorted-ratios)))
                      first
                      id->item)
@@ -197,12 +198,18 @@
                  rightitem
                  "\n trying again..")
         (getpair args ctx)))
+
+  #_(simple pair chosing for beginning. if an item has no losses, elomtach
+          as soon as it gets a loss, move on.
+          )
   
 
   ;; if less than 2 exists, find those. then do unequal ratio strategy
   ;; 
   {:left leftitem
    :right rightitem}
+
+  ;; TODO even more heavy preference for items with no losing matchups...
 
   ;; TODO have to see how this works with baby tags, maybe 3 is too high for baby tags
   ;; QUESTION: left item prioritize >3 votes over distrobution
