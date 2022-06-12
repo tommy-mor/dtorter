@@ -7,7 +7,7 @@
          '[pod.epiccastle.spire.module.shell :refer [shell]]
          '[pod.epiccastle.spire.module.upload :refer [upload]])
 
-#_(shell "lein uberjar")
+(shell {:cmd "lein uberjar"})
 
 (def jar (first (fs/glob "./target" "*standalone.jar")))
 

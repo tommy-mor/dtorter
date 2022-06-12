@@ -6,8 +6,7 @@
 
 (def default-db nil)
 
-(comment (-> @re-frame.db/app-db
-             :votes))
+(comment (tap> @re-frame.db/app-db))
 
 
 

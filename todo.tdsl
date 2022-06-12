@@ -1,4 +1,6 @@
 :sorter.impl/todo
+  deploy.... so we can start using tdsl.
+
   do item page (finish today...)
     row of items votecount (hard?)
     bolding
