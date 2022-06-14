@@ -7,7 +7,6 @@
    [frontsorter.events]
    [frontsorter.common :as c]
    [frontsorter.subs]
-   ["./../tagpage/CreateTagPage" :as foo]
    [frontsorter.attributes :as attrs]))
 
 (dispatch-sync [:init-db {}])
@@ -24,7 +23,7 @@
   (let [name @(subscribe [:name])]
     [:a {:href (str "/t/" js/tagid)} " << " name]))
 
-(defn item-edit [show]
+#_(defn item-edit [show]
   (let [callback #(reset! show false)]
     [:> foo/ItemCreator {:inputList (c/fields-from-format @(subscribe [:format]))
                          :editItem @(subscribe [:item :item])
@@ -39,7 +38,7 @@
   [c/editable
    nil ;; title
    (:edit_item @(subscribe [:show]))
-   item-edit
+   [:h1 "edit item here"]
    [c/itemview :item]])
 
 (defn votepanel [rowitem]
