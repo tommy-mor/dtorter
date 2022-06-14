@@ -1,7 +1,6 @@
 (ns frontsorter.tagform.create
-  (:require ["./../../tagpage/CreateTagPage" :as foo]
-            [reagent.dom :as d]
+  (:require [reagent.dom :as d]
             [reagent.core :as r]))
 
 (defn ^:export init! []
-  (d/render [:> foo/App] (.getElementById js/document "app")))
+  (d/render [:h1 "create tag form"] (.getElementById js/document "app")))
