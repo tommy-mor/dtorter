@@ -84,7 +84,9 @@
                                     route/expand-routes)))
       
       (merge {::server/join? prod
-              ::server/allowed-origin {:creds true :allowed-origins (constantly true)}})
+              ::server/allowed-origin {:creds true :allowed-origins (constantly true)}
+              ;; TODO use a nonce on the script tag which does frontsorter.initbang
+              ::server/secure-headers {:content-security-policy-settings "object-src 'none'; default-src 'self' 'unsafe-eval' 'unsafe-inline'"}})
 
       
 

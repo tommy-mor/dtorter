@@ -32,5 +32,7 @@
   
   :repl-options {:init-ns dev-resources.user}
   :repositories [["sonatype snapshots" {:url "https://s01.oss.sonatype.org/content/repositories/snapshots"}]]
+  :source-paths ["src"]
+  
   :main dtorter.core
   :aot [dtorter.core])
