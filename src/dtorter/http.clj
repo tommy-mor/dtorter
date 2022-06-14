@@ -52,13 +52,15 @@
                                           (assoc-in [:headers "Content-Type"] "text/html"))))
                ctx))}])
 
-(defn start []
+;; TODO use :server/enable-session {}
+(defn start [{:keys [prod] :or {prod false}}]
   (defonce server (atom nil))
 
   (def node (dtorter.db/start))
   (def resolver (dtorter.api/load-schema node))
   
-  (-> {:env :dev
+  (-> {:env (if prod :prod :dev)
+       ::server/host (if prod "sorter.isnt.online" "localhost")
        ::server/type :jetty
        ::server/port 8080
        ::server/resource-path "/public"
@@ -66,9 +68,12 @@
                                                           node))}
       
       (enable-graphql resolver)
-      (enable-ide resolver)
+      (as-> $ (if prod
+                (enable-ide $ resolver)
+                $))
 
       #_(update ::server/routes route/expand-routes)
+      ;; TODO make prod make this evaluated, not a function
       (assoc ::server/routes #(let [resolver (dtorter.api/load-schema node)]
                                 (-> {::server/routes
                                      (views/routes (common-interceptors
@@ -78,7 +83,7 @@
                                     ::server/routes
                                     route/expand-routes)))
       
-      (merge {::server/join? false
+      (merge {::server/join? prod
               ::server/allowed-origin {:creds true :allowed-origins (constantly true)}})
 
       
@@ -95,7 +100,7 @@
 (defn reset []
   (when @server
     (stop))
-  (start))
+  (start {}))
 
 (comment (reset))
 
