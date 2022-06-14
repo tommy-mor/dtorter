@@ -4,5 +4,4 @@
 
 (defn -main [& args]
   (println "welcome to my uberjar")
-  (http/start {:prod false  }))
- ;; nocheckin
+  (http/start {:prod true}))

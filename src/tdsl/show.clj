@@ -25,7 +25,7 @@
       (terminate
        (assoc % :response {:status 404})))})
 
-(def page
+(defn page
   {:name ::page
    :enter (fn [ctx]
             (assoc ctx :response
