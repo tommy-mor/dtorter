@@ -4,7 +4,7 @@
                           (shell (str "./node_modules/.bin/sass ./resources/public/css/site.scss"
                                       " ./resources/public/css/site/.css"))
                           (shell "./node_modules/.bin/shadow-cljs release app")
-                          (sehll "sleep 1"))
+                          (shell "sleep 1"))
          
          build-jar (shell "lein uberjar")
          deploy (shell "bb deploy.clj")}}
