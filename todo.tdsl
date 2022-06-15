@@ -1,5 +1,9 @@
 :sorter.impl/todo
-  deploy.... so we can start using tdsl.
+  tdsl
+    merge nate stuff and add user/separate codebases.
+
+  fix passwords so that only me/jake/nate have real passwords (make password reset thing for me/everyone else to use)
+
 
   do item page (finish today...)
     row of items votecount (hard?)
