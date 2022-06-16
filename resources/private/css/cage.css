@@ -1,6 +1,6 @@
-// this is in its own file, so other things can be read after it, overriding color attribute
+/* this is in its own file, so other things can be read after it, overriding color attribute */
 
-// cage
+/* cage */
 
 .cageparent {
 	margin: 10px;

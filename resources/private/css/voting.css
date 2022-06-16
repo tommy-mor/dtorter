@@ -43,7 +43,7 @@
 	}
 }
 
-//$handle-color: hsla($voting-color-hue, 100%, 50%, 1.0);
+/*$handle-color: hsla($voting-color-hue, 100%, 50%, 1.0); */
 $handle-color: $voting-color-strong;
 
 

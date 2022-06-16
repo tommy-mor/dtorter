@@ -12,12 +12,10 @@
   (def thoughts (sort-by first (apply concat (for [f files]
                                                (for [thought f]
                                                  (first thought))))))
-  thoughts)
 
-(def styles
-  (css [:.test {:background-color "pink"}]
-       [:.swag {:background-color "lightblue"}]
-       [:.kw {:vertical-align "top"}]))
+  (->> thoughts
+       (filter (comp (complement nil?) second))
+       (filter (comp not #{(keyword "(ns")} first))))
 
 (defn only-users [users]
   {:name :filter :enter
@@ -49,7 +47,9 @@
                      {:status 200
                       :html [:html
                              [:head
-                              [:style styles]
+                              [:link {:href "/css/site.css"
+                                      :rel "stylesheet"
+                                      :type "text/css"}]
                               [:script {:src "/js/shared.js"
                                         :type "text/javascript"}]
                               [:script {:src "/js/tdsl.js"

@@ -6,6 +6,8 @@
          build-css (shell "./node_modules/.bin/postcss 
                                 -o ./resources/public/css/site.css
                                 ./resources/private/css/site.css")
-         
+         watch-css (shell "./node_modules/.bin/postcss 
+                                -o ./resources/public/css/site.css
+                                ./resources/private/css/site.css --watch")
          build-jar (shell "lein uberjar")}}
 

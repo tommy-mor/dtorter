@@ -11,7 +11,7 @@
 }
 
 
-// this is all for 
+/* this is all for  */
 .currentpage {
 	border-width: 2px;
 	border-style: dotted dotted none dotted;
@@ -70,7 +70,7 @@
 }
 
 
-// current username does not have blue color
+/* current username does not have blue color */
 .nolink {
 	color: black;
 }
