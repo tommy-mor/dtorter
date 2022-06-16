@@ -19,3 +19,4 @@ src/gen/
 .cpcache
 *.swp
 *.port
+resources/public/css/*.css

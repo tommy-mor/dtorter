@@ -1,3 +1,10 @@
+:sorter.css/todo
+  try tailwind css with no optimizations, see how good it is.
+
+:sorter.tdsl/todo
+  make content security policy allow repl websocket
+  fix refresh button for multiple people
+
 :sorter.impl/todo
   tdsl
     merge nate stuff and add user/separate codebases.
