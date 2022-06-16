@@ -73,7 +73,7 @@
                          (get "query")
                          :value)]
               
-              (parse/update-files (-> ctx :request :path-params :base))
+              (parse/update-files page)
               
               (assoc ctx :response (ring-resp/redirect (str (url-for :tdsl-page :params {:base page}) "#" qs)))))})
 
