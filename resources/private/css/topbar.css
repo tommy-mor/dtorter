@@ -1,4 +1,4 @@
-@use 'config';
+@import 'config';
 
 .topbar {
 	width: 100%;
@@ -27,7 +27,7 @@
 }
 
 .topleft span {
-	background-color: config.$highlight-color;
+	background-color: $highlight-color;
 }
 
 .topleft a {
@@ -45,7 +45,7 @@
 	left: 0;
 	width: 100%;
 	height: 40%;
-	background-color: config.$highlight-color;
+	background-color: $highlight-color;
 	z-index: -10;
 	-webkit-transition: all .1s linear;
 	-moz-transition: all .1s linear;
@@ -59,7 +59,7 @@
 	left: 0;
 	width: 100%;
 	height: 40%;
-	background-color: config.$highlight-color;
+	background-color: $highlight-color;
 	z-index: -10;
 	-webkit-transition: all .1s linear;
 	-moz-transition: all .1s linear;

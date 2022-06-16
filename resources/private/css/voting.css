@@ -1,4 +1,4 @@
-@use 'config';
+@import 'config';
 
 .votearena {
 	width: 100%;
@@ -30,7 +30,7 @@
 	-webkit-appearance: none;  /* Override default CSS styles */
 	appearance: none;
 	height: 30px;
-	background: config.$voting-color-medium;
+	background: $voting-color-medium;
 	outline: none;
 	opacity: 0.7;
 
@@ -43,8 +43,8 @@
 	}
 }
 
-//$handle-color: hsla(config.$voting-color-hue, 100%, 50%, 1.0);
-$handle-color: config.$voting-color-strong;
+//$handle-color: hsla($voting-color-hue, 100%, 50%, 1.0);
+$handle-color: $voting-color-strong;
 
 
 /* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
@@ -70,19 +70,19 @@ $handle-color: config.$voting-color-strong;
 	margin: 2px;
 	text-align: center;
 	padding: 6px;
-	border: hsla(config.$voting-color-hue, 100%, 70%, 0.1);
+	border: hsla($voting-color-hue, 100%, 70%, 0.1);
 	border-style: solid;
 	border-radius: 1px;
 	cursor: pointer;
 	border-width: thin;
-	background-color: config.$voting-color-medium;
+	background-color: $voting-color-medium;
 
 	&:hover {
-		border: hsla(config.$voting-color-hue, 100%, 70%, 0.25);
+		border: hsla($voting-color-hue, 100%, 70%, 0.25);
 		border-style: none none solid none;
 		border-width: thin thin thick thin;
 		border-radius: 3px;
-		background-color: hsla(config.$voting-color-hue, 100%, 70%, 0.25);
+		background-color: hsla($voting-color-hue, 100%, 70%, 0.25);
 	}
 
 	&:active {
@@ -94,27 +94,27 @@ $handle-color: config.$voting-color-strong;
 
 
 .cancelbutton {
-	background-color: hsla(config.$voting-color-hue, 100%, 70%, 0.0);
+	background-color: hsla($voting-color-hue, 100%, 70%, 0.0);
 	grid-row-start: 4;
 
 	&:hover {
-		border: hsla(config.$voting-color-hue, 100%, 70%, 0.1);
-		background-color: hsla(config.$voting-color-hue, 100%, 70%, 0.05);
+		border: hsla($voting-color-hue, 100%, 70%, 0.1);
+		background-color: hsla($voting-color-hue, 100%, 70%, 0.05);
 	}
 }
 
 .votinglistpanel {
-	background: config.$voting-color-weak;
-	border: config.$border-many;
-	border-color: config.$voting-color-strong;
-	border-style: config.$border-many-style;
+	background: $voting-color-weak;
+	border: $border-many;
+	border-color: $voting-color-strong;
+	border-style: $border-many-style;
 }
 
 .votingaddpanel {
-	background: config.$voting-color-weak;
+	background: $voting-color-weak;
 }
 
 .vote {
-	background: config.$voting-color-medium;
+	background: $voting-color-medium;
 }
 

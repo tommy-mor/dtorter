@@ -1,7 +1,7 @@
-@use 'config';
+@import 'config';
 
 .tag {
-	background: config.$tag-color-weaker;
+	background: $tag-color-weaker;
 }
 
 .frontpagetag {

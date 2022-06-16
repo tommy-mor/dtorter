@@ -1,24 +1,24 @@
-@use 'config';
+@import 'config';
 
 // item list
 
 .itemranking {
-	background: config.$item-color-weak;
-	border: config.$border-many; 
-	border-color: config.$item-color-strong;
-	border-style: config.$border-many-style;
+	background: $item-color-weak;
+	border: $border-many; 
+	border-color: $item-color-strong;
+	border-style: $border-many-style;
 }
 
 .itempanel {
-	background: config.$item-color-weak;
+	background: $item-color-weak;
 }
 
 .item {
-	background: config.$item-color-medium;
+	background: $item-color-medium;
 	cursor: pointer;
 }
 .hovered {
-	outline: config.$item-color-strong thick ridge;
+	outline: $item-color-strong thick ridge;
 }
 
 .rightcorner {
