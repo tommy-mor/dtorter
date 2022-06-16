@@ -6,8 +6,8 @@
             [io.pedestal.http.route :refer [url-for]]
             [ring.util.response :as ring-resp]))
 
-(defn display []
-  (def files (parse/parse-files))
+(defn display [dir]
+  (def files (parse/parse-files dir))
   (def thoughts (sort-by first (apply concat (for [f files]
                                                (for [thought f]
                                                  (first thought))))))
@@ -28,17 +28,33 @@
 (def page
   {:name ::page
    :enter (fn [ctx]
-            (assoc ctx :response
-                   {:status 200
-                    :html [:html
-                           [:head
-                            [:style styles]
-                            [:script {:src "/js/shared.js"
-                                      :type "text/javascript"}]
-                            [:script {:src "/js/tdsl.js"
-                                      :type "text/javascript"}]]
-                           [:div#app]
-                           [:script "frontdsl.page.run(" (json/generate-string (display)) ")"]]}))})
+            (let [dir (-> ctx
+                          :request
+                          :path-params
+                          :base)
+                  username (-> ctx
+                               :request
+                               :session
+                               :user-name)
+                  access (or (and (= dir "tdsl")
+                                  (#{"tommy"} username))
+                             (and (= dir "egregore")
+                                  (#{"tommy" "blobbed"} username)))]
+              
+              (if-not access (throw (ex-info "access denied" ctx)))
+              
+              (assoc ctx
+                     :response
+                     {:status 200
+                      :html [:html
+                             [:head
+                              [:style styles]
+                              [:script {:src "/js/shared.js"
+                                        :type "text/javascript"}]
+                              [:script {:src "/js/tdsl.js"
+                                        :type "text/javascript"}]]
+                             [:div#app]
+                             [:script "frontdsl.page.run(" (json/generate-string (display dir)) ")"]]})))})
 
 (def refresh
   {:name ::refresh
@@ -56,7 +72,7 @@
 
 
 (defn routes [common-interceptors]
-  #{["/tdsl" :get
+  #{["/tdsl/:base" :get
      (into common-interceptors [page (only-users #{"tommy"})])
      :route-name :tdsl-page]
     ["/tdsl/refresh" :get

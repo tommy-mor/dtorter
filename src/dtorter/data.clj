@@ -29,8 +29,7 @@
     "boolean" (Boolean/valueOf right)
     "metatable" nil
     "recursion" nil
-    "function" nil
-    ))
+    "function" nil))
 
 (defn parse-file [typ]
   (let [slurped (slurp (io/resource (str "data/" typ ".json")))]
@@ -53,7 +52,9 @@
     (vec (for [user users]
            {:xt/id (:id user)
             :user/name (:username user)
-            :user/password-hash (hashing/hash-pw (:username user))})))
+            :user/password-hash (if (#{"tommy"} (:username user))
+                                  "1$10$argon2i$v13$mWDCzCoKmaC1H6riSIPR2w$7fqlhN5sY9dl51Fuy+7KZ6+uTy4RHgUWVuWgsq6m8sU$$$"
+                                  (hashing/hash-pw (:username user)))})))
 
   (def tags (->>
              (parse-file "tags")

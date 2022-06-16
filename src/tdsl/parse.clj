@@ -16,8 +16,8 @@
                           {:source-file file}))
 
 
-(defn parse-files []
-  (for [f (into (fs/glob "../tdsl/" "**/*.tdsl") (fs/glob "." "*.tdsl"))]
+(defn parse-files [dir]
+  (for [f (into (fs/glob (str "../" dir "/") "**/*.tdsl") (fs/glob "." "*.tdsl"))]
     (parse-file f)))
 
 (defn update-files []
