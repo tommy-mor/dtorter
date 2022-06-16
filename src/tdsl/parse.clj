@@ -20,7 +20,7 @@
   (for [f (into (fs/glob (str "../" dir "/") "**/*.tdsl") (fs/glob "." "*.tdsl"))]
     (parse-file f)))
 
-(defn update-files []
-  (if (fs/directory? "../tdsl")
-    (shell/sh "git" "pull" :dir "../tdsl")
-    (shell/sh "git" "clone" "git@github.com:tommy-mor/tdsl.git" :dir "../")))
+(defn update-files [dir]
+  (if (fs/directory? (str "../" dir))
+    (shell/sh "git" "pull" :dir (str "../" dir))
+    #_(shell/sh "git" "clone" "git@github.com:tommy-mor/tdsl.git" :dir "../")))

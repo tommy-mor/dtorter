@@ -4,7 +4,8 @@
             [cheshire.core :as json]
             [io.pedestal.interceptor.chain :refer [terminate]]
             [io.pedestal.http.route :refer [url-for]]
-            [ring.util.response :as ring-resp]))
+            [ring.util.response :as ring-resp]
+            [clojure.string :as str]))
 
 (defn display [dir]
   (def files (parse/parse-files dir))
@@ -59,20 +60,26 @@
 (def refresh
   {:name ::refresh
    :enter (fn [ctx]
-            
-            (parse/update-files)
-            
-            (let [qs (-> ctx
+
+            (let [page  (-> ctx
+                            :request
+                            :headers
+                            (get "referer")
+                            (str/split #"/")
+                            last)
+                  qs (-> ctx
                          :request
                          :cookies
                          (get "query")
                          :value)]
               
-              (assoc ctx :response (ring-resp/redirect (str (url-for :tdsl-page) "#" qs)))))})
+              (parse/update-files (-> ctx :request :path-params :base))
+              
+              (assoc ctx :response (ring-resp/redirect (str (url-for :tdsl-page :params {:base page}) "#" qs)))))})
 
 
 (defn routes [common-interceptors]
-  #{["/tdsl/:base" :get
+  #{["/tdsl/b/:base" :get
      (into common-interceptors [page (only-users #{"tommy"})])
      :route-name :tdsl-page]
     ["/tdsl/refresh" :get

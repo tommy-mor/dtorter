@@ -15,6 +15,8 @@
       :query-params
       :q))
 
+
+
 (defn encoded-string-from-match []
   (reitit.core/match->path @match {:q (query-from-match)}))
 
