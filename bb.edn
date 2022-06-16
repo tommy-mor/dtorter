@@ -1,9 +1,11 @@
 {:tasks {build-frontend (do
                           (shell "npm i")
                           #_(shell "./node_modules/.bin/shadow-cljs compile app --pseudo-names")
-                          (shell (str "./node_modules/.bin/tailwindcss -i ./resources/public/css/site.scss -o ./resources/public/css/site.css"
-                                      " ./resources/public/css/site/.css"))
+                          (shell "bb build-css")
                           (shell "./node_modules/.bin/shadow-cljs release app"))
+         build-css (shell "./node_modules/.bin/postcss 
+                                -o ./resources/public/css/site.css
+                                ./resources/private/css/site.css")
          
          build-jar (shell "lein uberjar")}}
 

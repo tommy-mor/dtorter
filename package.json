@@ -4,8 +4,11 @@
     "@babel/core": "^7.16.0",
     "@babel/plugin-transform-react-jsx": "^7.16.0",
     "@babel/plugin-transform-spread": "^7.16.0",
+    "autoprefixer": "^10.4.7",
     "npx": "^10.2.2",
-    "sass": "^1.49.9",
+    "postcss": "^8.4.14",
+    "postcss-cli": "^9.1.0",
+    "postcss-import": "^14.1.0",
     "shadow-cljs": "^2.12.1",
     "tailwindcss": "^3.1.3"
   },
