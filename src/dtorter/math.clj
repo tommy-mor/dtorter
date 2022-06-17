@@ -4,14 +4,15 @@
             [kixi.stats.core :refer [standard-deviation correlation]]
             [kixi.stats.distribution :refer [draw sample binomial]]
             [clojure.data.priority-map :as pm]
-            [dtorter.util :as util]))
+            [dtorter.util :as util]
+            [taoensso.tufte :as tufte :refer (defnp p profiled profile)]))
 
 (m/set-current-implementation :vectorz)
 
 (def ^:dynamic *epsilon* 0.0000001)
 (def ^:dynamic *padding* 0.2)
 
-(defn stationary [arr]
+(defnp stationary [arr]
   (def col (mr/sample-uniform (second (m/shape arr))))
   (def oldcol (m/assign! (m/clone col) 0.0))
 
@@ -24,7 +25,7 @@
   col)
 
 ;; note, must be keywordless. this will confuse ppl
-(defn getranking [items votes]
+(defnp getranking [items votes]
   (def nitems (count items))
   (def nvotes (count votes))
   
@@ -33,74 +34,80 @@
     (sorted-map)
     (do
       
-      (def A (m/ensure-mutable (m/new-matrix nitems nitems)))
-      (def item->idx (into {} (mapv (fn [i n] [(:id i) n]) items (range))))
+      (p ::p1
+         (def A (m/ensure-mutable (m/new-matrix nitems nitems)))
+         (def item->idx (into {} (mapv (fn [i n] [(:id i) n]) items (range)))))
       
-      (doseq [{:keys [id left-item right-item magnitude] :as vote} votes]
-        (def leftscore (- 100 magnitude))
-        (def rightscore magnitude)
+      (p ::p2 (doseq [{:keys [id left-item right-item magnitude] :as vote} votes]
+                (def leftscore (- 100 magnitude))
+                (def rightscore magnitude)
 
-        (def leftidx (item->idx left-item))
-        (def rightidx (item->idx right-item))
-        ;; right giving energy to left
-        (def oldval (m/mget A leftidx rightidx))
-        (m/mset! A leftidx rightidx (+ oldval leftscore))
+                (def leftidx (item->idx left-item))
+                (def rightidx (item->idx right-item))
+                ;; right giving energy to left
+                (def oldval (m/mget A leftidx rightidx))
+                (m/mset! A leftidx rightidx (+ oldval leftscore))
 
-        ;; left giving energy to right
-        (def oldval (m/mget A rightidx leftidx))
-        (m/mset! A rightidx leftidx (+ oldval rightscore)))
+                ;; left giving energy to right
+                (def oldval (m/mget A rightidx leftidx))
+                (m/mset! A rightidx leftidx (+ oldval rightscore)))
 
-      (def B (m/ensure-mutable (m/new-matrix nitems nitems)))
-      (m/emap-indexed! (fn [[row col] _]
-                         (if (= row col)
-                           0.0
-                           (let [denom (+ (m/mget A row col) (m/mget A col row))
-                                 ratio (if (not (zero? denom)) (/ (m/mget A row col)
-                                                                  denom)
-                                           0.0)]
-                             (if (and ratio
-                                      (<= ratio 1.0)
-                                      (>= ratio 0.0))
-                               ratio
-                               0.0))))
-                       B)
+         (def B (m/ensure-mutable (m/new-matrix nitems nitems))))
+      ;; most of the request time comes from here (equal for p3 and p4...)
+      ;; replace these with a graphit algorithm for epic speed..
+      (p ::p3
+         (m/emap-indexed! (fn [[row col] _]
+                            (if (= row col)
+                              0.0
+                              (let [denom (+ (m/mget A row col) (m/mget A col row))
+                                    ratio (if (not (zero? denom)) (/ (m/mget A row col)
+                                                                     denom)
+                                              0.0)]
+                                (if (and ratio
+                                         (<= ratio 1.0)
+                                         (>= ratio 0.0))
+                                  ratio
+                                  0.0))))
+                          B)
 
-      ;; normalize so each column sums to one
+         ;; normalize so each column sums to one
 
-      (def colsums (vec (map m/esum (m/columns B))))
-      (def maxcol (m/emax colsums))
+         (def colsums (vec (map m/esum (m/columns B))))
+         (def maxcol (m/emax colsums)))
       
-      (m/emap-indexed! (fn [[row col] val]
-                         (if (= row col)
-                           (- 1
-                              (/ (nth colsums col)
-                                 maxcol))
-                           (/ val maxcol)))
-                       B)
+      (p ::p4
+         (m/emap-indexed! (fn [[row col] val]
+                            (if (= row col)
+                              (- 1
+                                 (/ (nth colsums col)
+                                    maxcol))
+                              (/ val maxcol)))
+                          B)
 
-      (def P (m/ensure-mutable (m/new-matrix nitems nitems)))
-      (m/div! (m/assign! P 1.0) nitems)
-      (m/add! (m/mul! P *padding*)
-              (m/mul! B (- 1 *padding*)))
+         (def P (m/ensure-mutable (m/new-matrix nitems nitems)))
+         (m/div! (m/assign! P 1.0) nitems)
+         (m/add! (m/mul! P *padding*)
+                 (m/mul! B (- 1 *padding*))))
 
       (def stable (stationary P))
       (m/mul! stable (* 10 nitems))
 
-      (into (sorted-map) (for [item items]
-                           [(m/slice stable (item->idx (:id item)))
-                            item])))))
+      (p ::p5 (into (sorted-map) (for [item items]
+                                   [(m/slice stable (item->idx (:id item)))
+                                    item])))))
 
-;; TODO fix, this is also in queries..
-(defn sorted-calc [items votes]
+  ;; TODO fix, this is also in queries..
+  )
+
+
+(defnp sorted-calc [items votes]
   (reverse (for [[elo item] (getranking (vec items) (vec votes))]
              (assoc item :elo elo))))
-
-
-(defn draw-coll [coll dist]
+(defnp draw-coll [coll dist]
   (when (not-empty coll)
     (nth coll (int (* (count coll) (draw dist))))))
 
-(defn sample-coll [coll n dist]
+(defnp sample-coll [coll n dist]
   (when (not-empty coll)
     (->> (sample (* n 2) dist)
          (map #(int (* (count coll) %)))
@@ -114,7 +121,7 @@
    takes ratio into [0,1] "
   (/ 1 (inc (Math/exp (- y)))))
 
-(defn getpair [ctx {:keys [voteditems filteredvotes itemvotecounts unvoteditems id->item
+(defnp getpair [ctx {:keys [voteditems filteredvotes itemvotecounts unvoteditems id->item
                            sorted] :as args}]
   (def ctx ctx)
   (def voteditems voteditems)

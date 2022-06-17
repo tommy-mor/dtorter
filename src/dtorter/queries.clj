@@ -1,7 +1,8 @@
 (ns dtorter.queries
   (:require [xtdb.api :as xt]
             [dtorter.math :as math]
-            [dtorter.util :refer [strip]]))
+            [dtorter.util :refer [strip]]
+            [taoensso.tufte :as tufte :refer (defnp p profiled profile)]))
 
 (defn user-by-id [ctx node e]
   (ffirst (xt/q (xt/db node)
@@ -135,12 +136,12 @@
                     tid))
       0))
 
-(defn get-voted-ids [votes]
+(defnp get-voted-ids [votes]
   (frequencies
    (flatten (map (juxt :left-item :right-item) (strip votes)))))
 
 
-(defn biggest-attribute [ctx node {:keys [tagid]}]
+(defnp biggest-attribute [ctx node {:keys [tagid]}]
   (def node node)
   (def tagid tagid)
   (->> (xt/q (xt/db node)
@@ -158,11 +159,11 @@
 
 (def ^:dynamic *testing* false)
 
-(defn sorted-calc [items votes]
+(defnp sorted-calc [items votes]
   (reverse (for [[elo item] (math/getranking (vec items) (vec votes))]
              (assoc item :elo elo))))
 
-(defn tag-info-calc [ctx query {{:keys [attribute user]} :info :as args}]
+(defnp tag-info-calc [ctx query {{:keys [attribute user]} :info :as args}]
   (let [[tag owner votes items] query]
 
     (when (and (not *testing*) (some nil? [tag owner votes items]))
@@ -200,20 +201,20 @@
       (merge rawinfo {:pair (math/getpair ctx rawinfo)}))))
 
 
-(defn tag-info [ctx node {{:keys [tagid]} :info :as args }]
+(defnp tag-info [ctx node {{:keys [tagid]} :info :as args }]
 
   
   (comment "TODO must have permissions on this query... use xtdb query functions")
   (xt/sync node)
-  (let [query (first (xt/q (xt/db node) '[:find
-                                          (pull tid [*])
-                                          (pull owner [*])
-                                          (pull tid [{:vote/_tag [*]}])
-                                          (pull tid [{:item/_tags [*]}])
-                                          :in tid
-                                          :where
-                                          [tid :tag/owner owner]]
-                           tagid))]
+  (let [query (first (p ::query (xt/q (xt/db node) '[:find
+                                                     (pull tid [*])
+                                                     (pull owner [*])
+                                                     (pull tid [{:vote/_tag [*]}])
+                                                     (pull tid [{:item/_tags [*]}])
+                                                     :in tid
+                                                     :where
+                                                     [tid :tag/owner owner]]
+                                      tagid)))]
 
     (tag-info-calc ctx query args)))
 

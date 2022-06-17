@@ -26,7 +26,8 @@
                  [garden "1.3.10"]
                  [kixi/stats "0.5.0"]
                  
-                 [org.clojure/data.priority-map "1.1.0"]]
+                 [org.clojure/data.priority-map "1.1.0"]
+                 [com.taoensso/tufte "2.2.0"]]
   
   
   

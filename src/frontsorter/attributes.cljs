@@ -68,6 +68,6 @@
                            (reset! new-attr-name ""))}
              "chose"]])
          "attribute"]))))
-(def a [[1,2,3,4] ["a", "b" "c"]])
 
-(map list (first a) (second a))
+
+

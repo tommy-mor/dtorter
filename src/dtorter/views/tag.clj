@@ -7,7 +7,8 @@
             
             [shared.query-strings :as qs]
             [shared.specs :as sp]
-            [clojure.spec.alpha :as s]))
+            [clojure.spec.alpha :as s]
+            [taoensso.tufte :as tufte :refer (defnp p profiled profile)]))
 
 (def show-all {:vote_panel true
                :vote_edit true
@@ -52,21 +53,30 @@
                   "var init = " (json/generate-string info) ";")
      :info info} ))
 
+(tufte/add-basic-println-handler! {})
+
+
+
 (def tag-page
   {:name ::tag-page
    :enter (fn [{:keys [node request] :as ctx}]
-            (let [tagid (-> request :path-params :tagid)
-                  {:keys [string info]} (jsonstring ctx tagid false)]
-              (assoc ctx :response {:status 200 :html
-                                    (layout request [:div
-                                                     ;; [:span (json/generate-string tag)]
-                                                     [:div#app.appbody]
-                                                     [:script {:type "text/javascript"} string]
-                                                     [:script {:type "text/javascript"
-                                                               :src "/js/app.js"}]
-                                                     [:script {:type "text/javascript"}
-                                                      "frontsorter.tag.init_BANG_()"]]
-                                            {:title (:name info)})})))})
+            (def ctx ctx)
+            (def node node)
+            (def request request)
+            (profile {:dynamic? true}
+                     (p :tag-page
+                        (let [tagid (-> request :path-params :tagid)
+                              {:keys [string info]} (jsonstring ctx tagid false)]
+                          (assoc ctx :response {:status 200 :html
+                                                (layout request [:div
+                                                                 ;; [:span (json/generate-string tag)]
+                                                                 [:div#app.appbody]
+                                                                 [:script {:type "text/javascript"} string]
+                                                                 [:script {:type "text/javascript"
+                                                                           :src "/js/app.js"}]
+                                                                 [:script {:type "text/javascript"}
+                                                                  "frontsorter.tag.init_BANG_()"]]
+                                                        {:title (:name info)})})))))})
 
 (def item-page
   {:name ::item-page
