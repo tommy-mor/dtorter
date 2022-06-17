@@ -1,12 +1,10 @@
-:sorter.css/todo
-  try tailwind css with no optimizations, see how good it is.
-    need to include more postcss plugins to get what i want...
-    then do the regex thing from clojureverse or github thing to extract class names that i use
-    
-
 :sorter.tdsl/todo
   make content security policy allow repl websocket
   fix refresh button for multiple people
+
+  make clickable..
+  automatically show text if theres only one item showing
+  
 
 :sorter.impl/todo
   tdsl

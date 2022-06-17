@@ -32,9 +32,27 @@
   (with-meta filter-input-inner
     {:component-did-mount #(.focus (rdom/dom-node %))}))
 
+(defn find-color [kw]
+  (let [c (str/join " " (cond-> [] 
+                          (str/includes? kw "sorter") (conj "bg-pink-200")
+                          (str/includes? kw "tdsl") (conj "bg-blue-300")
+                          (str/includes? kw "todo") (conj "font-bold")
+                          (str/includes? kw "tf2") (conj "bg-amber-200")))]
+    (if (or (empty? c) (#{"font-bold"} c))
+      (str c " bg-green-100")
+      c)))
+
+(defn expandable-kw [kw body]
+  (let [expanded (r/atom false)]
+    (fn [kw body]
+      [:div
+       [:div.align-top {:on-click #(swap! expanded not)}
+        [:pre {:class (find-color kw)} (str kw)]]
+       (when @expanded
+         [:div [:pre (str/trim body)]])])))
+
 (defn tdsl-app []
   (fn []
-    (println @show-body)
     (let [q (query-from-match)]
       [:div.max-w-full.max-h-full.overscroll-contain
        [filter-input]
@@ -47,9 +65,11 @@
                                        (filter #(if (not (empty? q))
                                                   (str/includes? (str (first %)) q)
                                                   true)))]
-                 [:div {:key thought}
-                  [:div.align-top [:pre.bg-green-300 (str kw)]]
-                  [:div [:pre (if @show-body (str/trim thought))]]]))]
+                 (if @show-body
+                   [:div {:key thought}
+                    [:div.align-top [:pre {:class (find-color kw)} (str kw)]]
+                    [:div [:pre (str/trim thought)]]]
+                   [expandable-kw kw thought])))]
        [:a.bg-blue-100.text-black.py-1.px-1
         {:href "/tdsl/refresh"
          :on-click #(set! js/document.cookie (str"query=" (encoded-string-from-match)))}
