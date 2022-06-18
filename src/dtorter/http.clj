@@ -8,14 +8,16 @@
 
 
 (defn hello-routes []
-  ["/hello"
-   (yada/handler "hello world\n")])
+  ["/hello" (yada/resource
+             {:methods {:get {:produces "text/html"
+                              :response "yo"}}})])
 
 (defn routes []
   [""
-   [["/hello" (yada/resource
-               {:methods {:get {:produces "text/html"
-                                :response "yo"}}})]
+   [["/api" (yada/swaggered (hello-routes) {:info {:title "strst"
+                                                   :version "1.0"
+                                                   :description "art"}
+                                            :basePath "/api"})]
     [true (yada/resource
            {:methods {:get {:produces "text/html"
                             :response "not found"}}})]]
