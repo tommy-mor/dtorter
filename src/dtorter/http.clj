@@ -7,16 +7,29 @@
 
 
 
-(defn routes []
+(defn hello-routes []
   ["/hello"
    (yada/handler "hello world\n")])
 
+(defn routes []
+  [""
+   [["/hello" (yada/resource
+               {:methods {:get {:produces "text/html"
+                                :response "yo"}}})]
+    [true (yada/resource
+           {:methods {:get {:produces "text/html"
+                            :response "not found"}}})]]
+   ])
+
 (defn system-config [_]
   {:components
-   {:handler {:start (yada/handler "test")}
-    :http {:start `(yada/listener (clip/ref :handler) {:port 3000})
+   {:handler {:start `(routes)}
+    :http {:start `(yada/listener (clip/ref :handler) {:port 8080})
            :stop '((:close this))
            :resolve :server}}})
+
+(comment (juxt.clip.repl/start)
+         (juxt.clip.repl/stop))
 
 
 
