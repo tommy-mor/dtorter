@@ -34,7 +34,6 @@
 @(subscribe [:current-attribute])
 @(subscribe [:raw-attributes])
 @(subscribe [:attributes])
-(contains? (set [1,2,3]) 3 )
 
 (defn attributes-panel []
   (let [editing (atom false)
@@ -68,6 +67,8 @@
                            (reset! new-attr-name ""))}
              "chose"]])
          "attribute"]))))
-(def a [[1,2,3,4] ["a", "b" "c"]])
 
-(map list (first a) (second a))
+
+(defn test [x] (+ 1 x))
+
+

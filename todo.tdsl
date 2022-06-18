@@ -1,23 +1,30 @@
-:sorter.tdsl/todo
-  make content security policy allow repl websocket
-  fix refresh button for multiple people
-
-  make clickable..
-  automatically show text if theres only one item showing
-  
-
 :sorter.impl/todo
+  I dont think I need graphql, can just have well formed, compliant rest api.
+    can be more flexible than gql, cause I use spec. (can use edn or json..)
+    https://github.com/juxt/rest
+    https://github.com/juxt/yada/blob/master/dev/resources/comparison-guide.md
+
+    need to become more juxtpilled...
+    become ultimately juxtpilled, dont need benefits of graphql
+  
+  remove graphql from stack, its slowing me down.
+    unless spec -> gql can work
+
+  finish item page (finish today...)
+    row of items votecount (hard?)
+    bolding
+
+    vote action
+
+  do form to add/edit?
+
   tdsl
     merge nate stuff and add user/separate codebases.
 
   fix passwords so that only me/jake/nate have real passwords (make password reset thing for me/everyone else to use)
 
+  at some point, replace routing with reitit so it can be magical
 
-  do item page (finish today...)
-    row of items votecount (hard?)
-    bolding
-
-    vote action
    
   do add item form...
 
@@ -31,6 +38,79 @@
   eventually make url sync with user/attribute parameters
 
   design: put the parent tag as a vertical text skinny box to left of item panel. 
+
+
+:sorter.clojure/impl
+  use superlifter+lacinia to bolt on graphql api after...
+  (maybe use sorter as remote api for that?)
+
+  https://github.com/oliyh/martian
+  use this for discord client..
+
+
+
+:sorter/refactor
+  put tag inside object (protocol?) be able to override it/test it/mock it.
+
+  want to have tags where input is query on tdsl
+  and pluggable pair chosing obviously.
+
+
+
+:tdsl/todo
+  fix refresh button for multiple people
+  make clickable..
+  automatically show text if theres only one item showing
+  sort every note, then make a visual/clickable graph/tree of them, navigating graph in special way
+
+:sorter.tags/toadd
+  https://neil.computer/notes/overkill-objects-for-everyday-life/
+
+:tdsl.web/feature
+  CONCURRENT/CURSOR syntax to select item that I am currently doing
+  only can be one globally, its shown on site, erorr if multiple
+
+:css/plan
+ {concurrent looking for purple panel css...}
+   kinda like facebook?
+
+ buttons like neil.computer
+ wider, use full width of screen. 
+
+:sorter/research
+  term: folksonomy (epic term)
+  https://apievangelist.com/2013/06/09/history-of-apis-del-icio-us/
+
+:srelg/activities
+  https://emotional.codes/feelings-checkin/
+
+:nate/toread
+  https://adit.io/posts/2016-03-13-Logistic-Regression.html
+
+:css/bible
+  https://berkeleygraphics.com/
+
+
+  Emergent over prescribed aesthetics.
+  Expose state and inner workings.
+  Dense, not sparse.
+  Explicit is better than implicit.
+  Regiment functionalism.
+  Performance is design.
+  Verbosity over opaqueness.
+  Ignore design trends. Timeless and unfashionable.
+  Flat, not hierarchical.
+  Diametrically opposite of minimalism. As complex as it needs to be.
+  Driven by specifications and datasheets.
+  Beauty emerges automatically without deliberation.
+  Do not infantilize users.
+
+
+:css/colors
+  https://picturepan2.github.io/spectre/getting-started/custom.html
+  
+
+
 
 :sorter.css/backbutton
   on item page, back button is pink square to the left
