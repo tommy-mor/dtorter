@@ -18,8 +18,3 @@
     (xt/await-tx node (xt/submit-tx node (for [tx (data/get-transactions)]
                                            [::xt/put tx])))
     node))
-
-
-
-
-

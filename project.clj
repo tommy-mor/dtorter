@@ -20,7 +20,8 @@
 
                  
                  [org.clojure/data.priority-map "1.1.0"]
-                 [yada "1.4.0-alpha1"]]
+                 [yada "1.4.0-alpha1"]
+                 [juxt/clip "0.27.0"]]
   
   
   

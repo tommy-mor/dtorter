@@ -1,15 +1,22 @@
 (ns dtorter.http
   (:require [dtorter.db :as db]
-            [dtorter.api]
-            [yada.yada :as yada]))
+            [dtorter.api :as api]
+            [dtorter.data :as data]
+            [yada.yada :as yada]
+            [juxt.clip.core :as clip]))
 
-(+ 3 3)
 
-(yada/handler
- {:methods
-  {:get
-   {:produces "text/html"
-    :response "<h1>Hello World!</h1>"}}})
+
+(defn routes []
+  ["/hello"
+   (yada/handler "hello world\n")])
+
+(defn system-config [_]
+  {:components
+   {:handler {:start (yada/handler "test")}
+    :http {:start `(yada/listener (clip/ref :handler) {:port 3000})
+           :stop '((:close this))
+           :resolve :server}}})
 
 
 
