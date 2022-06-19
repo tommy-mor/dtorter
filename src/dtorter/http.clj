@@ -3,32 +3,23 @@
             [dtorter.api :as api]
             [dtorter.data :as data]
             [yada.yada :as yada]
-            [juxt.clip.core :as clip]))
+            [juxt.clip.core :as clip]
+            [clojure.spec.alpha :as s]
+            [dtorter.tag :refer [tag-resource]]))
 
 
 
-(defn hello-routes []
-  ["/hello" (yada/resource
-             {:methods {:get {:produces "text/html"
-                              :response "yo"}}})])
+(defn api-routes []
+  [["/tag/" :id] tag-resource])
 
 (defn routes []
   [""
-   [["/api" (yada/swaggered (hello-routes) {:info {:title "strst"
-                                                   :version "1.0"
-                                                   :description "art"}
-                                            :basePath "/api"})]
-    [true (yada/resource
-           {:methods {:get {:produces "text/html"
-                            :response "not found"}}})]]
-   ])
-
-(defn system-config [_]
-  {:components
-   {:handler {:start `(routes)}
-    :http {:start `(yada/listener (clip/ref :handler) {:port 8080})
-           :stop '((:close this))
-           :resolve :server}}})
+   [["/api" (yada/swaggered (api-routes)
+                            {:info {:title "sorter api"
+                                    :version "0.1"
+                                    :description "for creating sorter things"}
+                             :basePath "/api"})]
+    [true (yada/yada nil)]]])
 
 (comment (juxt.clip.repl/start)
          (juxt.clip.repl/stop))
