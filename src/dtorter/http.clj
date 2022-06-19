@@ -27,7 +27,7 @@
             [ring.middleware.session.cookie :as cookie]
             [io.pedestal.http.ring-middlewares :as middlewares]
             [dtorter.db :as db]
-            [dtorter.api]))
+            [dtorter.api :as api]))
 
 
 (def cookies (middlewares/session {:store (cookie/cookie-store)}))
@@ -54,18 +54,16 @@
 (defn router []
   (pedestal/routing-interceptor
    (http/router
-    ["/api" [["/swagger.json"
-              {:get {:no-doc true
-                     :swagger {:info {:title "my api"
-                                      :description "of swag"}}
-                     :handler (swagger/create-swagger-handler)}}]
-             ["/interceptors"
-              {:swagger {:tags ["interceptors"]}
-               :interceptors [(interceptor 1)]}]
-             ["/number"
-              {:interceptors [(interceptor 10)]
-               :get {:interceptors [(interceptor 100)]
-                     :handler (fn [r] {:status 200 :body (select-keys r [:number])})}}]]]
+    ["/api" [(conj api/api-routes
+                   ["/swagger.json"
+                    {:get {:no-doc true
+                           :swagger {:info {:title "my api"
+                                            :description "of swag"}}
+                           :handler (swagger/create-swagger-handler)}}]
+                   ["/number"
+                    {:interceptors [(interceptor 10)]
+                     :get {:interceptors [(interceptor 100)]
+                           :handler (fn [r] {:status 200 :body (select-keys r [:number])})}}])]]
     ;; https://github.com/metosin/reitit/blob/master/examples/pedestal-swagger/src/example/server.clj
     ;; TODO add more things here from example
     
@@ -148,13 +146,3 @@
             `(sorter ~kw)))
 
          (dtorter.http/sorter :books))
-
-
-
-
-
-
-
-
-
-
