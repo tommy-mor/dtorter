@@ -1,6 +1,26 @@
 (ns dtorter.http
   (:require [io.pedestal.http :as server]
-            [io.pedestal.http.route :as route]
+
+            [reitit.ring :as ring]
+            [reitit.http :as http]
+            [reitit.coercion.spec]
+            [reitit.http.coercion :as coercion]
+            [reitit.dev.pretty :as pretty]
+            [reitit.http.interceptors.parameters :as parameters]
+            [reitit.http.interceptors.muuntaja :as muuntaja]
+            [reitit.http.interceptors.exception :as exception]
+
+            [reitit.pedestal :as pedestal]
+            [reitit.swagger :as swagger]
+            [reitit.swagger-ui :as swagger-ui]
+            [reitit.dev.pretty :as pretty]
+            [reitit.http.interceptors.dev :as dev]
+            
+            [clojure.core.async :as a]
+            [clojure.java.io :as io]
+
+            [muuntaja.core :as m]
+            
             [dtorter.views.front-page :as views]
             [hiccup.core :refer [html]]
             
@@ -28,6 +48,50 @@
                                           (assoc-in [:headers "Content-Type"] "text/html"))))
                ctx))}])
 
+(defn interceptor [number]
+  {:enter (fn [ctx] (update-in ctx [:request :number] (fnil + 0) number))})
+
+(defn router []
+  (pedestal/routing-interceptor
+   (http/router
+    [["/swagger.json"
+      {:get {:no-doc true
+             :swagger {:info {:title "my api"
+                              :description "of swag"}}
+             :handler (swagger/create-swagger-handler)}}]
+     ["/interceptors"
+      {:swagger {:tags ["interceptors"]}
+       :interceptors [(interceptor 1)]}]
+     ["/number"
+      {:interceptors [(interceptor 10)]
+       :get {:interceptors [(interceptor 100)]
+             :handler (fn [r] {:status 200 :body {:number 3}})}}]
+
+     
+     ]
+    ;; https://github.com/metosin/reitit/blob/master/examples/pedestal-swagger/src/example/server.clj
+    ;; TODO add more things here from example
+    
+    {#_:reitit.interceptor/transform #_dev/print-context-diffs
+     :exception pretty/exception
+     :data {:muuntaja m/instance
+            :interceptors  [
+                            swagger/swagger-feature
+                            (parameters/parameters-interceptor)
+                            (muuntaja/format-negotiate-interceptor)
+                            (muuntaja/format-response-interceptor)
+                            (exception/exception-interceptor)
+                            (muuntaja/format-request-interceptor)
+                            (coercion/coerce-response-interceptor)]}})
+   (ring/routes
+    (swagger-ui/create-swagger-ui-handler
+     {:path "/"
+      :config {:validatorUrl nil
+               :operationsSorter "alpha"}}
+     )
+    (ring/create-resource-handler)
+    (ring/create-default-handler)))) 
+
 ;; TODO use :server/enable-session {}
 (defonce server (atom nil))
 
@@ -38,8 +102,7 @@
        ::server/type :jetty
        ::server/port 8080
        ::server/resource-path "/public"
-       #_::server/routes #_(views/routes (common-interceptors resolver
-                                                          node))}
+       ::server/routes []}
       
       #_(update ::server/routes route/expand-routes)
       ;; TODO make prod make this evaluated, not a function
@@ -62,6 +125,7 @@
       
 
       server/default-interceptors
+      (pedestal/replace-last-interceptor (router))
       server/dev-interceptors
       server/create-server
       server/start

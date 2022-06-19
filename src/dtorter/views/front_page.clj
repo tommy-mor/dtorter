@@ -23,7 +23,7 @@
 (def front-page
   {:name ::front-page
    :enter (fn [{:keys [node request] :as ctx}]
-            (let [tags (queries/all-tags ctx node)]
+            (let [tags 3 #_(queries/all-tags ctx node)]
               (assoc ctx
                      :response
                      {:status 200

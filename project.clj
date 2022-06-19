@@ -6,6 +6,7 @@
                  [io.pedestal/pedestal.service "0.5.5"]
                  [io.pedestal/pedestal.jetty "0.5.5"]
                  [metosin/reitit-pedestal "0.5.18"]
+                 [metosin/reitit "0.5.18"]
 
                  [com.xtdb/xtdb-core "1.20.0"]
                  [com.xtdb/xtdb-lmdb "1.20.0"]
