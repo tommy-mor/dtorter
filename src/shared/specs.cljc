@@ -8,13 +8,19 @@
 
 (def uuid-regex #"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
 
-(def uuid-str #(re-matches uuid-regex %))
+(def uuid-str #(if (string? %)
+                 (re-matches uuid-regex %)
+                 false))
+
 (s/def :xt/id uuid-str)
 
 (s/def :user/name string?)
 
 (s/def ::user (s/keys :req-un [:xt/id :user/name]))
 (s/def ::owner uuid-str)
+
+(defn collapsible [spec]
+  (s/or :id uuid-str :full spec))
 
 (s/def ::tag (s/keys :req [:xt/id :tag/name :tag/description]
                      :req-un [::owner]))
@@ -27,23 +33,24 @@
 ;; TODO make sure that :un is correct
 (s/def ::item (s/keys :req [:xt/id :item/name :item/tags]
                       :req-un [::owner]
-                      :opt [:item/url :item/description]))
+                      :opt [:item/url :item/paragraph]))
 
 (s/def :item/name string?)
 (s/def :item/owner uuid-str)
 (s/def :item/tags (s/coll-of uuid-str))
 (s/def :item/url string?)
+(s/def :item/paragraph string?)
 
 (s/def ::vote (s/keys :req [:xt/id
-                            :vote/left_item
-                            :vote/right_item
+                            :vote/left-item
+                            :vote/right-item
                             :vote/magnitude
                             :vote/attribute
                             :vote/tag]
                       :req-un [::owner]))
 
-(s/def :vote/left_item ::item)
-(s/def :vote/right_item ::item)
+(s/def :vote/left-item uuid-str)
+(s/def :vote/right-item uuid-str)
 (s/def :vote/tag uuid-str)
 (s/def :vote/attribute string?)
 (s/def :vote/magnitude (s/and int? #(and (>= % 0) (<= % 100))))
