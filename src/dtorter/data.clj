@@ -66,7 +66,7 @@
                  {:xt/id (:id tag)
                   :tag/name (:title tag)
                   :tag/description (:description tag)
-                  :tag/owner (:user_id tag)}))
+                  :owner (:user_id tag)}))
 
   (duplicates (map :title tags))
 
@@ -83,7 +83,7 @@
                  itemid (:id item)]
              (merge {:xt/id itemid
                      :item/name (:name item)
-                     :item/owner (:user_id item)
+                     :owner (:user_id item)
                      :item/tags [ownerid]}
                     (when-let [pgraph (get-in item [:content :paragraph])]
                       {:item/paragraph pgraph})
@@ -103,7 +103,7 @@
                               :vote/right-item (:item_b vote)
                               :vote/tag (:tag_id vote)
                               :vote/magnitude (max 0 (min 100 (:magnitude vote)))
-                              :vote/owner (:user_id vote)}
+                              :owner (:user_id vote)}
                              (if-let [atr (:attribute vote)]
                                {:vote/attribute atr}
                                {:vote/attribute "default"}))))))

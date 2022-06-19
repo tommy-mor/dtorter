@@ -11,16 +11,18 @@
 (def uuid-str #(re-matches uuid-regex %))
 (s/def :xt/id uuid-str)
 
-(s/def ::user (s/keys :req-un [:xt/id :user/name]))
+(s/def :user/name string?)
 
-(s/def ::tag (s/keys :req-un [:xt/id :tag/name :tag/description :tag/owner]))
+(s/def ::user (s/keys :req-un [:xt/id :user/name]))
+(s/def ::owner uuid-str)
+
+(s/def ::tag (s/keys :req [:xt/id :tag/name :tag/description]
+                     :req-un [::owner]))
 (s/def :tag/name string?)
 (s/def :tag/description string?)
 (s/def :tag/votecount int?)
 (s/def :tag/usercount int?)
 (s/def :tag/itemcount int?)
-(s/def :tag/owner ::user)
-
 ;; add elo
 ;; TODO make sure that :un is correct
 (s/def ::item (s/keys :req-un [:xt/id :item/name]

@@ -78,7 +78,6 @@
                             (parameters/parameters-interceptor)
                             (muuntaja/format-negotiate-interceptor)
                             (muuntaja/format-response-interceptor)
-                            (exception/exception-interceptor)
                             (muuntaja/format-request-interceptor)
                             (coercion/coerce-response-interceptor)
                             (coercion/coerce-request-interceptor)]}})
@@ -137,6 +136,8 @@
   (when @server
     (stop))
   (start {}))
+
+
 
 (comment (reset))
 
