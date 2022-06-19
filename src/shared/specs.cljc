@@ -25,20 +25,23 @@
 (s/def :tag/itemcount int?)
 ;; add elo
 ;; TODO make sure that :un is correct
-(s/def ::item (s/keys :req-un [:xt/id :item/name]
-                      :opt-un [:item/url :item/tags :item/owner]))
+(s/def ::item (s/keys :req [:xt/id :item/name :item/tags]
+                      :req-un [::owner]
+                      :opt [:item/url :item/description]))
 
 (s/def :item/name string?)
 (s/def :item/owner uuid-str)
 (s/def :item/tags (s/coll-of uuid-str))
 (s/def :item/url string?)
 
-(s/def ::vote (s/keys :req-un [:xt/id
-                               :vote/left_item
-                               :vote/right_item
-                               :vote/magnitude
-                               :vote/attribute]
-                      :opt-un [:vote/owner :vote/tag]))
+(s/def ::vote (s/keys :req [:xt/id
+                            :vote/left_item
+                            :vote/right_item
+                            :vote/magnitude
+                            :vote/attribute
+                            :vote/tag]
+                      :req-un [::owner]))
+
 (s/def :vote/left_item ::item)
 (s/def :vote/right_item ::item)
 (s/def :vote/tag uuid-str)
