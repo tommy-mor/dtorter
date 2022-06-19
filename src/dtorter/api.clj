@@ -10,7 +10,13 @@
             [xtdb.api :as xt]))
 
 
+(def api-interceptors
+  [])
+
 (def api-routes
   [
-   ["/epic"
-    {:get {:handler (fn [r] {:status 200 :body {:wow 100}})}}]])
+   ["/tag/:id"
+    {:get {:parameters {:path {:id string?}}
+           :handler (fn [r]
+                      (def r r)
+                      {:status 200 :body {:wow (prn-str r)}})}}]])

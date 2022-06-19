@@ -15,6 +15,9 @@
             [reitit.swagger-ui :as swagger-ui]
             [reitit.dev.pretty :as pretty]
             [reitit.http.interceptors.dev :as dev]
+
+            [reitit.ring.spec :as rrs]
+
             
             [clojure.core.async :as a]
             [clojure.java.io :as io]
@@ -54,22 +57,21 @@
 (defn router []
   (pedestal/routing-interceptor
    (http/router
-    ["/api" [(conj api/api-routes
-                   ["/swagger.json"
-                    {:get {:no-doc true
-                           :swagger {:info {:title "my api"
-                                            :description "of swag"}}
-                           :handler (swagger/create-swagger-handler)}}]
-                   ["/number"
-                    {:interceptors [(interceptor 10)]
-                     :get {:interceptors [(interceptor 100)]
-                           :handler (fn [r] {:status 200 :body (select-keys r [:number])})}}])]]
+    ["/api" {:interceptors api/api-interceptors}
+     (conj api/api-routes
+           ["/swagger.json"
+            {:get {:no-doc true
+                   :swagger {:info {:title "my api"
+                                    :description "of swag"}}
+                   :handler (swagger/create-swagger-handler)}}])]
     ;; https://github.com/metosin/reitit/blob/master/examples/pedestal-swagger/src/example/server.clj
     ;; TODO add more things here from example
     
     {#_:reitit.interceptor/transform #_dev/print-context-diffs
      :exception pretty/exception
-     :data {:muuntaja m/instance
+     :validate rrs/validate
+     :data {:coercion reitit.coercion.spec/coercion
+            :muuntaja m/instance
             :interceptors  [
                             swagger/swagger-feature
                             (parameters/parameters-interceptor)
@@ -77,7 +79,8 @@
                             (muuntaja/format-response-interceptor)
                             (exception/exception-interceptor)
                             (muuntaja/format-request-interceptor)
-                            (coercion/coerce-response-interceptor)]}})
+                            (coercion/coerce-response-interceptor)
+                            (coercion/coerce-request-interceptor)]}})
    (ring/routes
     (swagger-ui/create-swagger-ui-handler
      {:path "/api/docs"
