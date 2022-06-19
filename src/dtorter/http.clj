@@ -54,21 +54,18 @@
 (defn router []
   (pedestal/routing-interceptor
    (http/router
-    [["/swagger.json"
-      {:get {:no-doc true
-             :swagger {:info {:title "my api"
-                              :description "of swag"}}
-             :handler (swagger/create-swagger-handler)}}]
-     ["/interceptors"
-      {:swagger {:tags ["interceptors"]}
-       :interceptors [(interceptor 1)]}]
-     ["/number"
-      {:interceptors [(interceptor 10)]
-       :get {:interceptors [(interceptor 100)]
-             :handler (fn [r] {:status 200 :body {:number 3}})}}]
-
-     
-     ]
+    ["/api" [["/swagger.json"
+              {:get {:no-doc true
+                     :swagger {:info {:title "my api"
+                                      :description "of swag"}}
+                     :handler (swagger/create-swagger-handler)}}]
+             ["/interceptors"
+              {:swagger {:tags ["interceptors"]}
+               :interceptors [(interceptor 1)]}]
+             ["/number"
+              {:interceptors [(interceptor 10)]
+               :get {:interceptors [(interceptor 100)]
+                     :handler (fn [r] {:status 200 :body (select-keys r [:number])})}}]]]
     ;; https://github.com/metosin/reitit/blob/master/examples/pedestal-swagger/src/example/server.clj
     ;; TODO add more things here from example
     
@@ -85,10 +82,10 @@
                             (coercion/coerce-response-interceptor)]}})
    (ring/routes
     (swagger-ui/create-swagger-ui-handler
-     {:path "/"
+     {:path "/api/docs"
+      :url "/api/swagger.json"
       :config {:validatorUrl nil
-               :operationsSorter "alpha"}}
-     )
+               :operationsSorter "alpha"}})
     (ring/create-resource-handler)
     (ring/create-default-handler)))) 
 
