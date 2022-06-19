@@ -13,10 +13,28 @@
 (def api-interceptors
   [])
 
+(def tag-interceptor
+  {:enter (fn [ctx]
+            (def ctx ctx)
+            ctx)})
+
 (def api-routes
   [
    ["/tag/:id"
-    {:get {:parameters {:path {:id string?}}
-           :handler (fn [r]
-                      (def r r)
-                      {:status 200 :body {:wow (prn-str r)}})}}]])
+    {:parameters {:path {:id string?}}
+     :interceptors [tag-interceptor]
+     
+     :get
+     {:handler (fn [{:keys [node] :as req}]
+                 (def node node)
+                 (def req req)
+                 ;; try to put as much logic as possible in xtdb..
+                 {:status 200 :body (xt/pull (xt/db node) '[*] (-> req :path-params :id))})}}]
+   
+   ["/item/:id"
+    {:parameters {:path {:id string?}}
+     :interceptors [tag-interceptor]
+     
+     :get
+     {:handler (fn [{:keys [node] :as req}]
+                 {:status 200 :body {:woah 300}})}}]])

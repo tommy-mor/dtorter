@@ -54,7 +54,7 @@
 (defn interceptor [number]
   {:enter (fn [ctx] (update-in ctx [:request :number] (fnil + 0) number))})
 
-(defn router []
+(defn router [node]
   (pedestal/routing-interceptor
    (http/router
     ["/api" {:interceptors api/api-interceptors}
@@ -73,6 +73,7 @@
      :data {:coercion reitit.coercion.spec/coercion
             :muuntaja m/instance
             :interceptors  [
+                            {:enter #(assoc-in % [:request :node] node)}
                             swagger/swagger-feature
                             (parameters/parameters-interceptor)
                             (muuntaja/format-negotiate-interceptor)
@@ -123,7 +124,7 @@
       
 
       server/default-interceptors
-      (pedestal/replace-last-interceptor (router))
+      (pedestal/replace-last-interceptor (router node))
       server/dev-interceptors
       server/create-server
       server/start
