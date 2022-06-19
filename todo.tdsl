@@ -1,4 +1,34 @@
 :sorter.impl/todo
+  pedestal
+    reitit (swagger https://github.com/metosin/reitit/blob/master/doc/ring/swagger.md)
+    reitit-swagger
+    muuntaja (content negotiation..)
+
+  https://github.com/metosin/muuntaja (better than pick?)
+    
+  keep using pedestal... but make it a healthy/conforman http service...
+  using rest.guide
+
+
+  really like url decoupled from resource...
+  maybe just use ring cause its fast now/has most support?
+
+  https://github.com/juxt/apex#rationale
+
+  put tag as resource, then refactor to have some code thats useful otherwise (for testing?)
+  put tag into object with methods, then subclass that for resource version...
+
+
+
+
+
+
+
+
+
+
+
+
   I dont think I need graphql, can just have well formed, compliant rest api.
     can be more flexible than gql, cause I use spec. (can use edn or json..)
     https://github.com/juxt/rest

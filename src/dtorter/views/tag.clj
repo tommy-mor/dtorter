@@ -2,7 +2,7 @@
   (:require [io.pedestal.http.route :refer [url-for]]
             [dtorter.queries :as queries]
             [cheshire.core :as json]
-            [dtorter.views.common :refer [layout q]]
+            [dtorter.views.common :refer [layout]]
             [dtorter.util :refer [strip get-throwing]]
             
             [shared.query-strings :as qs]
@@ -26,7 +26,7 @@
 ;; PROBLEM: we need to chose default attr before running q.
 (defn gather-info [ctx tagid itemid]
   (let [attr (queries/biggest-attribute ctx (:node ctx) {:tagid tagid})]
-    (->  (q ctx (if itemid
+    (->  #_(q ctx (if itemid
                   qs/item-app-db
                   qs/app-db)
             {:info (cond-> {:tagid tagid :attribute attr}

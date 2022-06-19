@@ -1,6 +1,5 @@
 (ns tdsl.show
   (:require [tdsl.parse :as parse]
-            [garden.core :refer [css]]
             [cheshire.core :as json]
             [io.pedestal.interceptor.chain :refer [terminate]]
             [io.pedestal.http.route :refer [url-for]]
