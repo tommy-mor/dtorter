@@ -11,6 +11,10 @@
   
 
 :sorter.impl/todo
+  write test up to alphabet..
+  add custom checks as I go...
+  maybe add test for errors?
+
   !!!!!write tests for api....!!!!!!!!!!
 
   then keep extending it...
