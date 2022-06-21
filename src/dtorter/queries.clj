@@ -8,15 +8,15 @@
    (flatten (map (juxt :left-item :right-item) (strip votes)))))
 
 (def tag-queries
-  {:get-all (fn [{:keys [node]}]
+  {:get-all (fn [node]
               (map first (xt/q (xt/db node) '[:find (pull tid [*])
                                               :where [tid :tag/name _]])))})
 (def item-queries
-  {:get-all (fn [{:keys [node]}]
+  {:get-all (fn [node]
               (map first (xt/q (xt/db node) '[:find (pull tid [*])
                                               :where [tid :item/name _]])))})
 (def vote-queries
-  {:get-all (fn [{:keys [node]}]
+  {:get-all (fn [node]
               (map first (xt/q (xt/db node) '[:find (pull tid [*])
                                               :where [tid :vote/attribute _]])))})
 

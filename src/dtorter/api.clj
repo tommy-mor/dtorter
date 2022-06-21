@@ -31,12 +31,7 @@
               (def id id)
               (def spec spec)
               (def doc doc)
-              id
-              doc
-              spec
-              (xt/pull (xt/db (-> ctx :request :node))
-                       '[*] id)
-              (s/explain spec doc)
+              
               (if-not doc
                 (throw (ex-info (format "document does not exist") req)))
 
@@ -60,7 +55,7 @@
              :parameters {:body spec}
              :handler (fn [req]
                         (let [{:keys [node body-params]} req
-                              uuid (java.util.UUID/randomUUID)]
+                              uuid (str (java.util.UUID/randomUUID))]
                           (xt/submit-tx node [[::xt/put (assoc body-params :xt/id uuid)]])
                           {:status 201 :body {:xt/id uuid}}))}
       
@@ -72,8 +67,7 @@
                        (let [{:keys [node]} req]
                          {:status 200
                           :body
-                          (into [] ((:get-all queries) req))}))}}]
-    ;; individual tags
+                          (into [] ((:get-all queries) (:node req)))}))}}]
     ["/:id"
      {:parameters {:path {:id string?}}
       :interceptors [(document-interceptor spec)]
@@ -83,10 +77,15 @@
       :put {:parameters {:body spec}
             :handler
             (fn [{:keys [resource node body-params] :as ctx}]
-              (xt/submit-tx node [[::xt/put body-params]])
+              (xt/submit-tx node [[::xt/put (assoc body-params :xt/id (-> ctx :path-params :id))]])
               {:status 204 :body "received"})
             :summary (str "update/replace a " swagger-tag)
             :operationId (keyword swagger-tag "put")}
+      :delete {:handler (fn [{:keys [resource node]}]
+                          (xt/submit-tx node [[::xt/delete (:xt/id resource)]])
+                          {:status 204})
+               :summary (str "delete a " swagger-tag)
+               :operationId (keyword swagger-tag "delete")}
       
       :strst
       {:handler (fn [{:keys [node] :as req}]

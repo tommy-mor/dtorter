@@ -8,11 +8,9 @@
 
 (def uuid-regex #"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
 
-(def uuid-str #(if (string? %)
-                 (re-matches uuid-regex %)
-                 false))
+(def uuid-str #(re-matches uuid-regex %))
 
-(s/def :xt/id uuid-str)
+(s/def :xt/id (s/and string? uuid-str))
 
 (s/def :user/name string?)
 

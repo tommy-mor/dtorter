@@ -79,6 +79,7 @@
                             (parameters/parameters-interceptor)
                             (muuntaja/format-negotiate-interceptor)
                             (muuntaja/format-response-interceptor)
+                            #_(exception/exception-interceptor)
                             (muuntaja/format-request-interceptor)
                             (coercion/coerce-response-interceptor)
                             (coercion/coerce-request-interceptor)]}})
@@ -129,7 +130,6 @@
       server/create-server
       server/start
       (as-> $ (reset! server $))))
-
 (defn stop []
   (server/stop @server))
 
