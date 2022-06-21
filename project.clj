@@ -23,6 +23,9 @@
                  [babashka/fs "0.1.6"]
                  [kixi/stats "0.5.0"]
                  
+                 [com.github.oliyh/martian "0.1.21"]
+                 [com.github.oliyh/martian-clj-http "0.1.21"]
+                 
                  [org.clojure/data.priority-map "1.1.0"]]
   
   

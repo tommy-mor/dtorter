@@ -53,5 +53,5 @@
     ([req res raise]
      (try
        (res (create-swagger req))
-       (catch #?(:clj Exception :cljs :default) e
+       (catch Exception e
          (raise e))))))
