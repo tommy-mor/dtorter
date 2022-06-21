@@ -26,7 +26,14 @@
                  [com.github.oliyh/martian "0.1.21"]
                  [com.github.oliyh/martian-clj-http "0.1.21"]
                  
-                 [org.clojure/data.priority-map "1.1.0"]]
+                 [org.clojure/data.priority-map "1.1.0"]
+                 
+                 [org.slf4j/slf4j-api "1.7.30"]
+                 [org.slf4j/jul-to-slf4j "1.7.30"]
+                 [org.slf4j/jcl-over-slf4j "1.7.30"]
+                 [org.slf4j/log4j-over-slf4j "1.7.30"]
+                 [org.slf4j/osgi-over-slf4j "1.7.30"]
+                 [ch.qos.logback/logback-classic "1.2.3"]]
   
   
   

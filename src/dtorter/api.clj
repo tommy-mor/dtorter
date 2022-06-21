@@ -8,6 +8,8 @@
             [clojure.spec.alpha :as s]
             [dtorter.api.overrides :as overrides]))
 
+(def api-interceptors [])
+
 
 ;; has to mess with arguments, cause vote api endpoint has more parameters..
 (defn document-interceptor [spec]

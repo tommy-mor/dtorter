@@ -58,7 +58,26 @@
                               :xt/id)))))
     
     (def items-in-tag (:body (martian/response-for m :tag/items {:id tag})))
-    (= (set (map :xt/id items-in-tag))
-       sent-ids)))
+    (is (= (set (map :xt/id items-in-tag))
+           sent-ids)))
+  (stop))
+
+(deftest illegal-item
+  (start {})
+  (def m (martian-http/bootstrap-openapi "http://localhost:8080/api/swagger.json"))
+  (testing "cant add item to nonsense tag"
+    
+    (def tag (-> (martian/response-for m :tag/new {:tag/name "TESTING alphabet"
+                                                   :tag/description "for testing"
+                                                   :owner tommy})
+                 :body
+                 :xt/id))
+    (is (= 201 (:status (martian/response-for m :item/new {:item/name "woa" 
+                                                           :item/tags [tag]
+                                                           :owner tommy}))))
+    (is (try (martian/response-for m :item/new {:item/name "wswts"
+                                                :item/tags ["strstr"]
+                                                :owner tommy})
+             (catch Exception e (-> e Throwable->map :data :body slurp println))))))
 
 (comment (run-tests))

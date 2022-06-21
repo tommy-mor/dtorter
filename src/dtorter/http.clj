@@ -8,12 +8,9 @@
             [reitit.dev.pretty :as pretty]
             [reitit.http.interceptors.parameters :as parameters]
             [reitit.http.interceptors.muuntaja :as muuntaja]
-            [reitit.http.interceptors.exception :as exception]
-
             [reitit.pedestal :as pedestal]
             [reitit.swagger :as swagger]
             [reitit.swagger-ui :as swagger-ui]
-            [reitit.dev.pretty :as pretty]
             [reitit.http.interceptors.dev :as dev]
 
             [reitit.ring.spec :as rrs]
@@ -31,7 +28,8 @@
             [io.pedestal.http.ring-middlewares :as middlewares]
             [dtorter.db :as db]
             [dtorter.api :as api]
-            [dtorter.swagger :as dagger]))
+            [dtorter.swagger :as dagger]
+            [dtorter.exceptions]))
 
 
 (def cookies (middlewares/session {:store (cookie/cookie-store)}))
@@ -75,11 +73,11 @@
             :muuntaja m/instance
             :interceptors  [
                             {:enter #(assoc-in % [:request :node] node)}
+                            dtorter.exceptions/middleware
                             swagger/swagger-feature
                             (parameters/parameters-interceptor)
                             (muuntaja/format-negotiate-interceptor)
                             (muuntaja/format-response-interceptor)
-                            #_(exception/exception-interceptor)
                             (muuntaja/format-request-interceptor)
                             (coercion/coerce-response-interceptor)
                             (coercion/coerce-request-interceptor)]}})
@@ -107,13 +105,13 @@
       #_(update ::server/routes route/expand-routes)
       ;; TODO make prod make this evaluated, not a function
       #_(assoc ::server/routes #(let [resolver (dtorter.api/load-schema node)]
-                                (-> {::server/routes
-                                     (views/routes (common-interceptors
-                                                    resolver node))}
-                                    (enable-graphql resolver)
-                                    (enable-ide resolver)
-                                    ::server/routes
-                                    route/expand-routes)))
+                                  (-> {::server/routes
+                                       (views/routes (common-interceptors
+                                                      resolver node))}
+                                      (enable-graphql resolver)
+                                      (enable-ide resolver)
+                                      ::server/routes
+                                      route/expand-routes)))
       
       (merge {::server/join? prod
               ::server/allowed-origin {:creds true :allowed-origins (constantly true)}
