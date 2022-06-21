@@ -7,7 +7,8 @@
 (deftest postget
   (start {})
   (def m (martian-http/bootstrap-openapi "http://localhost:8080/api/swagger.json"))
-  (testing "can put"
+  
+  (testing "can put tags"
     (def t {:tag/name "testing tag"
             :tag/description "epic"
             :owner "092d58c9-d64b-40ab-a8a2-d683c92aa319"})
@@ -35,10 +36,7 @@
            "changed"))
     
     (is (= 204 (:status
-                (martian/response-for m :tag/delete {:id t-id}))))
-    
-    
-    #_ (println (t-get-changed :status)))
+                (martian/response-for m :tag/delete {:id t-id})))))
   (stop))
 
 (comment (run-tests))

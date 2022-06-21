@@ -1,0 +1,25 @@
+
+;; {this might be too early of an abstraction, but i prefer multimethods to}
+;;    definitly want to implement multimethods with defaults.
+;;    then we can override for special cases. a lot will not. like deletes/puts.
+;;                 for updates we should limit attributes which can change, references cant always
+;;                multimethod can run custom behavior then also de default?
+;;      finish putting :type into data..
+;; having deeply nested functions... easier to test.
+;; and they can override nicely for special cases. the quesiton is, how many of these are
+;; we going to need? lots. we still need users (free)
+;; and maybe more.
+;; its also possible that smaller methods might be usable. actually no, not expensive to have
+;; repeated surrounding logic when its so simple. but it would be nice to have a multimethod
+;;    for each which only spits out a xtdb check for that situation
+;; + expression problem separates into files better
+
+;; the piggyback thing can be entirely as an interceptor
+
+;; multimethod pattern. check logic is in multimethod, can continue to execution logic
+;; (in default case)
+;; weirdness because rn functions return routes not execution. either use two separate functions
+;; (execute is a function), check multimethod by default generates route that calls it, doesnt have to
+;;   or do some macro stupidness.
+
+;; maybe for vote, you can only patch or delete, can't put

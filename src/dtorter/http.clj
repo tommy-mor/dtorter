@@ -140,7 +140,8 @@
 
 
 
-(comment (reset))
+(comment (reset)
+         (stop))
 
 
 
