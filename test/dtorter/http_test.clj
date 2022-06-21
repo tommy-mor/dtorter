@@ -3,9 +3,10 @@
             [dtorter.http :refer :all]
             [martian.core :as martian]
             [martian.clj-http :as martian-http]))
+
 (def tommy "092d58c9-d64b-40ab-a8a2-d683c92aa319")
 (deftest postget
-  (start {})
+  (reset)
   (def m (martian-http/bootstrap-openapi "http://localhost:8080/api/swagger.json"))
   
   (testing "can put tags"
@@ -40,7 +41,7 @@
   (stop))
 
 (deftest alphabet
-  (start {})
+  (reset)
   (def m (martian-http/bootstrap-openapi "http://localhost:8080/api/swagger.json"))
   (testing "can sort the alphabet"
     (def tag (-> (martian/response-for m :tag/new {:tag/name "TESTING alphabet"
@@ -63,7 +64,7 @@
   (stop))
 
 (deftest illegal-item
-  (start {})
+  (reset)
   (def m (martian-http/bootstrap-openapi "http://localhost:8080/api/swagger.json"))
   (testing "cant add item to nonsense tag"
     
@@ -75,9 +76,10 @@
     (is (= 201 (:status (martian/response-for m :item/new {:item/name "woa" 
                                                            :item/tags [tag]
                                                            :owner tommy}))))
-    (is (try (martian/response-for m :item/new {:item/name "wswts"
-                                                :item/tags ["strstr"]
-                                                :owner tommy})
-             (catch Exception e (-> e Throwable->map :data :body slurp println))))))
+    (is (thrown? clojure.lang.ExceptionInfo
+                 (martian/response-for m :item/new {:item/name "wswts"
+                                                    :item/tags ["strstr"]
+                                                    :owner tommy}))))
+  (stop))
 
 (comment (run-tests))
