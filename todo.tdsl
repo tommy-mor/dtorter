@@ -1,4 +1,23 @@
+:sorter/design
+  make add item page front and center,
+     because you can post things to multiple tags.
+     how does this work with schemas....
+       (i wanted to add oilshell post, should add it, THEN chose tags?)
+       or chose smallest tag, let supertags deal with that..
+       or chose smallest tga, manually add to other tags.
+
+  i fear if we have mixed schema tags,
+    it will become basically just reddit
+  
+
 :sorter.impl/todo
+  !!!!!write tests for api....!!!!!!!!!!
+
+  then keep extending it...
+  then tie to frontend... simplify fromtend?
+  then tie to some other api...
+
+
   pedestal
     reitit (swagger https://github.com/metosin/reitit/blob/master/doc/ring/swagger.md)
     reitit-swagger

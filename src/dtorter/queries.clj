@@ -7,6 +7,18 @@
   (frequencies
    (flatten (map (juxt :left-item :right-item) (strip votes)))))
 
+(def tag-queries
+  {:get-all (fn [{:keys [node]}]
+              (map first (xt/q (xt/db node) '[:find (pull tid [*])
+                                              :where [tid :tag/name _]])))})
+(def item-queries
+  {:get-all (fn [{:keys [node]}]
+              (map first (xt/q (xt/db node) '[:find (pull tid [*])
+                                              :where [tid :item/name _]])))})
+(def vote-queries
+  {:get-all (fn [{:keys [node]}]
+              (map first (xt/q (xt/db node) '[:find (pull tid [*])
+                                              :where [tid :vote/attribute _]])))})
 
 (defn biggest-attribute [ctx node {:keys [tagid]}]
   (def node node)

@@ -22,7 +22,8 @@
 (defn collapsible [spec]
   (s/or :id uuid-str :full spec))
 
-(s/def ::tag (s/keys :req [:xt/id :tag/name :tag/description]
+(s/def ::tag (s/keys :req [:tag/name :tag/description]
+                     :opt [:xt/id]
                      :req-un [::owner]))
 (s/def :tag/name string?)
 (s/def :tag/description string?)
@@ -31,9 +32,9 @@
 (s/def :tag/itemcount int?)
 ;; add elo
 ;; TODO make sure that :un is correct
-(s/def ::item (s/keys :req [:xt/id :item/name :item/tags]
+(s/def ::item (s/keys :req [:item/name :item/tags]
                       :req-un [::owner]
-                      :opt [:item/url :item/paragraph]))
+                      :opt [:xt/id :item/url :item/paragraph]))
 
 (s/def :item/name string?)
 (s/def :item/owner uuid-str)
@@ -41,12 +42,12 @@
 (s/def :item/url string?)
 (s/def :item/paragraph string?)
 
-(s/def ::vote (s/keys :req [:xt/id
-                            :vote/left-item
+(s/def ::vote (s/keys :req [:vote/left-item
                             :vote/right-item
                             :vote/magnitude
                             :vote/attribute
                             :vote/tag]
+                      :opt [:xt/id]
                       :req-un [::owner]))
 
 (s/def :vote/left-item uuid-str)

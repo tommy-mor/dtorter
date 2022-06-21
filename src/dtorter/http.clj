@@ -30,7 +30,8 @@
             [ring.middleware.session.cookie :as cookie]
             [io.pedestal.http.ring-middlewares :as middlewares]
             [dtorter.db :as db]
-            [dtorter.api :as api]))
+            [dtorter.api :as api]
+            [dtorter.swagger :as dagger]))
 
 
 (def cookies (middlewares/session {:store (cookie/cookie-store)}))
@@ -63,7 +64,7 @@
             {:get {:no-doc true
                    :swagger {:info {:title "my api"
                                     :description "of swag"}}
-                   :handler (swagger/create-swagger-handler)}}])]
+                   :handler (dtorter.swagger/create-swagger-handler)}}])]
     ;; https://github.com/metosin/reitit/blob/master/examples/pedestal-swagger/src/example/server.clj
     ;; TODO add more things here from example
     
