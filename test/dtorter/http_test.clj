@@ -64,9 +64,29 @@
     (is (= (set (map :xt/id items-in-tag))
            sent-ids))
 
-    (-> (martian/response-for m :tag/sorted {:id tag})
-        :body
-        keys)
+    (def pair (-> (martian/response-for m :tag/sorted {:id tag})
+                  :body
+                  :pair))
+    (def left (:left pair))
+    (def right (:right pair))
+
+    (let [[winner loser] (sort-by :item/name [left right])]
+      (is (= 201 (:status
+                  (martian/response-for m :vote/new {:vote/left-item (:xt/id winner)
+                                                     :vote/right-item (:xt/id loser)
+                                                     :vote/magnitude 20
+                                                     :vote/attribute "good attribute"
+                                                     :vote/tag tag
+                                                     :owner tommy})))))
+    (def pair (-> (martian/response-for m :tag/sorted {:id tag})
+                  :body))
+    (-> pair
+        :allvotes
+        )
+    
+    
+
+    
     ;; todo make tag/sorted thing
     )
   (stop))

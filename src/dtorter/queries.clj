@@ -2,14 +2,11 @@
   (:require [xtdb.api :as xt]
             [dtorter.math :as math]))
 
-(defn get-voted-ids [votes]
-  (frequencies
-   (flatten (map (juxt :left-item :right-item) votes))))
-
 (def tag-queries
   {:get-all (fn [node]
               (map first (xt/q (xt/db node) '[:find (pull tid [*])
                                               :where [tid :tag/name _]])))})
+
 (def item-queries
   {:get-all (fn [node]
               (map first (xt/q (xt/db node) '[:find (pull tid [*])
@@ -18,6 +15,10 @@
   {:get-all (fn [node]
               (map first (xt/q (xt/db node) '[:find (pull tid [*])
                                               :where [tid :vote/attribute _]])))})
+
+(defn get-voted-ids [votes]
+  (frequencies
+   (flatten (map (juxt :vote/left-item :vote/right-item) votes))))
 
 (defn biggest-attribute [node {:keys [id]}]
   (def node node)
@@ -74,6 +75,9 @@
                                :frequencies freqs
                                :id->item id->item
                                :sorted sorted}))
+
+      (-> rawinfo
+          :voteditems)
 
       (merge rawinfo {:pair (math/getpair rawinfo)}))))
 
