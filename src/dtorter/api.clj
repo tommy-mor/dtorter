@@ -6,42 +6,13 @@
 
             [shared.specs :as sp]
             [clojure.spec.alpha :as s]
-            [dtorter.api.overrides :as overrides]))
+            [dtorter.api.overrides :as overrides]
+            [dtorter.api.common :refer [document-interceptor]]))
 
 (def api-interceptors [])
 
 
 ;; has to mess with arguments, cause vote api endpoint has more parameters..
-(defn document-interceptor [spec]
-  {:enter (fn [ctx]
-            (def ctx ctx)
-            (let [req (ctx :request)
-                  method (req :request-method)
-                  id (-> req :path-params :id)
-                  userid (-> ctx :TODO)
-                  node (req :node)
-                  
-                  doc (xt/pull (xt/db node) '[*] id)
-                  allowed-methods #{:get :post :delete :put}]
-
-              (def id id)
-              (def spec spec)
-              (def doc doc)
-
-              (if-not doc
-                (throw (ex-info (format "document does not exist") req)))
-
-              ;; TODO make this spec check...
-              (if-not (s/valid? spec doc)
-                (throw (ex-info (format "document id is not type %s" spec) req)))
-              
-              ;; TODO make 503
-              (if-not (allowed-methods method)
-                (throw (ex-info "method not allowed" req)))
-              
-              (-> ctx
-                  (assoc-in [:request :resource] doc))))})
-
 ;; only at route creation time for now..
 (defn crud-methods [swagger-tag spec queries overrides]
   [(str "/" swagger-tag)

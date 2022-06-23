@@ -8,7 +8,7 @@
 ;; https://github.com/metosin/reitit/blob/master/doc/ring/exceptions.md
 
 
-#_(defn handler [message exception request]
+(defn handler [message exception request]
   {:status 500
    :body {:message message
           :exception (.getClass exception)
@@ -20,7 +20,9 @@
    (merge
     exception/default-handlers
     {::exception/wrap (fn [handler e request]
-                        (log/error :error (.printStackTrace e) :request request)
+                        (def e e)
+                        (def request request)
+                        (log/error :error e)
                         (handler e request))})))
 
 
