@@ -94,8 +94,16 @@
     (is (= 1 (count (:allvotes sorted))))
     (is (= (list ["good attribute" 1]) (sorted :frequencies)))
     (for [_ (range 100)]
-      (let [{{:keys [left right]} :pair} (:body (martian/response-for m :tag/sorted {:id tag}))
-            mag (calc-score (:item/name left) (:item/name right))]
+      
+      (let [{{:keys [left right]} :pair}
+            (:body
+             (martian/response-for m :tag/sorted
+                                   {:id tag
+                                    :pair-strategy :random}))
+            
+            mag
+            (calc-score (:item/name left) (:item/name right))]
+        
         
         (martian/response-for m :vote/new {:vote/left-item (:xt/id left)
                                            :vote/right-item (:xt/id right)
@@ -109,6 +117,9 @@
                          :sorted
                          (map :item/name)
                          str/join))
+
+    (is (= 26 (count final-sort)))
+    ;; TODO make sure that the alphabet does get correctly reconstructed..
     
     
     
@@ -117,6 +128,9 @@
     ;; todo make tag/sorted thing
     )
   (stop))
+
+(deftest piggyback
+  "piggyback isnt tested because it shouldn't be in api")
 
 (deftest alphabet-bad
   #_(reset)
