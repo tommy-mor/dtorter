@@ -58,9 +58,13 @@
                               :body
                               :xt/id)))))
     
+    (println "s")
     (def items-in-tag (:body (martian/response-for m :tag/items {:id tag})))
+    
     (is (= (set (map :xt/id items-in-tag))
-           sent-ids)))
+           sent-ids))
+    ;; todo make tag/sorted thing
+    )
   (stop))
 
 (deftest illegal-item

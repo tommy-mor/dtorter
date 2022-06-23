@@ -72,7 +72,14 @@
 (s/def ::db (s/keys :req-un [:tag/name :tag/description :tag/owner :tag/votecount :tag/usercount
                              ::attributes ::votes ::show ::sorted ::unsorted]
                     :opt-un [::percent
-                             ::current-attribute])) ;; transient state of webapp
+                             ::current-attribute]))
+
+;; the query that describes a tag view..
+(s/def :tag.query/attribute string?)
+(s/def :tag.query/user string?)
+(s/def ::tag-query
+  (s/keys :req-un [:xt/id :tag.query/attribute :tag.query/user]))
+;; transient state of webapp
 
 ;; TODO add format map to this system (unless its useless cause we want to handle on server)
 

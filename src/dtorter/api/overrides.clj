@@ -57,7 +57,5 @@
               (let [{:keys [node path-params]} req
                     tid 3 ]
                 (comment "TODO PUT get-info HERE")))}}]]})
-
-
 (def routes-todo
   {"/api/tag/{id}/items" "get only, item things all stay in item resource.."})

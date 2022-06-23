@@ -29,7 +29,9 @@
             [dtorter.db :as db]
             [dtorter.api :as api]
             [dtorter.swagger :as dagger]
-            [dtorter.exceptions]))
+            [dtorter.exceptions]
+            [clojure.spec.alpha :as s]
+            [shared.specs :as sp]))
 
 
 (def cookies (middlewares/session {:store (cookie/cookie-store)}))
@@ -56,7 +58,11 @@
 (defn router [node]
   (pedestal/routing-interceptor
    (http/router
-    ["/api" {:interceptors api/api-interceptors}
+    ["/api"
+     {:interceptors api/api-interceptors 
+      ;; :parameters
+      ;; {:query ::sp/tag-query} ;; don't put these into swagger cause its confusing 
+      }
      (conj api/api-routes
            ["/swagger.json"
             {:get {:no-doc true

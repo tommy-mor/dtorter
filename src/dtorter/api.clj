@@ -9,7 +9,17 @@
             [dtorter.api.overrides :as overrides]
             [dtorter.api.common :refer [document-interceptor]]))
 
-(def api-interceptors [])
+
+(def swag-interceptor
+  {:enter #(assoc % :swag 3)
+   :leave (fn [ctx]
+            (def ctx ctx)
+            (-> ctx :response)
+            (assoc-in ctx [:response :body] {:response (-> ctx :response :body)
+                                             :taginfo 3 })
+            ctx)})
+
+(def api-interceptors [swag-interceptor])
 
 
 ;; has to mess with arguments, cause vote api endpoint has more parameters..
