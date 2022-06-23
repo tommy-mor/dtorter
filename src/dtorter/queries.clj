@@ -20,7 +20,7 @@
   (frequencies
    (flatten (map (juxt :vote/left-item :vote/right-item) votes))))
 
-(defn biggest-attribute [node {:keys [id]}]
+(defn biggest-attribute [node tagid]
   (def node node)
   (def tagid tagid)
   (->> (xt/q (xt/db node)
@@ -28,7 +28,8 @@
                :in tid
                :where
                [e :vote/tag tid]
-               [e :vote/attribute atr]] id)
+               [e :vote/attribute atr]]
+             tagid)
        (map first)
        frequencies
        (sort-by second)
@@ -76,9 +77,6 @@
                                :id->item id->item
                                :sorted sorted}))
 
-      (-> rawinfo
-          :voteditems)
-
       (merge rawinfo {:pair (math/getpair rawinfo)}))))
 
 
@@ -98,8 +96,10 @@
                                           [tid :owner owner]
                                           [tid :tag/name _]]
                            tagid))
-        attribute (or (:attribute query-params)
-                      (biggest-attribute node query-params))
+        query-params (assoc query-params
+                            :attribute
+                            (or (:attribute query-params)
+                                (biggest-attribute node tagid)))
         logged-in-user (:logged-in-username req)]
 
     (tag-info-calc query logged-in-user query-params)))
@@ -107,7 +107,7 @@
 (defn unsorted-calc [items votes voted-ids]
   (def voted-ids)
   (filter #(not (voted-ids (:id %)))
-          items))
+          items)) 
 
 
 (comment 

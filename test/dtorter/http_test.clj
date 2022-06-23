@@ -2,7 +2,8 @@
   (:require [clojure.test :refer :all]
             [dtorter.http :refer :all]
             [martian.core :as martian]
-            [martian.clj-http :as martian-http]))
+            [martian.clj-http :as martian-http]
+            [clojure.string :as str]))
 
 (def tommy "092d58c9-d64b-40ab-a8a2-d683c92aa319")
 (deftest postget
@@ -51,14 +52,13 @@
                  :xt/id))
 
     (def sent-ids (set (doall
-                        (for [x "abcdefghijklmnopqrstuv"]
+                        (for [x "abcdefghijklmnopqrstuvwxyz"]
                           (-> (martian/response-for m :item/new {:item/name (str x) 
                                                                  :item/tags [tag]
                                                                  :owner tommy})
                               :body
                               :xt/id)))))
     
-    (println "s")
     (def items-in-tag (:body (martian/response-for m :tag/items {:id tag})))
     
     (is (= (set (map :xt/id items-in-tag))
@@ -69,7 +69,6 @@
                   :pair))
     (def left (:left pair))
     (def right (:right pair))
-
     (let [[winner loser] (sort-by :item/name [left right])]
       (is (= 201 (:status
                   (martian/response-for m :vote/new {:vote/left-item (:xt/id winner)
@@ -78,11 +77,32 @@
                                                      :vote/attribute "good attribute"
                                                      :vote/tag tag
                                                      :owner tommy})))))
-    (def pair (-> (martian/response-for m :tag/sorted {:id tag})
+    
+    (def sorted (-> (martian/response-for m :tag/sorted {:id tag})
                   :body))
-    (-> pair
-        :allvotes
-        )
+
+    (is (= 2 (count (:voteditems sorted))))
+    (is (= 2 (count (:sorted sorted))))
+    (is (= 24 (count (:unvoteditems sorted))))
+    (is (= 1 (count (:allvotes sorted))))
+    (is (= (list ["good attribute" 1]) (sorted :frequencies)))
+    (for [_ (range 100)]
+      (let [{{:keys [left right]} :pair} (:body (martian/response-for m :tag/sorted {:id tag}))
+            [winner loser] (sort-by :item/name [left right])]
+        
+        (martian/response-for m :vote/new {:vote/left-item (:xt/id winner)
+                                           :vote/right-item (:xt/id loser)
+                                           :vote/magnitude 20
+                                           :vote/attribute "good attribute"
+                                           :vote/tag tag
+                                           :owner tommy})))
+
+    (def final-sort (->> (martian/response-for m :tag/sorted {:id tag})
+                         :body
+                         :sorted
+                         (map :item/name)
+                         str/join))
+    
     
     
 
