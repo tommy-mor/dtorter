@@ -2,7 +2,8 @@
   (:require
    [xtdb.api :as xt]
    [dtorter.api.common :refer [document-interceptor]]
-   [shared.specs :as sp]))
+   [shared.specs :as sp]
+   [dtorter.queries :as queries]))
 
 (def no-changes {:all identity :individual identity :extra-routes []})
 
@@ -50,12 +51,10 @@
                                                      [iid :item/tags tid]] tid))}))}}]
     ["/:id/sorted"
      {:get {:operationId :tag/sorted
-            :sumamry "get all the calculated information about a tag"
+            :summary "get all the calculated information about a tag"
+            :parameters {:path {:id string?}}
             :handler
             (fn [req]
-              (def req req)
-              (let [{:keys [node path-params]} req
-                    tid 3 ]
-                (comment "TODO PUT get-info HERE")))}}]]})
+              {:status 200 :body (queries/tag-info req)})}}]]})
 (def routes-todo
   {"/api/tag/{id}/items" "get only, item things all stay in item resource.."})

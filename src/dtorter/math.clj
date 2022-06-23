@@ -114,16 +114,15 @@
    takes ratio into [0,1] "
   (/ 1 (inc (Math/exp (- y)))))
 
-(defn getpair [ctx {:keys [voteditems filteredvotes itemvotecounts unvoteditems id->item
-                           sorted] :as args}]
-  (def ctx ctx)
+(defn getpair [{:keys [voteditems filteredvotes itemvotecounts unvoteditems id->item
+                       sorted] :as args}]
   (def voteditems voteditems)
   (def filteredvotes filteredvotes)
   (def itemvotecounts itemvotecounts)
   (def unvoteditems unvoteditems)
   (def sorted sorted)
   (def id->item id->item)
-  (def itemid->elo (into {} (map (juxt :id :elo) sorted)))
+  (def itemid->elo (into {} (map (juxt :xt/id :elo) sorted)))
 
   (if (and (empty? voteditems) (empty? unvoteditems))
     {:left nil :right nil}
@@ -131,12 +130,13 @@
       
       ;; item->{votes}
       (def itemid->votes (apply merge-with into
-                                (for [{left :left-item right :right-item :as vote}  filteredvotes]
+                                (for [{left :vote/left-item
+                                       right :vote/right-item :as vote}  filteredvotes]
                                   {left #{vote} right #{vote}})))
 
       (defn vote-ratio [itemid votes]
         (apply /
-               (reduce (fn [[numerator denominator] {:keys [left-item right-item magnitude]}]
+               (reduce (fn [[numerator denominator] {:vote/keys [left-item right-item magnitude]}]
                          (let [edutingam (- 100 magnitude)]
                            (condp = itemid
                              left-item [(+ numerator edutingam)
@@ -151,7 +151,10 @@
              1))
 
       (def sorted-ratios
-        (into (pm/priority-map) (for [{itemid :id} (-> sorted vec (sample-coll (sample-size 2) (kixi.stats.distribution/beta {:a 2 :b 3.3})))]
+        (into (pm/priority-map) (for [{itemid :xt/id}
+                                      (-> sorted vec
+                                          (sample-coll (sample-size 2)
+                                                       (kixi.stats.distribution/beta {:a 2 :b 3.3})))]
                                   {itemid (let [x (vote-ratio itemid (itemid->votes itemid))]
                                             (if (< x 1.0)
                                               (Math/pow x -1.0)
@@ -172,19 +175,19 @@
                        (draw-coll voteditems (kixi.stats.distribution/beta {:a 2 :b 3.3})))))
       
       (def voted-pairs (->> filteredvotes
-                            (filter (fn [{:keys [left-item right-item]}]
-                                      (or (= left-item (:id leftitem))
-                                          (= right-item (:id leftitem)))))
-                            (map (fn [{:keys [left-item right-item]}]
+                            (filter (fn [{:vote/keys [left-item right-item]}]
+                                      (or (= left-item (:xt/id leftitem))
+                                          (= right-item (:xt/id leftitem)))))
+                            (map (fn [{:vote/keys [left-item right-item]}]
                                    [left-item right-item]))
                             flatten
                             set))
       
       (def rightitem (or (draw-coll unvoteditems (kixi.stats.distribution/uniform 0 1))
                          (->> (into (pm/priority-map)
-                                    (for [item (filter #(voted-pairs (:id %)) sorted)]
-                                      {(:id item) (Math/abs (- (:elo item)
-                                                               (itemid->elo (:id leftitem))))}))
+                                    (for [item (filter #(voted-pairs (:xt/id %)) sorted)]
+                                      {(:xt/id item) (Math/abs (- (:elo item)
+                                                               (itemid->elo (:xt/id leftitem))))}))
                               (drop 1)
                               (take (sample-size 12))
                               rand-nth
@@ -193,15 +196,17 @@
 
       ;; TODO make this do loop
       (assert (not (= leftitem rightitem)))
+      (def leftitem leftitem)
+      (def rightitem rightitem)
       ;; TODO match items who want losses with items who want wins
 
-      (if (contains? voted-pairs #{(:id leftitem) (:id rightitem)})
+      (if (contains? voted-pairs #{(:xt/id leftitem) (:xt/id rightitem)})
         (do (println "we already found pair \n"
                      leftitem
                      "\n"
                      rightitem
                      "\n trying again..")
-            (getpair args ctx)))
+            (getpair args)))
 
       ;; simple pair chosing for beginning. if an item has no losses, elomtach
       ;; as soon as it gets a loss, move on.

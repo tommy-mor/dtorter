@@ -1,11 +1,10 @@
 (ns dtorter.queries
   (:require [xtdb.api :as xt]
-            [dtorter.math :as math]
-            [dtorter.util :refer [strip]]))
+            [dtorter.math :as math]))
 
 (defn get-voted-ids [votes]
   (frequencies
-   (flatten (map (juxt :left-item :right-item) (strip votes)))))
+   (flatten (map (juxt :left-item :right-item) votes))))
 
 (def tag-queries
   {:get-all (fn [node]
@@ -20,7 +19,7 @@
               (map first (xt/q (xt/db node) '[:find (pull tid [*])
                                               :where [tid :vote/attribute _]])))})
 
-(defn biggest-attribute [ctx node {:keys [tagid]}]
+(defn biggest-attribute [node {:keys [id]}]
   (def node node)
   (def tagid tagid)
   (->> (xt/q (xt/db node)
@@ -28,7 +27,7 @@
                :in tid
                :where
                [e :vote/tag tid]
-               [e :vote/attribute atr]] tagid)
+               [e :vote/attribute atr]] id)
        (map first)
        frequencies
        (sort-by second)
@@ -42,28 +41,27 @@
   (reverse (for [[elo item] (math/getranking (vec items) (vec votes))]
              (assoc item :elo elo))))
 
-(defn tag-info-calc [ctx query {{:keys [attribute user]} :info :as args}]
+(defn tag-info-calc [query logged-in-user {:keys [attribute user] :as query-params}]
   (let [[tag owner votes items] query]
-
     (when (and (not *testing*) (some nil? [tag owner votes items]))
-      (throw (ex-info (str "found a null" (prn-str args)) args)))
+      (throw (ex-info "query failed" {:query query})))
     
     
     
-    (let [votes (strip (or (:vote/_tag votes) []))
-          items (strip (or (:item/_tags items) []))
+    (let [votes (or (:vote/_tag votes) [])
+          items (or (:item/_tags items) [])
 
-          freqs (sort-by second (frequencies (map :attribute votes)))
-          filteredvotes (filter #(and (= (:attribute %) attribute) 
+          freqs (sort-by second (frequencies (map :vote/attribute votes)))
+          filteredvotes (filter #(and (= (:vote/attribute %) attribute) 
                                       (or (not user)
                                           (= (:owner %) user)))
                                 votes)
           item-vote-counts (get-voted-ids filteredvotes)
-          items (map #(assoc % :votecount (item-vote-counts (:id %))) items)
-          stuff (group-by #(nil? (item-vote-counts (:id %))) items)
+          items (map #(assoc % :item/votecount (item-vote-counts (:xt/id %))) items)
+          stuff (group-by #(nil? (item-vote-counts (:xt/id %))) items)
           voted-items (or (get stuff false) [])
           unvoted-items (or (get stuff true) [])
-          id->item (into {} (map (juxt :id identity) items))
+          id->item (into {} (map (juxt :xt/id identity) items))
           sorted (sorted-calc voted-items filteredvotes)]
       (def t items)
       (def rawinfo (merge tag {:owner owner
@@ -77,25 +75,30 @@
                                :id->item id->item
                                :sorted sorted}))
 
-      (merge rawinfo {:pair (math/getpair ctx rawinfo)}))))
+      (merge rawinfo {:pair (math/getpair rawinfo)}))))
 
 
-(defn tag-info [ctx node {{:keys [tagid]} :info :as args }]
-
-  
-  (comment "TODO must have permissions on this query... use xtdb query functions")
-  (xt/sync node)
-  (let [query (first (xt/q (xt/db node) '[:find
+(defn tag-info [req]
+  (def req req)
+  (def tagid (-> req :path-params :id))
+  (def node (:node req) )
+  (let [{:keys [node path-params query-params]} req
+        tagid (:id path-params)
+        query (first (xt/q (xt/db node) '[:find
                                           (pull tid [*])
                                           (pull owner [*])
                                           (pull tid [{:vote/_tag [*]}])
                                           (pull tid [{:item/_tags [*]}])
                                           :in tid
                                           :where
-                                          [tid :tag/owner owner]]
-                           tagid))]
+                                          [tid :owner owner]
+                                          [tid :tag/name _]]
+                           tagid))
+        attribute (or (:attribute query-params)
+                      (biggest-attribute node query-params))
+        logged-in-user (:logged-in-username req)]
 
-    (tag-info-calc ctx query args)))
+    (tag-info-calc query logged-in-user query-params)))
 
 (defn unsorted-calc [items votes voted-ids]
   (def voted-ids)

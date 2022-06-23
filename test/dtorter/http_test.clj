@@ -63,6 +63,10 @@
     
     (is (= (set (map :xt/id items-in-tag))
            sent-ids))
+
+    (-> (martian/response-for m :tag/sorted {:id tag})
+        :body
+        keys)
     ;; todo make tag/sorted thing
     )
   (stop))
