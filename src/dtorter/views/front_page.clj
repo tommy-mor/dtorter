@@ -6,7 +6,6 @@
             [cryptohash-clj.encode :as enc]
             [xtdb.api :as xt]
             [dtorter.hashing :as hashing]
-            [ring.util.response :as ring-resp]
             [dtorter.queries :as queries]
             [cheshire.core :as json]
             [dtorter.views.tag :as tag]
@@ -27,45 +26,6 @@
    [:ul
     (for [tag [3 4 5]]
       (render-tag tag))]])
-
-(defn login-page [req]
-  {:status 200
-   :html (layout req [:form {:action 3 #_(url-for :login-submit)
-                             :method "POST"}
-                      [:input {:required true :type "text" :name "username" :placeholder "user"}]
-                      [:input {:required true :type "password" :name "password" :placeholder "pass"}]
-                      [:input {:type "submit" :value "login"}]]
-                 {:title "sorter login"})})
-
-(defn users-page [req]
-  {:status 200
-   :html (layout req [:h1 "users"])})
-
-(def login-done
-  {:name ::login-done
-   :enter (fn [ctx]
-            
-            (let [{:keys [username password]} (:form-params (:request ctx))
-                  user-doc (ffirst (xt/q (xt/db (:node ctx))
-                                         '[:find (pull e [*])
-                                           :in username
-                                           :where [e :user/name username]]
-                                         username))
-                  password-hash (:user/password-hash user-doc)]
-              (if (and password-hash (hashing/check-pw password password-hash))
-                (assoc ctx :response
-                       (-> (ring-resp/redirect 3 #_(url-for :front-page))
-                           (assoc :session {:user-id (:xt/id user-doc)
-                                            :user-name (:user/name user-doc)})))
-                (assoc ctx :response
-                       ;; TODO add error msg
-                       (login-page (:request ctx))))))})
-(def log-off
-  {:name ::log-off
-   :enter (fn [ctx]
-            (-> ctx
-                (assoc :response (-> (ring-resp/redirect (url-for :front-page))
-                                     (assoc :session nil)))))})
 
 ;; TODO put these into arguments to init/bang, not here
 (defn routes [common-interceptors]

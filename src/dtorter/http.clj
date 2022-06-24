@@ -59,7 +59,6 @@
             :muuntaja m/instance
             :interceptors  [
                             {:enter #(assoc-in % [:request :node] node)}
-                            
                             dtorter.exceptions/middleware
                             swagger/swagger-feature
                             (parameters/parameters-interceptor)
@@ -126,6 +125,7 @@
 
       server/default-interceptors
       (pedestal/replace-last-interceptor router-dev)
+      (update ::server/interceptors #(cons cookies %))
       server/dev-interceptors
       server/create-server
       server/start
