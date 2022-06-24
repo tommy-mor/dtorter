@@ -16,18 +16,17 @@
 
 
 (defn render-tag [tag]
-  [:li.tag.frontpagetag
+  [:li
    [:a {:href 3 #_(url-for :tag-page :params {:tagid (:xt/id tag)})} (:tag/name tag)]])
 
 
 (defn page [request]
   (def request request)
-  (layout request [:div
-                   [:h1 "front page"]
-                   [:ul
-                    (for [tag [3 4 5]]
-                      (render-tag tag))]]
-          {:title "sorter frontpage"}))
+  [:div
+   [:h1 "front page"]
+   [:ul
+    (for [tag [3 4 5]]
+      (render-tag tag))]])
 
 (defn login-page [req]
   {:status 200

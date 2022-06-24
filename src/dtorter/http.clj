@@ -21,8 +21,6 @@
 
             [muuntaja.core :as m]
             
-            [hiccup.core :refer [html]]
-            
             [ring.middleware.session.cookie :as cookie]
             [io.pedestal.http.ring-middlewares :as middlewares]
             [dtorter.db :as db]
@@ -34,20 +32,6 @@
             [dtorter.views.routes :as views]))
 
 (def cookies (middlewares/session {:store (cookie/cookie-store)}))
-
-(def html-interceptor
-  {:name  ::html-response
-   :leave (fn [{:keys [response]
-                :as   ctx}]
-            (if (contains? response :html)
-              (let [html-body (->> response
-                                   :html
-                                   html
-                                   (str "\n"))]
-                (assoc ctx :response (-> response
-                                         (assoc :body html-body)
-                                         (assoc-in [:headers "Content-Type"] "text/html"))))
-              ctx))})
 
 (defn router [node]
   (pedestal/routing-interceptor
@@ -76,7 +60,6 @@
             :interceptors  [
                             {:enter #(assoc-in % [:request :node] node)}
                             
-                            html-interceptor
                             dtorter.exceptions/middleware
                             swagger/swagger-feature
                             (parameters/parameters-interceptor)
