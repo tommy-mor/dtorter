@@ -52,7 +52,7 @@
 (defn router [node]
   (pedestal/routing-interceptor
    (http/router
-    [["/" views/routes]
+    [["" views/routes]
      ["/api"
       {:interceptors api/api-interceptors 
        ;; :parameters

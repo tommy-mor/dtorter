@@ -17,7 +17,7 @@
 
 (defn render-tag [tag]
   [:li.tag.frontpagetag
-   [:a {:href (url-for :tag-page :params {:tagid (:xt/id tag)})} (:tag/name tag)]])
+   [:a {:href 3 #_(url-for :tag-page :params {:tagid (:xt/id tag)})} (:tag/name tag)]])
 
 
 (defn page [request]
@@ -31,7 +31,7 @@
 
 (defn login-page [req]
   {:status 200
-   :html (layout req [:form {:action (url-for :login-submit)
+   :html (layout req [:form {:action 3 #_(url-for :login-submit)
                              :method "POST"}
                       [:input {:required true :type "text" :name "username" :placeholder "user"}]
                       [:input {:required true :type "password" :name "password" :placeholder "pass"}]
@@ -55,7 +55,7 @@
                   password-hash (:user/password-hash user-doc)]
               (if (and password-hash (hashing/check-pw password password-hash))
                 (assoc ctx :response
-                       (-> (ring-resp/redirect (url-for :front-page))
+                       (-> (ring-resp/redirect 3 #_(url-for :front-page))
                            (assoc :session {:user-id (:xt/id user-doc)
                                             :user-name (:user/name user-doc)})))
                 (assoc ctx :response

@@ -17,13 +17,13 @@
     [:span (prn-str session)]
     [:div.topleft
      [:span "sorter"]
-     [:a.currentpage {:href (url-for :front-page)} "home"]
-     [:a.currentpage {:href (url-for :users-page)} "users"]]
+     [:a.currentpage {:href 3 #_(url-for :front-page)} "home"]
+     [:a.currentpage {:href 3 #_(url-for :users-page)} "users"]]
     (if-let [username (:user-name session)]
       [:div.topright
-       [:a.currentpage {:href (url-for :log-off)} "logoff"]]
+       [:a.currentpage {:href 3 #_(url-for :log-off)} "logoff"]]
       [:div.topright
-       [:a.currentpage {:href (url-for :login-page)} "login"]
+       [:a.currentpage {:href 3 #_(url-for :login-page)} "login"]
        [:a.currentpage "make account"]])
     [:div.mainbody
      inner]]])
