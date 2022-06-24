@@ -21,7 +21,6 @@
 
             [muuntaja.core :as m]
             
-            [dtorter.views.front-page :as views]
             [hiccup.core :refer [html]]
             
             [ring.middleware.session.cookie :as cookie]
@@ -31,44 +30,40 @@
             [dtorter.swagger :as dagger]
             [dtorter.exceptions]
             [clojure.spec.alpha :as s]
-            [shared.specs :as sp]))
-
+            [shared.specs :as sp]
+            [dtorter.views.routes :as views]))
 
 (def cookies (middlewares/session {:store (cookie/cookie-store)}))
 
-(defn common-interceptors [schema node]
-  [cookies
-   ;; https://souenzzo.com.br/clojure-ssr-app-with-pedestal-and-hiccup.html
-   {:name  ::html-response
-    :leave (fn [{:keys [response]
-                 :as   ctx}]
-             (if (contains? response :html)
-               (let [html-body (->> response
-                                    :html
-                                    html
-                                    (str "\n"))]
-                 (assoc ctx :response (-> response
-                                          (assoc :body html-body)
-                                          (assoc-in [:headers "Content-Type"] "text/html"))))
-               ctx))}])
-
-(defn interceptor [number]
-  {:enter (fn [ctx] (update-in ctx [:request :number] (fnil + 0) number))})
+(def html-interceptor
+  {:name  ::html-response
+   :leave (fn [{:keys [response]
+                :as   ctx}]
+            (if (contains? response :html)
+              (let [html-body (->> response
+                                   :html
+                                   html
+                                   (str "\n"))]
+                (assoc ctx :response (-> response
+                                         (assoc :body html-body)
+                                         (assoc-in [:headers "Content-Type"] "text/html"))))
+              ctx))})
 
 (defn router [node]
   (pedestal/routing-interceptor
    (http/router
-    ["/api"
-     {:interceptors api/api-interceptors 
-      ;; :parameters
-      ;; {:query ::sp/tag-query} ;; don't put these into swagger cause its confusing 
-      }
-     (conj api/api-routes
-           ["/swagger.json"
-            {:get {:no-doc true
-                   :swagger {:info {:title "my api"
-                                    :description "of swag"}}
-                   :handler (dtorter.swagger/create-swagger-handler)}}])]
+    [["/" views/routes]
+     ["/api"
+      {:interceptors api/api-interceptors 
+       ;; :parameters
+       ;; {:query ::sp/tag-query} ;; don't put these into swagger cause its confusing 
+       }
+      (conj api/api-routes
+            ["/swagger.json"
+             {:get {:no-doc true
+                    :swagger {:info {:title "sorter api"
+                                     :description "for sorting things and stuff"}}
+                    :handler (dtorter.swagger/create-swagger-handler)}}])]]
     ;; https://github.com/metosin/reitit/blob/master/examples/pedestal-swagger/src/example/server.clj
     ;; TODO add more things here from example
     
@@ -79,6 +74,8 @@
             :muuntaja m/instance
             :interceptors  [
                             {:enter #(assoc-in % [:request :node] node)}
+                            
+                            html-interceptor
                             dtorter.exceptions/middleware
                             swagger/swagger-feature
                             (parameters/parameters-interceptor)
@@ -94,7 +91,7 @@
       :config {:validatorUrl nil
                :operationsSorter "alpha"}})
     (ring/create-resource-handler)
-    (ring/create-default-handler)))) 
+    (ring/create-default-handler))))
 
 ;; TODO use :server/enable-session {}
 (defonce server (atom nil))

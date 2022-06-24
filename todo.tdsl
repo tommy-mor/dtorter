@@ -1,3 +1,25 @@
+:sorter.impl/todo
+  make html layout flexible (swappable? pog by using interceptors)
+    html-interceptor wraps in chosen layout... only body is shown inside.
+    store layout in cookie.., hardcode switches into html
+      let people upload their own templates as like pug templates... make sure to sanitize them.
+      or they can use any hiccup/tailwindcss things. (to be more safe about santizing)
+
+  make html layout cooler, have left to right version where logins are on left wall
+
+  want to add better display functions for toplevel tags?
+
+  do git integration..
+
+
+:sorter/to-watch
+  talk by rich hickey about interceptors
+
+:tsdl/web
+  add small graph on page that shows history of number of lines of
+     code that has been in the directory
+      (looks through git history using jgit and finds )
+
 :sorter/design
   make add item page front and center,
      because you can post things to multiple tags.

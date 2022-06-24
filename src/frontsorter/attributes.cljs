@@ -69,6 +69,6 @@
          "attribute"]))))
 
 
-(defn test [x] (+ 1 x))
+
 
 

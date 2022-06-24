@@ -20,19 +20,14 @@
    [:a {:href (url-for :tag-page :params {:tagid (:xt/id tag)})} (:tag/name tag)]])
 
 
-(def front-page
-  {:name ::front-page
-   :enter (fn [{:keys [node request] :as ctx}]
-            (let [tags 3 #_(queries/all-tags ctx node)]
-              (assoc ctx
-                     :response
-                     {:status 200
-                      :html (layout request [:div
-                                             [:h1 "front page"]
-                                             [:ul
-                                              (for [tag tags]
-                                                (render-tag tag))]]
-                                    {:title "sorter frontpage"})})))})
+(defn page [request]
+  (def request request)
+  (layout request [:div
+                   [:h1 "front page"]
+                   [:ul
+                    (for [tag [3 4 5]]
+                      (render-tag tag))]]
+          {:title "sorter frontpage"}))
 
 (defn login-page [req]
   {:status 200

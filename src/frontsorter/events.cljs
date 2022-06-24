@@ -2,7 +2,6 @@
   (:require
    [re-frame.core :refer [reg-event-db reg-event-fx inject-cofx path after
                           reg-fx dispatch-sync]]
-   [re-graph.core :as re-graph]
    [cljs.spec.alpha :as s]
    [shared.specs :as sp]
    [shared.query-strings :as qs]))
@@ -31,8 +30,7 @@
  ;; TODO add spec checking here
  (fn [{:keys [db]} [_ mergee]]
    {:db (let [db (js->clj js/init :keywordize-keys true)]
-          (merge db mergee))
-    :dispatch [::re-graph/init {:ws nil :http {:url "/api"}}]}))
+          (merge db mergee))}))
 
 (defn appdb-args [db]
   " things that are part of ...appDB fragment, but not every mutation.
@@ -73,7 +71,7 @@
    {:db (if js/itemid
           (cancel-vote db)
           db)
-    :dispatch [::re-graph/mutate
+    :dispatch [:mutate
                :vote
                (if js/itemid qs/vote-item qs/vote)
                (merge (appdb-args db)
@@ -87,7 +85,7 @@
 (reg-event-fx
  :delete-vote
  (fn [{:keys [db]} [_ vote]]
-   {:dispatch [::re-graph/mutate
+   {:dispatch [:mutate
                :delete-vote
                qs/del-vote
                (merge (appdb-args db)
@@ -97,7 +95,7 @@
 (reg-event-fx
  :add-item
  (fn [{:keys [db]} [_ item]]
-   {:dispatch [::re-graph/mutate
+   {:dispatch [:mutate
                :add-item
                qs/add-item
                (merge (appdb-args db) {:item_info (merge {:tagid js/tagid} item)})
@@ -106,7 +104,7 @@
 (reg-event-fx
  :refresh-state interceptor-chain
  (fn [{:keys [db]} _]
-   {:dispatch [::re-graph/mutate
+   {:dispatch [:mutate
                :refresh
                qs/app-db
                (appdb-args db)
