@@ -13,7 +13,7 @@ $weak-alpha: 0.3;
 
 
 $highlight-color-hue: 0;
-$highlight-color: hsla($highlight-color-hue, $saturation, 88%, 1);
+$highlight-color: hsla($highlight-color-hue, $saturation, 99%, 1);
 
 /* if there are no special cases, convert to functions.
 @function color-weak($color) {
@@ -31,7 +31,7 @@ $item-color-strong: hsla($item-color-hue, $saturation, $strong-lightness, $stron
 $item-color-medium: hsla($item-color-hue, $saturation, $medium-lightness, $medium-alpha);
 $item-color-weak:   hsla($item-color-hue, $saturation, $weak-lightness, $weak-alpha);
 
-$tag-color-hue: 0;
+$tag-color-hue: 275;
 $tag-color-strong: hsla($tag-color-hue, $saturation, $strong-lightness, $strong-alpha); 
 $tag-color-medium: hsla($tag-color-hue, $saturation, $medium-lightness, $medium-alpha);
 $tag-color-weak:   hsla($tag-color-hue, $saturation, $weak-lightness, $weak-alpha);

@@ -1,8 +1,29 @@
 @import 'config';
 
+.frontpage-tag-container {
+	@apply space-y-1;
+}
+
 .tag {
 	background: $tag-color-weaker;
 }
+
+.tag-small {
+	background: $tag-color-weaker;
+	width: fit-content;
+	border-width: 1;
+	padding: 2px;
+	border-left-color: mediumpurple;
+	border-left-width: medium;
+	border-style: outset;
+
+}
+
+.tag-small:hover {
+	border-style: inset;
+}
+
+
 
 .frontpagetag {
 	margin: 10px;

@@ -21,40 +21,31 @@
                 :type "text/javascript"}]
       [:title (or (str title ", sorter") "sorter")]]
      [:div.topbar
-      [:span (prn-str session)]
       [:div.topleft
        [:span "sorter"]
        [:a.currentpage {:href (c/rurl-for ctx :front-page)} "home"]
        [:a.currentpage {:href 3 #_(url-for :users-page)} "users"]]
       (if-let [username (:user-name session)]
         [:div.topright
-         [:a.currentpage {:href (c/rurl-for ctx :logff)} "logoff"]]
+         [:a.currentpage {:href (c/rurl-for ctx :logff)} "logoff"]
+         [:span (prn-str session)]]
         [:div.topright
          [:a.currentpage {:href (c/rurl-for ctx :login)} "login"]
-         [:a.currentpage "make account"]])
+         [:a.currentpage "make account"]
+         [:span (prn-str session)]])
       [:div.mainbody
        inner]]]))
 
-(def html-interceptor
-  {:name  ::html-response
-   :leave (fn [{:keys [response]
-                :as   ctx}]
-            (if (contains? response :html)
-              (let [html-body (->> response
-                                   :html
-                                   html
-                                   (str "\n"))]
-                (assoc ctx :response (-> response
-                                         (assoc :body html-body)
-                                         (assoc-in [:headers "Content-Type"] "text/html"))))
-              ctx))})
+
 
 (def layout-interceptor
   {:leave (fn [{:keys [response]
                 :as ctx}]
             (if (contains? response :html)
               (assoc-in ctx [:response :html] (layout ctx (:html response)))
-              ctx))})
+              ctx))
+   :enter (fn [ctx]
+            (assoc-in ctx [:request :href-for] (partial c/rurl-for ctx)))})
 
 (defn routes []
   [""
@@ -64,4 +55,13 @@
      :get {:handler (fn [req] {:status 200
                                :title "frontpage"
                                :html (fp/page req)})}}]
+   ["/t/:id"
+    {:name :tag-page
+     :parameters {:path {:id string?}}
+     :get {:handler
+           (fn [req]
+             {:status 200
+                      :title "tag"
+                      :html [:h1 "le epic"]})}}]
+   
    (login/login-routes)])

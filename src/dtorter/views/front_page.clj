@@ -1,8 +1,6 @@
 (ns dtorter.views.front-page
-  (:require [io.pedestal.http.route :refer [url-for]]
-            [io.pedestal.http.body-params :as body-params]
+  (:require [io.pedestal.http.body-params :as body-params]
             [hiccup.core :refer [html]]
-            [cryptohash-clj.api :as c]
             [cryptohash-clj.encode :as enc]
             [xtdb.api :as xt]
             [dtorter.hashing :as hashing]
@@ -11,39 +9,34 @@
             [dtorter.views.tag :as tag]
             [dtorter.views.common :refer [layout]]
 
+            [dtorter.views.common :as common]
+
             [tdsl.show]))
 
-
-(defn render-tag [tag]
-  [:li
-   [:a {:href 3 #_(url-for :tag-page :params {:tagid (:xt/id tag)})} (:tag/name tag)]])
+(defn render-tag [{:keys [href-for]} tag]
+  (def href-for href-for)
+  (def tag tag)
+  [:div.tag-small [:a {:href (href-for :tag-page {:id (:xt/id tag)})} (:tag/name tag)]])
 
 
 (defn page [request]
   (def request request)
+  (def user (-> request :session :user-id))
+  (def tags (xt/q (xt/db node)
+                  '[:find (pull tid [*])
+                    :in userid
+                    :where
+                    [tid :owner userid]
+                    [tid :tag/name _]]
+                  user))
+  
   [:div
    [:h1 "front page"]
-   [:ul
-    (for [tag [3 4 5]]
-      (render-tag tag))]])
+   [:ul.frontpage-tag-container
+    (for [tag tags]
+      (render-tag request (first tag)))]])
 
 ;; TODO put these into arguments to init/bang, not here
-(defn routes [common-interceptors]
-  (into #{["/" :get
-           (into common-interceptors [front-page]) :route-name :front-page]
-          ["/users" :get
-           (into common-interceptors [users-page]) :route-name :users-page]
-          ["/login" :get
-           (into common-interceptors [login-page]) :route-name :login-page]
-          ["/login" :post
-           (into common-interceptors [(body-params/body-params) login-done]) :route-name :login-submit]
-          ["/logoff" :get
-           (into common-interceptors [log-off]) :route-name :log-off]
 
-          ["/t/:tagid" :get
-           (into common-interceptors [tag/tag-page]) :route-name :tag-page]
-          ["/t/:tagid/:itemid" :get
-           (into common-interceptors [tag/item-page]) :route-name :item-page]}
-        (tdsl.show/routes common-interceptors)))
 
 
