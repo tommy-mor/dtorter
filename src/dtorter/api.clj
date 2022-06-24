@@ -19,7 +19,7 @@
                                              :taginfo 3 })
             ctx)})
 
-(def api-interceptors [swag-interceptor])
+(defn api-interceptors [] [swag-interceptor])
 
 
 ;; has to mess with arguments, cause vote api endpoint has more parameters..
@@ -44,7 +44,8 @@
                               (let [{:keys [node]} req]
                                 {:status 200
                                  :body
-                                 (into [] ((:get-all queries) (:node req)))}))}})]
+                                 ["woah" "crazy2"]
+                                 #_(into [] ((:get-all queries) (:node req)))}))}})]
           ["/:id"
            ((:individual overrides)
             {:parameters {:path {:id string?}}
@@ -69,7 +70,7 @@
                       :operationId (keyword swagger-tag "delete")}})]]
          (:extra-routes overrides))])
 
-(def api-routes
+(defn api-routes [] 
   [
    (crud-methods "tag" ::sp/tag queries/tag-queries overrides/tag)
    (crud-methods "item" ::sp/item queries/item-queries overrides/item) 

@@ -31,6 +31,7 @@
               (fn [{:keys [db]} [_ attribute]]
                 {:db (assoc db :current-attribute attribute)
                  :dispatch [:refresh-state]}))
+
 @(subscribe [:current-attribute])
 @(subscribe [:raw-attributes])
 @(subscribe [:attributes])

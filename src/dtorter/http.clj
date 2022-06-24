@@ -52,13 +52,14 @@
 (defn router [node]
   (pedestal/routing-interceptor
    (http/router
-    [["" views/routes]
+    
+    [["" (views/routes)]
      ["/api"
-      {:interceptors api/api-interceptors 
+      {:interceptors (api/api-interceptors) 
        ;; :parameters
        ;; {:query ::sp/tag-query} ;; don't put these into swagger cause its confusing 
        }
-      (conj api/api-routes
+      (conj (api/api-routes)
             ["/swagger.json"
              {:get {:no-doc true
                     :swagger {:info {:title "sorter api"
@@ -93,6 +94,21 @@
     (ring/create-resource-handler)
     (ring/create-default-handler))))
 
+(def router-dev
+  (io.pedestal.interceptor/interceptor
+   {:name :hack-dev
+    :enter
+    (fn [ctx]
+      (def ctx ctx)
+      (println "strstrst")
+      (:enter (router node))
+      (let [real-interceptor (router node)]
+        ((:enter real-interceptor) (assoc ctx :hack/interceptor real-interceptor))))
+    :leave
+    (fn [ctx]
+      (let [real-fn (-> ctx :hack/interceptor :leave)]
+        (real-fn ctx)))}))
+
 ;; TODO use :server/enable-session {}
 (defonce server (atom nil))
 
@@ -126,7 +142,7 @@
       
 
       server/default-interceptors
-      (pedestal/replace-last-interceptor (router node))
+      (pedestal/replace-last-interceptor router-dev)
       server/dev-interceptors
       server/create-server
       server/start
