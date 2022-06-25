@@ -86,6 +86,7 @@
   (def node (:node req) )
   (let [{:keys [node path-params query-params]} req
         tagid (:id path-params)
+        ;; todo move {:vote/_tag [*]} into first pull expression.. 
         query (first (xt/q (xt/db node) '[:find
                                           (pull tid [*])
                                           (pull owner [*])

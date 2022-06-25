@@ -13,28 +13,37 @@
 
             [tdsl.show]))
 
-(defn render-tag [{:keys [href-for]} tag]
+(defn render-tag [{:keys [href-for]} [tag]]
   (def href-for href-for)
   (def tag tag)
-  [:div.tag-small [:a {:href (href-for :tag-page {:id (:xt/id tag)})} (:tag/name tag)]])
+  (def votecount (count (-> tag :vote/_tag)))
+  (def itemcount (count (-> tag :item/_tags)))
+  (def size (Math/sqrt (* 3 (+ votecount itemcount))))
+  [:div.tag-small
+   {:style (str "font-size: " (max size 12) "px")}
+   [:a {:href (href-for :tag-page {:id (:xt/id tag)})}
+    (:tag/name tag)]])
 
 
 (defn page [request]
   (def request request)
   (def user (-> request :session :user-id))
+  
   (def tags (xt/q (xt/db node)
-                  '[:find (pull tid [*])
+                  '[:find
+                    (pull tid [*
+                               {:item/_tags [*]}
+                               {:vote/_tag [*]}])
                     :in userid
                     :where
                     [tid :owner userid]
                     [tid :tag/name _]]
                   user))
-  
-  [:div
-   [:h1 "front page"]
+  [:div.frontpage
+   [:h1 "all tags"]
    [:ul.frontpage-tag-container
     (for [tag tags]
-      (render-tag request (first tag)))]])
+      (render-tag request tag))]])
 
 ;; TODO put these into arguments to init/bang, not here
 

@@ -23,7 +23,23 @@
 	border-style: inset;
 }
 
+.mapparent {
+	display: flex;
+	flex-direction: row;
+	div {
+		pre {
+			@apply text-sm text-slate-400;
+		}
 
+		span {
+			@apply text-lg;
+		}
+	}
+}
+
+.frontpage-tag-container {
+	width: 100%;
+}
 
 .frontpagetag {
 	margin: 10px;
