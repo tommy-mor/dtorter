@@ -76,7 +76,7 @@
     (ring/create-resource-handler)
     (ring/create-default-handler))))
 
-(def router-dev
+(defn router-dev [node]
   (io.pedestal.interceptor/interceptor
    {:name :hack-dev
     :enter
@@ -89,7 +89,7 @@
     :leave
     (fn [ctx]
       (let [real-fn (-> ctx :hack/interceptor :leave)]
-        (real-fn ctx)))}))
+        (real-fn ctx)))}) )
 
 ;; TODO use :server/enable-session {}
 (defonce server (atom nil))
@@ -124,7 +124,7 @@
       
 
       server/default-interceptors
-      (pedestal/replace-last-interceptor router-dev)
+      (pedestal/replace-last-interceptor (router-dev node))
       (update ::server/interceptors #(cons cookies %))
       server/dev-interceptors
       server/create-server

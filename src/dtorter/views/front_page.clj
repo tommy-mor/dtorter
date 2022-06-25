@@ -7,8 +7,6 @@
             [dtorter.queries :as queries]
             [cheshire.core :as json]
             [dtorter.views.tag :as tag]
-            [dtorter.views.common :refer [layout]]
-
             [dtorter.views.common :as common]
 
             [tdsl.show]))
@@ -28,7 +26,7 @@
 (defn page [request]
   (def request request)
   (def user (-> request :session :user-id))
-  
+  (def node (:node request))
   (def tags (xt/q (xt/db node)
                   '[:find
                     (pull tid [*

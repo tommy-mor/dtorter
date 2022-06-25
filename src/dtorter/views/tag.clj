@@ -2,7 +2,6 @@
   (:require [io.pedestal.http.route :refer [url-for]]
             [dtorter.queries :as queries]
             [cheshire.core :as json]
-            [dtorter.views.common :refer [layout]]
             [dtorter.util :refer [strip get-throwing]]
             
             [shared.query-strings :as qs]
@@ -42,8 +41,8 @@
       conformed)))
 
 
-(defn jsonstring [ctx tagid itemid]
-  (let [info (strip (gather-info ctx tagid itemid))]
+(defn jsonstring [req tagid itemid]
+  (let [info (queries/tag-info req)]
     (def info info) ; for use by test snippets in comment blocks in math.clj
     {:string (str "var tagid = '" tagid "';\n"
                   "var itemid = " (if itemid
@@ -52,21 +51,20 @@
                   "var init = " (json/generate-string info) ";")
      :info info} ))
 
-(def tag-page
-  {:name ::tag-page
-   :enter (fn [{:keys [node request] :as ctx}]
-            (let [tagid (-> request :path-params :tagid)
-                  {:keys [string info]} (jsonstring ctx tagid false)]
-              (assoc ctx :response {:status 200 :html
-                                    (layout request [:div
-                                                     ;; [:span (json/generate-string tag)]
-                                                     [:div#app.appbody]
-                                                     [:script {:type "text/javascript"} string]
-                                                     [:script {:type "text/javascript"
-                                                               :src "/js/app.js"}]
-                                                     [:script {:type "text/javascript"}
-                                                      "frontsorter.tag.init_BANG_()"]]
-                                            {:title (:name info)})})))})
+(defn tag-handler
+  [req]
+  (def req req)
+  (let [tagid (-> req :path-params :id)
+        {:keys [string info]} (jsonstring req tagid false)]
+    {:status 200 :html [:div
+                        ;; [:span (json/generate-string tag)]
+                        [:div#app.appbody]
+                        [:script {:type "text/javascript"} string]
+                        [:script {:type "text/javascript"
+                                  :src "/js/app.js"}]
+                        [:script {:type "text/javascript"}
+                         "frontsorter.tag.init_BANG_()"]]
+     :title info}))
 
 (def item-page
   {:name ::item-page
@@ -75,17 +73,15 @@
                   itemid (-> request :path-params :itemid)
                   {:keys [string info]} (jsonstring ctx tagid itemid)]
               (assoc ctx :response {:status 200 :html
-                                    (layout request
-                                            [:div
-                                             ;; [:span (json/generate-string tag)]
-                                             [:div#app.appbody]
-                                             [:script {:type "text/javascript"}
-                                              string]
-                                             [:script {:type "text/javascript"
-                                                       :src "/js/app.js"}]
-                                             [:script {:type "text/javascript"
-                                                       :src "/js/item.js"}]
-                                             [:script {:type "text/javascript"}
-                                              "frontsorter.item.init_BANG_()"]]
-                                            {:title (-> info :item :name) })})))})
+                                    [:div
+                                     ;; [:span (json/generate-string tag)]
+                                     [:div#app.appbody]
+                                     [:script {:type "text/javascript"}
+                                      string]
+                                     [:script {:type "text/javascript"
+                                               :src "/js/app.js"}]
+                                     [:script {:type "text/javascript"
+                                               :src "/js/item.js"}]
+                                     [:script {:type "text/javascript"}
+                                      "frontsorter.item.init_BANG_()"]]})))})
 
