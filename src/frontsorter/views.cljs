@@ -66,9 +66,10 @@
       ]]))
 
 (defn item [item]
-  [c/hoveritem ^{:key (:id item)} {:on-click #(let [url (str "/t/" js/tagid "/" (:id item))]
-                                                (set! js/window.location.href url))
-                                   :key (:id item)}
+  [c/hoveritem ^{:key (:xt/id item)}
+   {:on-click #(let [url (str "/t/" js/tagid "/" (:id item))]
+                 (set! js/window.location.href url))
+    :key (:xt/id item)}
    
    (when (:elo item)
      
@@ -76,12 +77,11 @@
                        (.toFixed 2))])
    ;; customize by type (display url for links?)
    
-   [:td {:key 2} (:votecount item)]
-   [:td {:key 3} (:name item)]])
+   [:td {:key 2} (:item/votecount item)]
+   [:td {:key 3} (:item/name item)]])
 
 (defn sortedlist [sorted sorted-count]
-  (let [size @(subscribe [sorted-count])
-        sorted @(subscribe [sorted])
+  (let [sorted @(subscribe [sorted])
         all-users @(subscribe [:users])
         selected-user @(subscribe [:current-user])]
     
@@ -102,7 +102,7 @@
       [:tbody
        (doall
         (for [item-i sorted]
-          (let [item-i (assoc item-i :key (:id item-i))]
+          (let [item-i (assoc item-i :key (:xt/id item-i))]
             [item item-i])))]]]))
 
 (defn votelist []

@@ -39,7 +39,6 @@
        last
        first))
 
-
 (def ^:dynamic *testing* false)
 
 (defn sorted-calc [items votes]
@@ -68,6 +67,7 @@
           unvoted-items (or (get stuff true) [])
           id->item (into {} (map (juxt :xt/id identity) items))
           sorted (sorted-calc voted-items filteredvotes)]
+      (def votes votes)
       (def rawinfo (merge tag {:interface/owner (dissoc owner :user/password-hash)
                                :tag/votes votes
                                :tag/items items
@@ -79,7 +79,10 @@
                                :tag.filtered/unvoted-items unvoted-items
                                :tag/item-vote-counts item-vote-counts
                                :interface/attributes freqs
-                               :tag.filtered/sorted sorted}))
+                               :tag.filtered/sorted sorted
+                               :interface/current-attribute attribute}))
+      
+      
       (assert (s/valid? ::sp/db rawinfo))
       (merge rawinfo {:pair (math/getpair rawinfo)}))))
 

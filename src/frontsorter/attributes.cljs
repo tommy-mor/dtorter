@@ -7,21 +7,23 @@
    [frontsorter.common :as c]
    [frontsorter.events :as events]))
 
-(reg-sub :current-attribute (some-fn :current-attribute
+(reg-sub :current-attribute (some-fn :interface/current-attribute
                                      (constantly ::empty)))
 
-(reg-sub :raw-attributes :attributes)
-(reg-sub :attributecounts :attributecounts)
+#_@(subscribe [:current-attribute])
+#_(-> (contains? @(subscribe [:raw-attributes])
+                 "default")
+    :interface/attributes)
+
+(reg-sub :raw-attributes :interface/attributes)
+
 (reg-sub :attributes
          :<- [:current-attribute]
          :<- [:raw-attributes]
-         :<- [:attributecounts]
-         (fn [[ca attrs counts] _]
-           (if (or (contains? (set attrs) ca)
-                   (#{::empty} ca))
-             [attrs counts]
-             [(conj attrs ca)
-              (conj counts 0)])))
+         (fn [[ca attrs] _]
+           (if (contains? attrs ca)
+             attrs
+             (merge attrs {ca 0}))))
 
 ;; eventually switch back to using counts, rn just make it work normally
 ;; make attribute counts a separate array, same length
@@ -41,7 +43,7 @@
         new-attr-name (atom "")]
     (fn []
       (let [current-attribute @(subscribe [:current-attribute])
-            [attributes attributecounts] @(subscribe [:attributes])]
+            attributes @(subscribe [:attributes])]
         [:div {:style {:display "flex"}} "you are voting on"
          (if (and (not (empty? attributes))
                   (not @editing))
@@ -51,7 +53,7 @@
                              "[add new attribute]" (reset! editing true)
                              (dispatch-sync [:attribute-selected new-attr])))
              :value current-attribute}
-            (for [[attribute attributecount] (reverse (map list attributes attributecounts))]
+            (for [[attribute attributecount] (sort-by second attributes)]
               [:option {:value attribute
                         :key attribute} (str (name attribute) " (" attributecount " votes)")])
             [:option {:key "add new"} "[add new attribute]"]]
