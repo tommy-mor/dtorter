@@ -6,7 +6,8 @@
             
             [shared.query-strings :as qs]
             [shared.specs :as sp]
-            [clojure.spec.alpha :as s]))
+            [clojure.spec.alpha :as s]
+            [clojure.string :as str]))
 
 (def show-all {:vote_panel true
                :vote_edit true
@@ -44,12 +45,15 @@
 (defn jsonstring [req tagid itemid]
   (let [info (queries/tag-info req)]
     (def info info) ; for use by test snippets in comment blocks in math.clj
+    (s/explain ::sp/db info)
     {:string (str "var tagid = '" tagid "';\n"
                   "var itemid = " (if itemid
                                     (str "'" itemid "'")
                                     itemid) ";\n"
-                  "var init = " (json/generate-string info) ";")
-     :info info} ))
+                  "var init = \"" (str/escape (pr-str info)
+                                              {\" "\\\""
+                                               \\ "\\\\"}) "\"")
+     :info info}))
 
 (defn tag-handler
   [req]

@@ -1,20 +1,17 @@
 (ns shared.specs
-  (:require [clojure.spec.alpha :as s]
-            #?@(:clj
-                [[dtorter.queries :as q]
-                 [dtorter.util :refer [strip]]])))
+  (:require [clojure.spec.alpha :as s]))
 
 
 
 (def uuid-regex #"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
 
-(def uuid-str #(re-matches uuid-regex %))
+(def uuid-str (s/and string? #(re-matches uuid-regex %)))
 
-(s/def :xt/id (s/and string? uuid-str))
+(s/def :xt/id uuid-str)
 
 (s/def :user/name string?)
 
-(s/def ::user (s/keys :req-un [:xt/id :user/name]))
+(s/def ::user (s/keys :req [:xt/id :user/name]))
 (s/def ::owner uuid-str)
 
 (defn collapsible [spec]
@@ -66,13 +63,35 @@
 (s/def ::pair (s/nilable (s/keys :req-un [::left ::right])))
 ;; eventually this will be (s/coll-of [attribute count])
 (s/def ::attributes (s/coll-of string?))
-(s/def ::current-attribute (s/or :none nil? :exists string?))
-(s/def ::percent :vote/magnitude)
+(s/def :interface/current-attribute (s/or :none nil? :exists string?))
+(s/def :pair/percent :vote/magnitude)
 
-(s/def ::db (s/keys :req-un [:tag/name :tag/description :tag/owner :tag/votecount :tag/usercount
-                             ::attributes ::votes ::show ::sorted ::unsorted]
-                    :opt-un [::percent
-                             ::current-attribute]))
+(s/def :interface/owner ::user)
+
+(s/def :tag/votes (s/coll-of ::vote))
+(s/def :tag/items (s/coll-of ::item))
+(s/def :tag.filtered/votes (s/coll-of ::vote))
+(s/def :tag.filtered/items (s/coll-of ::item))
+(s/def :tag.filtered/unvoted-items (s/coll-of ::item))
+(s/def :tag.filtered/sorted (s/coll-of ::item))
+(s/def :tag/item-vote-counts (s/map-of uuid-str int?))
+(s/def :interface/attributes (s/map-of string? int?))
+
+(s/def ::db (s/keys :req [:tag/name :tag/description
+                          :tag/votecount :tag/usercount
+                          :tag/votes :tag/items
+
+                          :tag.filtered/votes
+                          :tag.filtered/items
+                          :tag.filtered/unvoted-items
+                          :tag.filtered/sorted
+
+                          :tag/item-vote-counts
+                          :interface/attributes
+                          :interface/owner]
+                    :req-un [::owner]
+                    :opt [:pair/percent
+                          :interface/current-attribute]))
 
 ;; the query that describes a tag view..
 (s/def :tag.query/attribute string?)
@@ -83,10 +102,4 @@
 
 ;; TODO add format map to this system (unless its useless cause we want to handle on server)
 
-(comment
-  (def tag (first (q/all-tags dtorter.http/db)))
-  (def item (first (q/items-for-tag dtorter.http/db (:xt/id tag))))
-  (def vote (first (q/votes-for-tag dtorter.http/db (:xt/id tag))))
-  (s/explain ::tag (strip tag))
-  (s/explain ::item item)
-  (s/explain ::vote vote))
+

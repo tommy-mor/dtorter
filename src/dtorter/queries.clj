@@ -1,6 +1,9 @@
 (ns dtorter.queries
   (:require [xtdb.api :as xt]
-            [dtorter.math :as math]))
+            [dtorter.math :as math]
+            [clojure.spec.alpha :as s]
+            [shared.specs :as sp]
+            [expound.alpha :as expound]))
 
 (def tag-queries
   {:get-all (fn [node]
@@ -53,7 +56,7 @@
     (let [votes (or (:vote/_tag votes) [])
           items (or (:item/_tags items) [])
 
-          freqs (sort-by second (frequencies (map :vote/attribute votes)))
+          freqs (frequencies (map :vote/attribute votes))
           filteredvotes (filter #(and (= (:vote/attribute %) attribute) 
                                       (or (not user)
                                           (= (:owner %) user)))
@@ -65,18 +68,19 @@
           unvoted-items (or (get stuff true) [])
           id->item (into {} (map (juxt :xt/id identity) items))
           sorted (sorted-calc voted-items filteredvotes)]
-      (def t items)
-      (def rawinfo (merge tag {:owner owner
-                               :allvotes votes
-                               :allitems items
-                               :filteredvotes filteredvotes
-                               :voteditems voted-items
-                               :unvoteditems unvoted-items
-                               :itemvotecounts item-vote-counts
-                               :frequencies freqs
-                               :id->item id->item
-                               :sorted sorted}))
-
+      (def rawinfo (merge tag {:interface/owner (dissoc owner :user/password-hash)
+                               :tag/votes votes
+                               :tag/items items
+                               :tag/votecount (count votes)
+                               :tag/itemcount (count items)
+                               :tag/usercount (count (distinct (map :owner votes)))
+                               :tag.filtered/votes filteredvotes
+                               :tag.filtered/items voted-items
+                               :tag.filtered/unvoted-items unvoted-items
+                               :tag/item-vote-counts item-vote-counts
+                               :interface/attributes freqs
+                               :tag.filtered/sorted sorted}))
+      (assert (s/valid? ::sp/db rawinfo))
       (merge rawinfo {:pair (math/getpair rawinfo)}))))
 
 

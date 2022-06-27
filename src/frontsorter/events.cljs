@@ -4,7 +4,8 @@
                           reg-fx dispatch-sync]]
    [cljs.spec.alpha :as s]
    [shared.specs :as sp]
-   [shared.query-strings :as qs]))
+   [shared.query-strings :as qs]
+   [cljs.reader :refer [read-string]]))
 
 
 ;; spec checking from
@@ -29,7 +30,8 @@
  interceptor-chain
  ;; TODO add spec checking here
  (fn [{:keys [db]} [_ mergee]]
-   {:db (let [db (js->clj js/init :keywordize-keys true)]
+   {:db (let [db (-> js/init
+                     read-string)]
           (merge db mergee))}))
 
 (defn appdb-args [db]

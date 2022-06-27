@@ -1,15 +1,46 @@
 :sorter.impl/todo
+  fix tag-info to create the spec more directly
+  fix spec namespaces to make sense...
+
+  layout use a lot more horizontal space.
+  have crud actions INTERFACE be generic to type of item/spec..
+
+  permissions only owner can do any crud action.
+  voting/adding to a tag needs to be controlled. with user selector.
+
+  user group system... can be anonymous or named...
+    named user groups can be crud'd
+
+
+  do git integration..
+
+:sorter/friends
+  user group permissions:
+    this user group can: see my actions
+    this user group can: see this tag
+    this user group can: vote on this tag
+
+  frontpage feed of friends actions
+    (controlled with user groups..)
+
+  frontpage also has feed of what your friends are doing/their most recent actions.
+    (with expanding.)
+
+:sorter.design/layout
+  more horizontal.
+  on frontpage have your tags on left, public tags on right.
+
+  maybe color code of ownership.. like you own it if its blue.
+
+  lean into html borders more... current frontpage too subtle?
+  use size for elo, see what that does.
+
+
+:sorter.ideas/layoutswapping
   make html layout flexible (swappable? pog by using interceptors)
-    html-interceptor wraps in chosen layout... only body is shown inside.
     store layout in cookie.., hardcode switches into html
       let people upload their own templates as like pug templates... make sure to sanitize them.
       or they can use any hiccup/tailwindcss things. (to be more safe about santizing)
-
-  make html layout cooler, have left to right version where logins are on left wall
-
-  want to add better display functions for toplevel tags?
-
-  do git integration..
 
 
 :sorter/to-watch
