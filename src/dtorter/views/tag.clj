@@ -53,7 +53,7 @@
                   "var init = \"" (str/escape (pr-str info)
                                               {\" "\\\""
                                                \\ "\\\\"}) "\"")
-     :info info}))
+     :info (:tag/name info)}))
 
 (defn tag-handler
   [req]

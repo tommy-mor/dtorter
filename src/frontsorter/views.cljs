@@ -92,8 +92,8 @@
                 :autoComplete "nope"}  
        [:option {:value "all users"} "all users combined"]
        (for [user all-users]
-         [:option {:key (:name user)
-                   :value (:id user)} (:name user)])]]
+         [:option {:key (:user/name user)
+                   :value (:xt/id user)} (:user/name user)])]]
 
      
      [:table

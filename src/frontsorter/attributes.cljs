@@ -34,10 +34,6 @@
                 {:db (assoc db :current-attribute attribute)
                  :dispatch [:refresh-state]}))
 
-@(subscribe [:current-attribute])
-@(subscribe [:raw-attributes])
-@(subscribe [:attributes])
-
 (defn attributes-panel []
   (let [editing (atom false)
         new-attr-name (atom "")]

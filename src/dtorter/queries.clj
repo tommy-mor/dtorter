@@ -66,7 +66,10 @@
           voted-items (or (get stuff false) [])
           unvoted-items (or (get stuff true) [])
           id->item (into {} (map (juxt :xt/id identity) items))
-          sorted (sorted-calc voted-items filteredvotes)]
+          sorted (sorted-calc voted-items filteredvotes)
+          userids (distinct (map :owner votes))
+          
+          ]
       (def votes votes)
       (def rawinfo (merge tag {:interface/owner (dissoc owner :user/password-hash)
                                :tag/votes votes
@@ -78,12 +81,11 @@
                                :tag.filtered/items voted-items
                                :tag.filtered/unvoted-items unvoted-items
                                :tag/item-vote-counts item-vote-counts
-                               :interface/attributes freqs
                                :tag.filtered/sorted sorted
-                               :interface/current-attribute attribute}))
-      
-      
-      (assert (s/valid? ::sp/db rawinfo))
+                               :interface.filter/attribute attribute
+                               :interface.filter/user user
+                               :interface/attributes freqs
+                               :interface/users (xt/pull-many (xt/db node) [:user/name :xt/id] userids)}))
       (merge rawinfo {:pair (math/getpair rawinfo)}))))
 
 

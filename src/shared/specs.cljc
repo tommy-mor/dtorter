@@ -63,7 +63,8 @@
 (s/def ::pair (s/nilable (s/keys :req-un [::left ::right])))
 ;; eventually this will be (s/coll-of [attribute count])
 (s/def ::attributes (s/coll-of string?))
-(s/def :interface/current-attribute (s/or :none nil? :exists string?))
+(s/def :interface.filter/attribute (s/or :none nil? :exists string?))
+(s/def :interface.filter/user (s/or :none nil? :exists string?))
 (s/def :pair/percent :vote/magnitude)
 
 (s/def :interface/owner ::user)
@@ -76,6 +77,7 @@
 (s/def :tag.filtered/sorted (s/coll-of ::item))
 (s/def :tag/item-vote-counts (s/map-of uuid-str int?))
 (s/def :interface/attributes (s/map-of string? int?))
+(s/def :interface/users (s/coll-of ::user))
 
 (s/def ::db (s/keys :req [:tag/name :tag/description
                           :tag/votecount :tag/usercount
@@ -88,10 +90,12 @@
 
                           :tag/item-vote-counts
                           :interface/attributes
-                          :interface/owner]
+                          :interface/owner
+                          :interface/users]
                     :req-un [::owner]
                     :opt [:pair/percent
-                          :interface/current-attribute]))
+                          :interface.filter/attribute
+                          :interface.filter/user]))
 
 ;; the query that describes a tag view..
 (s/def :tag.query/attribute string?)

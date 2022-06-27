@@ -85,7 +85,7 @@
 (reg-sub :sorted-count :<- [:sorted] count)
 (reg-sub :sorted-not-empty :<- [:sorted-count] (complement zero?)) 
 
-(reg-sub :users :users)
+(reg-sub :users :interface/users)
 (reg-sub :current-user :current-user)
 
 (reg-sub :unsorted :tag.filtered/unvoted-items)
