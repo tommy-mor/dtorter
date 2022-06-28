@@ -1,10 +1,8 @@
 (ns frontsorter.subs
   (:require [re-frame.core :refer [reg-sub subscribe]]))
 
-;; {TODO/ fix subscriptions...}
 
 (reg-sub :all (fn [x] x))
-
 ;; show 
 ; second arg is a function that takes db
 (reg-sub :show (constantly {:thing "epic"}))

@@ -71,8 +71,9 @@
            sent-ids))
 
     (def pair (-> (martian/response-for m :tag/sorted {:id tag})
-                  :body
-                  :pair))
+                  :body))
+    (-> pair
+        :pair)
     (def left (:left pair))
     (def right (:right pair))
     (let [mag (calc-score (:item/name left)

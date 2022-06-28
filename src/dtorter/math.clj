@@ -116,14 +116,13 @@
    takes ratio into [0,1] "
   (/ 1 (inc (Math/exp (- y)))))
 
-(defn getpair [{:keys [voteditems filteredvotes itemvotecounts unvoteditems id->item
-                       sorted] :as args}]
-  (def voteditems voteditems)
-  (def filteredvotes filteredvotes)
-  (def itemvotecounts itemvotecounts)
-  (def unvoteditems unvoteditems)
-  (def sorted sorted)
-  (def id->item id->item)
+(defn getpair [args]
+  (def voteditems (:tag.filtered/items args))
+  (def filteredvotes (:tag.filtered/votes args))
+  (def itemvotecounts (:tag/item-vote-counts args))
+  (def unvoteditems (:tag.filtered/unvoted-items args))
+  (def sorted (:tag.filtered/sorted args))
+  (def id->item (:id->item args))
   (def itemid->elo (into {} (map (juxt :xt/id :elo) sorted)))
 
   (if (and (empty? voteditems) (empty? unvoteditems))

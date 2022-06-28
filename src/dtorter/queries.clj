@@ -86,7 +86,8 @@
                                :interface.filter/user user
                                :interface/attributes freqs
                                :interface/users (xt/pull-many (xt/db node) [:user/name :xt/id] userids)}))
-      (merge rawinfo {:pair (math/getpair rawinfo)}))))
+      (merge rawinfo {:pair (math/getpair (assoc rawinfo
+                                                 :id->item id->item))}))))
 
 
 (defn tag-info [req]

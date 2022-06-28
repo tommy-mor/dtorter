@@ -1,6 +1,14 @@
 :sorter.impl/todo
-  fix tag-info to create the spec more directly
-  fix spec namespaces to make sense...
+  get frontend display/interaction fixed.
+    voting
+    voting/editing in tag page
+    query/filter parameters for actions (user/attribute selection)
+    
+  get frontend actions working... (crud forms...)
+
+  redo style (more ltr..)
+
+  sync filters with url...
 
   layout use a lot more horizontal space.
   have crud actions INTERFACE be generic to type of item/spec..
@@ -13,6 +21,15 @@
 
 
   do git integration..
+
+:sorter/permissions
+  inspired by kekkonen, determine which apis are availible by quering the router.
+  the router has list of endpoints. convert endpoints into capabilities, include that in appdb
+  
+
+:sorter/interface-components
+   http://metosin.github.io/komponentit/#!/example.autocomplete
+
 
 :sorter/friends
   user group permissions:

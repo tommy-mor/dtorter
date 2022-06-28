@@ -51,3 +51,8 @@
 .frontpagelist {
 	padding: 0px;
 }
+
+.btn {
+	@apply bg-blue-500 hover:bg-blue-700;
+
+}

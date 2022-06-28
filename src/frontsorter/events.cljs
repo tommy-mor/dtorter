@@ -4,8 +4,8 @@
                           reg-fx dispatch-sync]]
    [cljs.spec.alpha :as s]
    [shared.specs :as sp]
-   [shared.query-strings :as qs]
-   [cljs.reader :refer [read-string]]))
+   [cljs.reader :refer [read-string]]
+   [martian.re-frame :as martian]))
 
 
 ;; spec checking from
@@ -38,9 +38,9 @@
   " things that are part of ...appDB fragment, but not every mutation.
    these should be filled in always so state knows how to refresh itself.
   "
-  {:info (cond-> {:attribute (-> db :current-attribute)
+  {:info (cond-> {:attribute (-> db :interface.filter/attribute)
                   :tagid js/tagid
-                  :user (-> db :current-user)}
+                  :user (-> db :interface.filter/user)}
            js/itemid (assoc :itemid js/itemid))})
 
 ;; TODO make this only clear the correct error
@@ -67,48 +67,57 @@
       (assoc :item (-> db :pair :left))
       (dissoc :pair :percent)))
 
-(reg-event-fx
- :vote
- (fn [{:keys [db]} _]
-   {:db (if js/itemid
-          (cancel-vote db)
-          db)
-    :dispatch [:mutate
-               :vote
-               (if js/itemid qs/vote-item qs/vote)
-               (merge (appdb-args db)
-                      {:vote_info {:tagid js/tagid
-                                   :left_item (-> db :pair :left :id)
-                                   :right_item (-> db :pair :right :id)
-                                   :attribute (-> db :current-attribute)
-                                   :magnitude (-> db :percent)}})
-               [::refresh-db]]}))
+(comment (reg-event-fx
+          :vote
+          (fn [{:keys [db]} _]
+            {:db (if js/itemid
+                   (cancel-vote db)
+                   db)
+             :dispatch [:mutate
+                        :vote
+                        (if js/itemid qs/vote-item qs/vote)
+                        (merge (appdb-args db)
+                               {:vote_info {:tagid js/tagid
+                                            :left_item (-> db :pair :left :id)
+                                            :right_item (-> db :pair :right :id)
+                                            :attribute (-> db :current-attribute)
+                                            :magnitude (-> db :percent)}})
+                        [::refresh-db]]}))
 
-(reg-event-fx
- :delete-vote
- (fn [{:keys [db]} [_ vote]]
-   {:dispatch [:mutate
-               :delete-vote
-               qs/del-vote
-               (merge (appdb-args db)
-                      {:voteid (:id vote)})
-               [::refresh-db]]}))
+         (reg-event-fx
+          :delete-vote
+          (fn [{:keys [db]} [_ vote]]
+            {:dispatch [:mutate
+                        :delete-vote
+                        qs/del-vote
+                        (merge (appdb-args db)
+                               {:voteid (:id vote)})
+                        [::refresh-db]]}))
 
-(reg-event-fx
- :add-item
- (fn [{:keys [db]} [_ item]]
-   {:dispatch [:mutate
-               :add-item
-               qs/add-item
-               (merge (appdb-args db) {:item_info (merge {:tagid js/tagid} item)})
-               [::refresh-db]]}))
+         (reg-event-fx
+          :add-item
+          (fn [{:keys [db]} [_ item]]
+            {:dispatch [:mutate
+                        :add-item
+                        qs/add-item
+                        (merge (appdb-args db) {:item_info (merge {:tagid js/tagid} item)})
+                        [::refresh-db]]})))
 
+(martian/init "/api/swagger.json")
+
+(re-frame/dispatch [::martian/request         ;; event for performing an http request
+                    :get-tag               ;; the route name to call
+                    {:name "Doggy McDogFace"  ;; data to send to the endpoint
+                     :type "Dog"
+                     :age 3}
+                    [::create-pet-success]    ;; event to dispatch on success
+                    [::http-failure]          ;; event to dispatch on failure
+                    ]))
 (reg-event-fx
  :refresh-state interceptor-chain
  (fn [{:keys [db]} _]
    {:dispatch [:mutate
                :refresh
-               qs/app-db
                (appdb-args db)
                [::refresh-db]]}))
 ;; ui events

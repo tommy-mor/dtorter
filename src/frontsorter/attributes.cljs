@@ -7,13 +7,8 @@
    [frontsorter.common :as c]
    [frontsorter.events :as events]))
 
-(reg-sub :current-attribute (some-fn :interface/current-attribute
+(reg-sub :current-attribute (some-fn :interface.filter/attribute
                                      (constantly ::empty)))
-
-#_@(subscribe [:current-attribute])
-#_(-> (contains? @(subscribe [:raw-attributes])
-                 "default")
-    :interface/attributes)
 
 (reg-sub :raw-attributes :interface/attributes)
 
@@ -59,7 +54,7 @@
                          :value @new-attr-name
                          :on-change #(reset! new-attr-name (.. % -target -value))
                          :placeholder "default"}]
-            [:button
+            [:button.btn
              {:on-click #(do
                            (dispatch-sync [:attribute-selected @new-attr-name])
                            (reset! editing false)
