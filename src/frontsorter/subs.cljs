@@ -87,8 +87,12 @@
 (reg-sub :unsorted-count :<- [:unsorted] count)
 (reg-sub :unsorted-not-empty :<- [:unsorted-count] (complement zero?))
 
-(reg-sub :votes :tag.filtered/votes)
+(-> @(subscribe [:all])
+    :tag.session/votes)
+
+(reg-sub :votes :tag.session/votes)
 (reg-sub :votes-count :<- [:votes] count)
+(reg-sub :votes-not-empty :<- [:votes-count] (complement zero?))
 
 (reg-sub :idtoname :<- [:sorted] #(into {} (map (juxt :id :name) %)))
 

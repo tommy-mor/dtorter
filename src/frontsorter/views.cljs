@@ -109,7 +109,7 @@
 
 (defn votelist []
 
-  [:table
+ [:table
    [:thead
     [:tr [:th "left"] [:th "pts"] [:th "right"] [:th "pts"]]]
    [:tbody
@@ -117,11 +117,13 @@
           votes @(subscribe [:votes])]
       
       (doall (map (fn [i]
+                    (def i i)
+                    i
                     [:tr.vote 
                      {:key (:id i)}
-                     [:td (-> i :left_item :name)]
-                     [:td (- 100 (:magnitude i))]
-                     [:td (-> i :right_item :name)]
+                     [:td (-> i :vote/left-item :item/name)]
+                     [:td (- 100 (:vote/magnitude i))]
+                     [:td (-> i :vote/right-item :item/name)]
                      [:td (:magnitude i)]
                      (if (:vote_edit @(subscribe [:show]))
                        [:td [c/smallbutton "delete" #(dispatch [:delete-vote i])]])])
@@ -174,7 +176,7 @@
          "itemranking"
          [sortedlist :unsorted :unsorted-count]])
       
-      (when (:vote_edit show)
+      (when @(subscribe [:votes-not-empty])
         [c/collapsible-cage
          false
          (str "MY VOTES (" @(subscribe [:votes-count]) ") on attribute "

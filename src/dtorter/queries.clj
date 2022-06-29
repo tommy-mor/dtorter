@@ -86,7 +86,11 @@
                                :interface.filter/user (or user :interface.filter/all-users)
                                :interface/attributes freqs
                                :interface/users (xt/pull-many (xt/db node) [:user/name :xt/id] userids)
-                               :tag.session/votes (filter #(= (:owner %) logged-in-user) filteredvotes)}))
+                               :tag.session/votes (->> filteredvotes
+                                                       (filter #(= (:owner %) logged-in-user))
+                                                       (map #(-> %
+                                                                 (update :vote/left-item id->item)
+                                                                 (update :vote/right-item id->item))))}))
       (def rawinfo (merge rawinfo {:pair (math/getpair (assoc rawinfo
                                                               :id->item id->item))}))
       (when (not (s/valid? ::sp/db rawinfo))

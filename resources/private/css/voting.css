@@ -108,6 +108,8 @@ $handle-color: $voting-color-strong;
 	border: $border-many;
 	border-color: $voting-color-strong;
 	border-style: $border-many-style;
+	overflow:  scroll;
+	max-height: 70vh;
 }
 
 .votingaddpanel {
@@ -117,4 +119,7 @@ $handle-color: $voting-color-strong;
 .vote {
 	background: $voting-color-medium;
 }
+
+
+/* vote panel... */
 
