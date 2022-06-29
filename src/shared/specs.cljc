@@ -101,7 +101,8 @@
 (s/def :tag.query/attribute string?)
 (s/def :tag.query/user string?)
 (s/def ::tag-query
-  (s/keys :req-un [:xt/id :tag.query/attribute :tag.query/user]))
+  (s/keys :req-un [:xt/id :tag.query/attribute]
+          :opt-un [:tag.query/user]))
 ;; transient state of webapp
 
 ;; TODO add format map to this system (unless its useless cause we want to handle on server)

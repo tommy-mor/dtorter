@@ -52,9 +52,11 @@
     ["/:id/sorted"
      {:get {:operationId :tag/sorted
             :summary "get all the calculated information about a tag"
-            :parameters {:path {:id string?}}
+            :parameters {:path {:id string?}
+                         :query ::sp/tag-query}
             :handler
             (fn [req]
               {:status 200 :body (queries/tag-info req)})}}]]})
+
 (def routes-todo
   {"/api/tag/{id}/items" "get only, item things all stay in item resource.."})

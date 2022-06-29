@@ -19,6 +19,7 @@
   user group system... can be anonymous or named...
     named user groups can be crud'd
 
+  need an endpoint to find the attributes... tag/attributes or include in tag/get
 
   do git integration..
 
