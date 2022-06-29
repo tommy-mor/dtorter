@@ -6,6 +6,7 @@
             [clojure.string :as str]))
 
 (def tommy "092d58c9-d64b-40ab-a8a2-d683c92aa319")
+
 (deftest postget
   (reset)
   (def m (martian-http/bootstrap-openapi "http://localhost:8080/api/swagger.json"))
@@ -71,7 +72,94 @@
            sent-ids))
 
     (def pair (-> (martian/response-for m :tag/sorted {:id tag})
-                  :body))
+                  :body
+                  :pair))
+    (def left (:left pair))
+    (def right (:right pair))
+    (let [mag (calc-score (:item/name left)
+                          (:item/name right))]
+      (is (= 201 (:status
+                  (martian/response-for m :vote/new {:vote/left-item (:xt/id left)
+                                                     :vote/right-item (:xt/id right)
+                                                     :vote/magnitude mag
+                                                     :vote/attribute "good attribute"
+                                                     :vote/tag tag
+                                                     :owner tommy})))))
+    
+    (def sorted (-> (martian/response-for m :tag/sorted {:id tag})
+                    :body))
+    (:interface/attributes :tag/items :tag.filtered/unvoted-items :pair :interface/users :tag/itemcount :tag/votes :tag/item-vote-counts :interface.filter/user :tag.filtered/sorted :tag.filtered/items :interface.filter/attribute :tag/usercount :tag/name :interface/owner :xt/id :tag/description :tag.filtered/votes :owner :tag/votecount)
+
+    (is (= 2 (count (:tag.filtered/items sorted))))
+    (is (= 2 (count (:tag.filtered/sorted sorted))))
+    (is (= 24 (count (:tag.filtered/unvoted-items sorted))))
+    (is (= 1 (count (:tag/votes sorted))))
+    (is (= {"good attribute" 1} (sorted :interface/attributes)))
+    
+    (for [_ (range 100)]
+      
+      (let [{{:keys [left right]} :pair}
+            (:body
+             (martian/response-for m :tag/sorted
+                                   {:id tag
+                                    :pair-strategy :random}))
+            
+            mag
+            (calc-score (:item/name left) (:item/name right))]
+        
+        
+        (martian/response-for m :vote/new {:vote/left-item (:xt/id left)
+                                           :vote/right-item (:xt/id right)
+                                           :vote/magnitude mag
+                                           :vote/attribute "good attribute"
+                                           :vote/tag tag
+                                           :owner tommy})))
+
+    (def final-sort (->> (martian/response-for m :tag/sorted {:id tag})
+                         :body
+                         :tag.filtered/sorted
+                         (map :item/name)
+                         str/join))
+
+    (is (= 26 (count final-sort)))
+    ;; TODO make sure that the alphabet does get correctly reconstructed..
+    
+    
+    
+
+    
+    ;; todo make tag/sorted thing
+    )
+  (stop))
+
+(deftest alphabet-filtering
+  "test for quering sorted, but using filter query params"
+  (reset)
+  (def m (martian-http/bootstrap-openapi "http://localhost:8080/api/swagger.json"))
+  (def alphabet-string "abcdefghijklmnopqrstuvwxyz")
+  (testing "can sort the alphabet with relative weights"
+    (def tag (-> (martian/response-for m :tag/new {:tag/name "TESTING alphabet"
+                                                   :tag/description "for testing"
+                                                   :owner tommy})
+                 :body
+                 :xt/id))
+
+    (def sent-ids (set (doall
+                        (for [x alphabet-string]
+                          (-> (martian/response-for m :item/new {:item/name (str x) 
+                                                                 :item/tags [tag]
+                                                                 :owner tommy})
+                              :body
+                              :xt/id)))))
+    
+    (def items-in-tag (:body (martian/response-for m :tag/items {:id tag})))
+    
+    (is (= (set (map :xt/id items-in-tag))
+           sent-ids))
+
+    (def pair (-> (martian/response-for m :tag/sorted {:id tag})
+                  :body
+                  :pair))
     (-> pair
         :pair)
     (def left (:left pair))
