@@ -1,10 +1,9 @@
 :sorter.impl/todo
-  user selection
-    we get exception on kanye songs
-
   attribute selection
     replace default attribute with appropriate based on tag.
           (rap-verses/default -> rap-verses/lyrics)
+
+  have to show votes? do it ot the right of the item panel...
 
 
 

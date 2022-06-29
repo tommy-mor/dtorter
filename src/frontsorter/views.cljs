@@ -159,26 +159,27 @@
      (when (:vote_panel show)
        [c/pairvoter])
      
-     (when @(subscribe [:sorted-not-empty])
-       [c/collapsible-cage
-        true
-        "RANKING"
-        "itemranking"
-        [sortedlist :sorted :sorted-count]])
-     
-     (when @(subscribe [:unsorted-not-empty])
-       [c/collapsible-cage
-        true
-        "UNRANKED ITEMS"
-        "itemranking"
-        [sortedlist :unsorted :unsorted-count]])
-     
-     (when (:vote_edit show)
-       [c/collapsible-cage
-        false
-        (str "MY VOTES (" @(subscribe [:votes-count]) ") on attribute "
-             (or @(subscribe [:current-attribute])
-                 "default"))
-        "votinglistpanel"
-        [votelist]])]))
+     [:div.threepanels
+      (when @(subscribe [:sorted-not-empty])
+        [c/collapsible-cage
+         true
+         "RANKING"
+         "itemranking"
+         [sortedlist :sorted :sorted-count]])
+      
+      (when @(subscribe [:unsorted-not-empty])
+        [c/collapsible-cage
+         true
+         "UNRANKED ITEMS"
+         "itemranking"
+         [sortedlist :unsorted :unsorted-count]])
+      
+      (when (:vote_edit show)
+        [c/collapsible-cage
+         false
+         (str "MY VOTES (" @(subscribe [:votes-count]) ") on attribute "
+              (or @(subscribe [:current-attribute])
+                  "default"))
+         "votinglistpanel"
+         [votelist]])]]))
 

@@ -2,12 +2,19 @@
 
 /* cage */
 
+.threepanels {
+	display: flex;
+	flex-direction: row;
+}
+
 .cageparent {
 	margin: 10px;
     border-width: 0px;
     border-style: dashed;
     border-radius: 2px;
     padding: 5px;
+	width: fit-content;
+	height: fit-content;
 	/*
 	outline: solid;
 outline-color: lightblue;
