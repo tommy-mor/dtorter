@@ -44,7 +44,6 @@
 
 ;; TODO make this only clear the correct error
 (reg-event-db :clear-errors interceptor-chain #(assoc % :errors []))
-
 ;; TODO add current-attribute to special part of spec
 (reg-event-db
  ::refresh-db
@@ -125,9 +124,10 @@
  interceptor-chain
  (fn [{:keys [db]}
       [_ new-user]]
-   {:db (assoc db :current-user (if (= "all users" new-user)
-                                  nil
-                                  new-user))
+   {:db (assoc db :interface.filter/user
+               (if (= :frontsorter.views/all-users new-user)
+                 nil
+                 new-user))
     :dispatch [:refresh-state [:left :right]]}))
 
 

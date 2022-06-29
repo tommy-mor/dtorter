@@ -90,7 +90,7 @@
       [:select {:on-change #(dispatch [:user-selected (.. % -target -value)])
                 :value selected-user
                 :autoComplete "nope"}  
-       [:option {:value "all users"} "all users combined"]
+       [:option {:value ::all-users} "all users combined"]
        (for [user all-users]
          [:option {:key (:user/name user)
                    :value (:xt/id user)} (:user/name user)])]]
