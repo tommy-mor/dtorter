@@ -37,10 +37,10 @@
   " things that are part of ...appDB fragment, but not every mutation.
    these should be filled in always so state knows how to refresh itself.
   "
-  {:info (cond-> {:attribute (-> db :interface.filter/attribute)
-                  :tagid js/tagid
-                  :user (-> db :interface.filter/user)}
-           js/itemid (assoc :itemid js/itemid))})
+  (cond-> {:attribute (-> db :interface.filter/attribute)
+           :id js/tagid
+           :user (-> db :interface.filter/user)}
+    js/itemid (assoc :itemid js/itemid)))
 
 ;; TODO make this only clear the correct error
 (reg-event-db :clear-errors interceptor-chain #(assoc % :errors []))
@@ -49,13 +49,11 @@
 (reg-event-db
  ::refresh-db
  interceptor-chain
- (fn [db [_ {:keys [data errors] :as payload}]]
+ (fn [db [_ {:keys [body errors] :as payload}]]
    (def db db)
    ;; TODO add errors to error element
    (def payload payload)
-   (let [itemdata (:item_by_id data)]
-     (merge db (:tag_by_id data) {:percent 50} (when itemdata
-                                                 {:item itemdata})))
+   (merge db body {:percent 50})
    ;; PROBLEM: t has pair
    ))
 
@@ -110,7 +108,7 @@
  (fn [{:keys [db]} _]
    {:dispatch [::martian/request
                :tag/sorted          
-               {:id js/tagid}
+               (appdb-args db)
                [::refresh-db]
                [::http-failure] ;; TODO
                ]}))
