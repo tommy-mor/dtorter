@@ -44,8 +44,7 @@
                               (let [{:keys [node]} req]
                                 {:status 200
                                  :body
-                                 ["woah" "crazy2"]
-                                 #_(into [] ((:get-all queries) (:node req)))}))}})]
+                                 (into [] ((:get-all queries) (:node req)))}))}})]
           ["/:id"
            ((:individual overrides)
             {:parameters {:path {:id string?}}

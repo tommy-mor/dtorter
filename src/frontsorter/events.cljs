@@ -5,9 +5,8 @@
    [cljs.spec.alpha :as s]
    [shared.specs :as sp]
    [cljs.reader :refer [read-string]]
-   [martian.re-frame :as martian]))
-
-
+   [martian.re-frame :as martian]
+   [lambdaisland.uri :as uri]))
 ;; spec checking from
 ;; https://github.com/day8/re-frame/blob/master/examples/todomvc/src/todomvc/events.cljs#L49
 ;; TODO check spec differently for tag page
@@ -103,23 +102,18 @@
                         (merge (appdb-args db) {:item_info (merge {:tagid js/tagid} item)})
                         [::refresh-db]]})))
 
-(martian/init "/api/swagger.json")
+(martian/init (str js/window.location.origin "/api/swagger.json"))
+;; TODO implement the piggyback as martian/re-frame middleware AND pedestal middleware :smiling_imp:
 
-(re-frame/dispatch [::martian/request         ;; event for performing an http request
-                    :get-tag               ;; the route name to call
-                    {:name "Doggy McDogFace"  ;; data to send to the endpoint
-                     :type "Dog"
-                     :age 3}
-                    [::create-pet-success]    ;; event to dispatch on success
-                    [::http-failure]          ;; event to dispatch on failure
-                    ]))
 (reg-event-fx
  :refresh-state interceptor-chain
  (fn [{:keys [db]} _]
-   {:dispatch [:mutate
-               :refresh
-               (appdb-args db)
-               [::refresh-db]]}))
+   {:dispatch [::martian/request
+               :tag/sorted          
+               {:id js/tagid}
+               [::refresh-db]
+               [::http-failure] ;; TODO
+               ]}))
 ;; ui events
 
 (reg-event-db
