@@ -83,17 +83,23 @@
                                :tag/item-vote-counts item-vote-counts
                                :tag.filtered/sorted sorted
                                :interface.filter/attribute attribute
-                               :interface.filter/user user
+                               :interface.filter/user (or user :interface.filter/all-users)
                                :interface/attributes freqs
                                :interface/users (xt/pull-many (xt/db node) [:user/name :xt/id] userids)}))
-      (merge rawinfo {:pair (math/getpair (assoc rawinfo
-                                                 :id->item id->item))}))))
+      (def rawinfo (merge rawinfo {:pair (math/getpair (assoc rawinfo
+                                                              :id->item id->item))}))
+      (when (not (s/valid? ::sp/db rawinfo))
+        (expound/expound ::sp/db rawinfo)
+        (throw (ex-info "generated bad db"
+                        {:status 500})))
+      rawinfo)))
 
 
 (defn tag-info [req]
   (def req req)
   (def tagid (-> req :path-params :id))
   (def node (:node req) )
+  (-> req :query-params)
   (let [{:keys [node path-params query-params]} req
         tagid (:id path-params)
         ;; todo move {:vote/_tag [*]} into first pull expression.. 
@@ -107,11 +113,14 @@
                                           [tid :owner owner]
                                           [tid :tag/name _]]
                            tagid))
-        query-params (assoc query-params
-                            :attribute
-                            (or (:attribute query-params)
-                                (biggest-attribute node tagid)))
-        logged-in-user (:logged-in-username req)]
+        query-params (cond-> query-params
+                       (not (:attribute query-params))
+                       (assoc :attribute (biggest-attribute node tagid))
+
+                       (= (name :interface.filter/all-users)
+                          (:user query-params))
+                       (dissoc :user))
+        logged-in-user (-> req :session :user-id)]
 
     (tag-info-calc query logged-in-user query-params)))
 

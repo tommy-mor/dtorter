@@ -47,7 +47,6 @@
                 numusers numitems numvotes
                 creator]} @(subscribe [:tag])
         {:keys [edit_tag]} @(subscribe [:show])]
-    (def deb @(subscribe [:tag]))
     [c/editable-link
      
      "TAG"
@@ -90,7 +89,7 @@
       [:select {:on-change #(dispatch [:user-selected (.. % -target -value)])
                 :value selected-user
                 :autoComplete "nope"}  
-       [:option {:value ::all-users} "all users combined"]
+       [:option {:value :interface.filter/all-users} "all users combined"]
        (for [user all-users]
          [:option {:key (:user/name user)
                    :value (:xt/id user)} (:user/name user)])]]

@@ -1,4 +1,9 @@
 :sorter.impl/todo
+  user selection
+    does not sync visually the selected user
+    we get exception on kanye songs
+
+
   get frontend display/interaction fixed.
     voting
     voting/editing in tag page

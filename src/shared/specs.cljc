@@ -63,8 +63,8 @@
 (s/def ::pair (s/nilable (s/keys :req-un [::left ::right])))
 ;; eventually this will be (s/coll-of [attribute count])
 (s/def ::attributes (s/coll-of string?))
-(s/def :interface.filter/attribute (s/or :none nil? :exists string?))
-(s/def :interface.filter/user (s/or :none nil? :exists string?))
+(s/def :interface.filter/attribute string?)
+(s/def :interface.filter/user (s/or :all #{:interface.filter/all-users} :specified string?))
 (s/def :pair/percent :vote/magnitude)
 
 (s/def :interface/owner ::user)
@@ -79,6 +79,8 @@
 (s/def :interface/attributes (s/map-of string? int?))
 (s/def :interface/users (s/coll-of ::user))
 
+;; todo maybe have different specs (mostly same)
+;; that are for the api call, and one for the frontend database
 (s/def ::db (s/keys :req [:tag/name :tag/description
                           :tag/votecount :tag/usercount
                           :tag/votes :tag/items
@@ -91,11 +93,10 @@
                           :tag/item-vote-counts
                           :interface/attributes
                           :interface/owner
-                          :interface/users]
-                    :req-un [::owner]
-                    :opt [:pair/percent
+                          :interface/users
                           :interface.filter/attribute
-                          :interface.filter/user]))
+                          :interface.filter/user]
+                    :req-un [::owner]))
 
 ;; the query that describes a tag view..
 (s/def :tag.query/attribute string?)
