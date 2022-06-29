@@ -13,14 +13,20 @@
 (defn check-and-throw
   "Throws an exception if `db` doesn't match the Spec `a-spec`."
   [a-spec db]
-  (when (not js/itemid) ;; TODO bad
-    (when-not (s/valid? a-spec db)
-      (throw (ex-info (str "spec check failed: " (s/explain-str a-spec db)) {})))))
+  (when-not (s/valid? a-spec db)
+    (throw (ex-info (str "spec check failed: " (s/explain-str a-spec db)) {}))))
 
 (def check-spec-interceptor (after (partial check-and-throw ::sp/db)))
 
 ;; maybe add (path [:tagpage]) to this?
-(def interceptor-chain [check-spec-interceptor])
+(def interceptor-chain [check-spec-interceptor {:id :def
+                                                :before (fn [db]
+                                                          (println "loading things")
+                                                          (def ctx db)
+                                                          (def db (-> db
+                                                                      :coeffects :db))
+                                                          db)
+                                                :after nil}])
 
 ;; re-graph stuff
 ;; fill db with default db
@@ -37,10 +43,14 @@
   " things that are part of ...appDB fragment, but not every mutation.
    these should be filled in always so state knows how to refresh itself.
   "
-  (cond-> {:attribute (-> db :interface.filter/attribute)
-           :id js/tagid
-           :user (-> db :interface.filter/user)}
-    js/itemid (assoc :itemid js/itemid)))
+  (def tdb db)
+  (-> tdb
+      :interface.filter/user)
+  (let [user (-> db :interface.filter/user)]
+    (cond-> {:attribute (-> db :interface.filter/attribute)
+             :id js/tagid}
+      js/itemid (assoc :itemid js/itemid)
+      (not (= user :interface.filter/all-users)) (assoc :user user))))
 
 ;; TODO make this only clear the correct error
 (reg-event-db :clear-errors interceptor-chain #(assoc % :errors []))
@@ -49,7 +59,6 @@
  ::refresh-db
  interceptor-chain
  (fn [db [_ {:keys [body errors] :as payload}]]
-   (def db db)
    ;; TODO add errors to error element
    (def payload payload)
    (merge db body {:percent 50})
@@ -58,7 +67,6 @@
 
 
 (defn cancel-vote [db]
-  (js/console.log "ratrst")
   (-> db
       (assoc :item (-> db :pair :left))
       (dissoc :pair :percent)))
@@ -109,8 +117,7 @@
                :tag/sorted          
                (appdb-args db)
                [::refresh-db]
-               [::http-failure] ;; TODO
-               ]}))
+               [::http-failure]]}))
 ;; ui events
 
 (reg-event-db
@@ -124,10 +131,7 @@
  interceptor-chain
  (fn [{:keys [db]}
       [_ new-user]]
-   {:db (assoc db :interface.filter/user
-               (if (= :frontsorter.views/all-users new-user)
-                 nil
-                 new-user))
+   {:db (assoc db :interface.filter/user new-user)
     :dispatch [:refresh-state [:left :right]]}))
 
 
@@ -156,17 +160,18 @@
 
 
 ;; for item page
-(reg-event-db
- :voteonpair
- interceptor-chain
- (fn [db [_ vote leftitem rightitem]]
-   (js/console.log "strst")
-   (-> db
-       (assoc :pair {:left leftitem
-                     :right rightitem}
-              :percent (second
-                        (frontsorter.common/calcmag vote (:id leftitem))))
-       (dissoc :item))))
+(comment
+  (reg-event-db
+   :voteonpair
+   interceptor-chain
+   (fn [db [_ vote leftitem rightitem]]
+     (js/console.log "strst")
+     (-> db
+         (assoc :pair {:left leftitem
+                       :right rightitem}
+                :percent (second
+                          (frontsorter.common/calcmag vote (:id leftitem))))
+         (dissoc :item)))))
 
 (reg-event-db
  :cancelvote

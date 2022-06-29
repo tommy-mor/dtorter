@@ -82,7 +82,6 @@
 
 (reg-sub :users :interface/users)
 (reg-sub :current-user :interface.filter/user)
-@(subscribe [:current-user])
 
 (reg-sub :unsorted :tag.filtered/unvoted-items)
 (reg-sub :unsorted-count :<- [:unsorted] count)
@@ -111,4 +110,6 @@
              (and (:item db)
                   (not (:pair db))) :itemview
              true (js/console.log "bad state"))))
+
+@(subscribe [:current-user])
 

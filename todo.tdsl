@@ -1,7 +1,11 @@
 :sorter.impl/todo
   user selection
-    does not sync visually the selected user
     we get exception on kanye songs
+
+  attribute selection
+    replace default attribute with appropriate based on tag.
+          (rap-verses/default -> rap-verses/lyrics)
+
 
 
   get frontend display/interaction fixed.

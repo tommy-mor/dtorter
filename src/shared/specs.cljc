@@ -64,7 +64,7 @@
 ;; eventually this will be (s/coll-of [attribute count])
 (s/def ::attributes (s/coll-of string?))
 (s/def :interface.filter/attribute string?)
-(s/def :interface.filter/user (s/or :all #{:interface.filter/all-users} :specified string?))
+(s/def :interface.filter/user (s/or :all #{:interface.filter/all-users} :specified uuid-str))
 (s/def :pair/percent :vote/magnitude)
 
 (s/def :interface/owner ::user)

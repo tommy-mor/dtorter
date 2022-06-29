@@ -26,7 +26,7 @@
 (reg-event-fx :attribute-selected
               events/interceptor-chain
               (fn [{:keys [db]} [_ attribute]]
-                {:db (assoc db :current-attribute attribute)
+                {:db (assoc db :interface.filter/attribute attribute)
                  :dispatch [:refresh-state]}))
 
 (defn attributes-panel []

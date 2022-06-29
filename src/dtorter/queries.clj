@@ -115,11 +115,7 @@
                            tagid))
         query-params (cond-> query-params
                        (not (:attribute query-params))
-                       (assoc :attribute (biggest-attribute node tagid))
-
-                       (= (name :interface.filter/all-users)
-                          (:user query-params))
-                       (dissoc :user))
+                       (assoc :attribute (biggest-attribute node tagid)))
         logged-in-user (-> req :session :user-id)]
 
     (tag-info-calc query logged-in-user query-params)))

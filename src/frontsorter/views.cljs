@@ -86,10 +86,13 @@
     
     [:div "by user "
      [:form {:autoComplete "off"}
-      [:select {:on-change #(dispatch [:user-selected (.. % -target -value)])
+      [:select {:on-change #(dispatch [:user-selected (let [v (.. % -target -value)]
+                                                        (case v
+                                                          "-1" :interface.filter/all-users
+                                                          v))])
                 :value selected-user
                 :autoComplete "nope"}  
-       [:option {:value :interface.filter/all-users} "all users combined"]
+       [:option {:value "-1"} "all users combined"]
        (for [user all-users]
          [:option {:key (:user/name user)
                    :value (:xt/id user)} (:user/name user)])]]
