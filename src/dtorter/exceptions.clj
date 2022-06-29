@@ -22,6 +22,7 @@
     {::exception/wrap (fn [handler e request]
                         (def e e)
                         (def request request)
+                        e
                         (log/error :error e)
                         (handler e request))})))
 

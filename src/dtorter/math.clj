@@ -4,7 +4,8 @@
             [kixi.stats.core :refer [standard-deviation correlation]]
             [kixi.stats.distribution :refer [draw sample binomial]]
             [clojure.data.priority-map :as pm]
-            [dtorter.util :as util]))
+            [dtorter.util :as util]
+            [dom-top.core :refer [loopr]]))
 
 (m/set-current-implementation :vectorz)
 
@@ -136,14 +137,20 @@
                                   {left #{vote} right #{vote}})))
 
       (defn vote-ratio [itemid votes]
-        (apply /
-               (reduce (fn [[numerator denominator] {:vote/keys [left-item right-item magnitude]}]
-                         (let [edutingam (- 100 magnitude)]
-                           (condp = itemid
-                             left-item [(+ numerator edutingam)
-                                        (+ denominator magnitude)]
-                             right-item [(+ numerator magnitude)
-                                         (+ denominator edutingam)]))) [0 0] votes)))
+        (def itemid itemid)
+        (def votes votes)
+        (loopr [over 0
+                under 0]
+               [{:vote/keys [left-item right-item magnitude]} votes]
+               (let [edutingam (- 100 magnitude)]
+                 (condp = itemid
+                   left-item (recur (+ over edutingam)
+                                    (+ under magnitude))
+                   right-item (recur (+ over magnitude)
+                                     (+ under edutingam))))
+               (if (zero? under)
+                 ##Inf
+                 (/ over under))))
       ;; use include in ratio the amount of votes, prioritize ones with less.
       ;; PROBLEM, the ones near top will have winning/unbalanced ratios...
       ;; maybe this strategy only works well at the beginning.
@@ -159,7 +166,7 @@
                                   {itemid (let [x (vote-ratio itemid (itemid->votes itemid))]
                                             (if (< x 1.0)
                                               (Math/pow x -1.0)
-                                              (float x)))})))
+                                              (double x)))})))
       
       ;; todo make way to switch between these ors
       (def leftitem (or
