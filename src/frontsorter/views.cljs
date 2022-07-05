@@ -107,6 +107,22 @@
           (let [item-i (assoc item-i :key (:xt/id item-i))]
             [item item-i])))]]]))
 
+(defn mini-slider [perc]
+  [:div.mini-slider
+   [:div.mini-slider-box {:style {:margin-left (str (- perc 5) "%")}}]])
+
+(defn voterow [i]
+  (def i i)
+  [:tr.vote 
+   {:key (:xt/id i)}
+   [:td (-> i :vote/left-item :item/name)]
+   [:td
+    [mini-slider (- 100 (:vote/magnitude i))]]
+   [:td (-> i :vote/right-item :item/name)]
+   [:td (:vote/magnitude i)]
+   (if (:vote_edit @(subscribe [:show]))
+     [:td [c/smallbutton "delete" #(dispatch [:delete-vote i])]])])
+
 (defn votelist []
 
  [:table
@@ -116,16 +132,7 @@
     (let [idtoname @(subscribe [:idtoname])
           votes @(subscribe [:votes])]
       (doall (map (fn [i]
-                    (def i i)
-                    i
-                    [:tr.vote 
-                     {:key (:xt/id i)}
-                     [:td (-> i :vote/left-item :item/name)]
-                     [:td (- 100 (:vote/magnitude i))]
-                     [:td (-> i :vote/right-item :item/name)]
-                     [:td (:vote/magnitude i)]
-                     (if (:vote_edit @(subscribe [:show]))
-                       [:td [c/smallbutton "delete" #(dispatch [:delete-vote i])]])])
+                    [voterow i])
                   votes)))]])
 
 (defn errors []

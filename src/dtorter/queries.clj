@@ -39,13 +39,20 @@
        last
        first))
 
+(defn get-vt-last-updated [db eid]
+  "from https://github.com/xtdb/xtdb/issues/267 "
+  (with-open [h (xt/open-entity-history db eid :desc)]
+    (-> (iterator-seq h)
+        first
+        ::xt/valid-time)))
+
 (def ^:dynamic *testing* false)
 
 (defn sorted-calc [items votes]
   (reverse (for [[elo item] (math/getranking (vec items) (vec votes))]
              (assoc item :elo elo))))
 
-(defn tag-info-calc [query logged-in-user {:keys [attribute user] :as query-params}]
+(defn tag-info-calc [db query logged-in-user {:keys [attribute user] :as query-params}]
   (let [[tag owner votes items] query]
     (when (and (not *testing*) (some nil? [tag owner votes items]))
       (throw (ex-info "query failed" {:query query})))
@@ -70,7 +77,9 @@
           userids (distinct (map :owner votes))
           
           ]
-      (def votes votes)
+      (comment (sc.api/defsc 8)
+               (sc.api/spy (+ 3 3)))
+      
       (def rawinfo (merge tag {:interface/owner (dissoc owner :user/password-hash)
                                :tag/votes votes
                                :tag/items items
@@ -100,30 +109,28 @@
       rawinfo)))
 
 
+
 (defn tag-info [req]
-  (def req req)
-  (def tagid (-> req :path-params :id))
-  (def node (:node req) )
-  (-> req :query-params)
   (let [{:keys [node path-params query-params]} req
         tagid (:id path-params)
         ;; todo move {:vote/_tag [*]} into first pull expression.. 
-        query (first (xt/q (xt/db node) '[:find
-                                          (pull tid [*])
-                                          (pull owner [*])
-                                          (pull tid [{:vote/_tag [*]}])
-                                          (pull tid [{:item/_tags [*]}])
-                                          :in tid
-                                          :where
-                                          [tid :owner owner]
-                                          [tid :tag/name _]]
+        db (xt/db node)
+        query (first (xt/q db '[:find
+                                (pull tid [*])
+                                (pull owner [*])
+                                (pull tid [{:vote/_tag [*]}])
+                                (pull tid [{:item/_tags [*]}])
+                                :in tid
+                                :where
+                                [tid :owner owner]
+                                [tid :tag/name _]]
                            tagid))
         query-params (cond-> query-params
                        (not (:attribute query-params))
                        (assoc :attribute (biggest-attribute node tagid)))
         logged-in-user (-> req :session :user-id)]
 
-    (tag-info-calc query logged-in-user query-params)))
+    (tag-info-calc db query logged-in-user query-params)))
 
 (defn unsorted-calc [items votes voted-ids]
   (def voted-ids)

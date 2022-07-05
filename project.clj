@@ -38,9 +38,8 @@
 
                  [dom-top/dom-top "1.0.7"]
                  
-                 [vvvvalvalval/scope-capture "0.3.3"]] 
-  
-  
+                 [vvvvalvalval/scope-capture "0.3.3"]]
+  :injections [(require 'sc.api)]
   :repl-options {:init-ns dev-resources.user}
   :repositories [["sonatype snapshots" {:url "https://s01.oss.sonatype.org/content/repositories/snapshots"}]]
   :source-paths ["src"]

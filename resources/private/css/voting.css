@@ -120,6 +120,17 @@ $handle-color: $voting-color-strong;
 	background: $voting-color-medium;
 }
 
+.mini-slider {
+	background: hsla($voting-color-hue, 100%, 70%, 0.3);
+	width: 100px;
+}
+
+.mini-slider-box {
+	background: hsla($voting-color-hue, 100%, 70%, 1.0);
+	width: 10px;
+	height: 10px;
+}
+
 
 /* vote panel... */
 

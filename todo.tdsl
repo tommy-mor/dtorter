@@ -1,11 +1,6 @@
 :sorter.impl/todo
-  attribute selection
-    replace default attribute with appropriate based on tag.
-          (rap-verses/default -> rap-verses/lyrics)
-
-  have to show votes? do it ot the right of the item panel...
-
-
+  lunch/ibuprofen
+  get more actions going, start with forms :thinking:
 
   get frontend display/interaction fixed.
     voting
@@ -30,6 +25,12 @@
   need an endpoint to find the attributes... tag/attributes or include in tag/get
 
   do git integration..
+
+  attribute selection
+    replace default attribute with appropriate based on tag.
+          (rap-verses/default -> rap-verses/lyrics)
+
+
 
 :sorter/permissions
   inspired by kekkonen, determine which apis are availible by quering the router.

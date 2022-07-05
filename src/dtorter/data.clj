@@ -137,6 +137,7 @@
      (+ (count clean-data)
         (count hasgarbage)))
   all-data)
+(get-transactions)
 
 
 ;; TODO SYMEX, something that jumps toplevel blocks.
