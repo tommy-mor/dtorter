@@ -36,7 +36,9 @@
                  [ch.qos.logback/logback-classic "1.2.3"]
                  [expound "0.9.0"]
 
-                 [dom-top/dom-top "1.0.7"]] 
+                 [dom-top/dom-top "1.0.7"]
+                 
+                 [vvvvalvalval/scope-capture "0.3.3"]] 
   
   
   :repl-options {:init-ns dev-resources.user}

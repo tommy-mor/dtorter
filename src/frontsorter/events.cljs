@@ -21,7 +21,6 @@
 ;; maybe add (path [:tagpage]) to this?
 (def interceptor-chain [check-spec-interceptor {:id :def
                                                 :before (fn [db]
-                                                          (println "loading things")
                                                           (def ctx db)
                                                           (def db (-> db
                                                                       :coeffects :db))

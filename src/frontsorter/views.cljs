@@ -115,16 +115,15 @@
    [:tbody
     (let [idtoname @(subscribe [:idtoname])
           votes @(subscribe [:votes])]
-      
       (doall (map (fn [i]
                     (def i i)
                     i
                     [:tr.vote 
-                     {:key (:id i)}
+                     {:key (:xt/id i)}
                      [:td (-> i :vote/left-item :item/name)]
                      [:td (- 100 (:vote/magnitude i))]
                      [:td (-> i :vote/right-item :item/name)]
-                     [:td (:magnitude i)]
+                     [:td (:vote/magnitude i)]
                      (if (:vote_edit @(subscribe [:show]))
                        [:td [c/smallbutton "delete" #(dispatch [:delete-vote i])]])])
                   votes)))]])
@@ -178,10 +177,9 @@
       
       (when @(subscribe [:votes-not-empty])
         [c/collapsible-cage
-         false
+         true
          (str "MY VOTES (" @(subscribe [:votes-count]) ") on attribute "
-              (or @(subscribe [:current-attribute])
-                  "default"))
+              @(subscribe [:current-attribute]))
          "votinglistpanel"
          [votelist]])]]))
 
