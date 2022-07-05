@@ -123,6 +123,10 @@
                          str/join))
 
     (is (= 26 (count final-sort)))
+    (comment
+      "this test almost works, just one letter off?"
+      (is (= (str/reverse alphabet-string) final-sort)))
+    
     ;; TODO make sure that the alphabet does get correctly reconstructed..
     
     
@@ -155,14 +159,13 @@
     
     (is (= (set (map :xt/id items-in-tag))
            sent-ids))
-
     (def pair (-> (martian/response-for m :tag/sorted {:id tag :attribute "good attribute"})
                   :body
                   :pair))
-    
+        
     (def left (:left pair))
     (def right (:right pair))
-    
+        
     (let [mag (calc-score (:item/name left)
                           (:item/name right))]
       (is (= 201 (:status
@@ -179,7 +182,8 @@
                                                      :vote/attribute "bad attribute"
                                                      :vote/tag tag
                                                      :owner tommy})))))
-    
+
+
     (def sorted (-> (martian/response-for m :tag/sorted {:id tag :attribute "good attribute"})
                     :body))
     (is (= 2 (count (:tag.filtered/items sorted))))

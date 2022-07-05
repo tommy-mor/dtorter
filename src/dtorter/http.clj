@@ -82,7 +82,6 @@
     :enter
     (fn [ctx]
       (def ctx ctx)
-      (println "strstrst")
       (:enter (router node))
       (let [real-interceptor (router node)]
         ((:enter real-interceptor) (assoc ctx :hack/interceptor real-interceptor))))

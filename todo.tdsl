@@ -1,6 +1,7 @@
 :sorter.impl/todo
-  lunch/ibuprofen
   get more actions going, start with forms :thinking:
+
+  not intelligent enough to do forms right now... (sick)
 
   get frontend display/interaction fixed.
     voting
@@ -30,6 +31,19 @@
     replace default attribute with appropriate based on tag.
           (rap-verses/default -> rap-verses/lyrics)
 
+:sorter/schema
+  the schema is a list of attributes with check box.
+  they are these:
+
+  :name
+  :url
+  :url/youtube
+  :url/image
+  :url/twitter
+
+  they each have semantics as defined by spec
+  they are stored in database as just list of keywords..
+  
 
 
 :sorter/permissions

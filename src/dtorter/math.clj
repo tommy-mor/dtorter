@@ -10,7 +10,7 @@
 (m/set-current-implementation :vectorz)
 
 (def ^:dynamic *epsilon* 0.0000001)
-(def ^:dynamic *padding* 0.2)
+(def ^:dynamic *padding* 0.0)
 
 (defn stationary [arr]
   (def col (mr/sample-uniform (second (m/shape arr))))

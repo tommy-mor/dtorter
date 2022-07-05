@@ -12,7 +12,7 @@
   {:status 500
    :body {:message message
           :exception (.getClass exception)
-          :data (ex-data exception)
+          :data {:data "wowo"} 
           :uri (:uri request)}})
 
 (def middleware

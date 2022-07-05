@@ -77,8 +77,8 @@
           userids (distinct (map :owner votes))
           
           ]
-      (comment (sc.api/defsc 8)
-               (sc.api/spy (+ 3 3)))
+      (comment (sc.api/spy (+ 3 3))
+               (sc.api/defsc 1))
       
       (def rawinfo (merge tag {:interface/owner (dissoc owner :user/password-hash)
                                :tag/votes votes
@@ -94,7 +94,7 @@
                                :interface.filter/attribute attribute
                                :interface.filter/user (or user :interface.filter/all-users)
                                :interface/attributes freqs
-                               :interface/users (xt/pull-many (xt/db node) [:user/name :xt/id] userids)
+                               :interface/users (xt/pull-many db [:user/name :xt/id] userids)
                                :tag.session/votes (->> filteredvotes
                                                        (filter #(= (:owner %) logged-in-user))
                                                        (map #(-> %
