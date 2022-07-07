@@ -8,10 +8,96 @@
 (def tommy "092d58c9-d64b-40ab-a8a2-d683c92aa319")
 (def alphabet-string "abcdefghijklmnopqrstuvwxyz")
 
+(deftest vote-crud
+  (reset)
+  (def m (martian-http/bootstrap-openapi "http://localhost:8080/api/swagger.json"))
+  (testing "can create vote"
+    (def t {:tag/name "testing tag"
+            :tag/description "epic"
+            :owner tommy})
+    
+    (def t-resp (martian/response-for m :tag/new t))
+    (is (:status t-resp)
+        201)
+
+    (def t-id (-> t-resp :body :xt/id))
+    
+    (def t-get (martian/response-for m :tag/get {:id t-id}))
+    (def tag (-> t-get
+                 :body
+                 :xt/id))
+    
+    (def i1 (-> (martian/response-for m :item/new {:item/name "item1" 
+                                                   :item/tags [tag]
+                                                   :owner tommy})
+                :body
+                :xt/id))
+    
+    (def i2 (-> (martian/response-for m :item/new {:item/name "item2" 
+                                                   :item/tags [tag]
+                                                   :owner tommy})
+                :body
+                :xt/id))
+
+    (def sorted (-> (martian/response-for m :tag/sorted {:id tag :attribute "good attribute"})
+                    :body))
+    (is (= 0 (-> sorted :tag/votes count)))
+    (is (= 0 (-> sorted :tag.filtered/sorted count)))
+    
+    (def v1 (-> (martian/response-for m :vote/new {:vote/left-item i1
+                                                   :vote/right-item i2
+                                                   :vote/magnitude 20
+                                                   :vote/attribute "good attribute"
+                                                   :vote/tag tag
+                                                   :owner tommy})
+                :body
+                :xt/id
+                ))
+    
+    (def sorted (-> (martian/response-for m :tag/sorted {:id tag :attribute "good attribute"})
+                    :body ))
+
+    (is (= 1 (-> sorted :tag/votes count)))
+    (is (= 2 (-> sorted :tag.filtered/sorted count)))
+    ;; in correct order
+    (is (= ["item1" "item2"] (->> sorted
+                                  :tag.filtered/sorted
+                                  (map :item/name))))
+    (is (> (-> sorted
+               :tag.filtered/sorted
+               (nth 0)
+               :elo)
+           (-> sorted
+               :tag.filtered/sorted
+               (nth 1)
+               :elo)))
+    
+    (is (= 204 (-> (martian/response-for m :vote/put {:id v1
+                                                      :vote/left-item i1
+                                                      :vote/right-item i2
+                                                      :vote/magnitude 80
+                                                      :vote/attribute "good attribute"
+                                                      :vote/tag tag
+                                                      :owner tommy})
+                   :status)))
+    
+    (def sorted (-> (martian/response-for m :tag/sorted {:id tag :attribute "good attribute"})
+                    :body ))
+    ;; order reversed
+    (is (= ["item2" "item1"] (->> sorted
+                                  :tag.filtered/sorted
+                                  (map :item/name))))
+    (is (= 204 (-> (martian/response-for m  :vote/delete {:id v1})
+                   :status)))
+    
+    (def sorted (-> (martian/response-for m :tag/sorted {:id tag :attribute "good attribute"})
+                    :body ))
+    
+    (is (-> sorted :tag.filtered/sorted count zero?))))
+
 (deftest postget
   (reset)
   (def m (martian-http/bootstrap-openapi "http://localhost:8080/api/swagger.json"))
-  
   (testing "can put tags"
     (def t {:tag/name "testing tag"
             :tag/description "epic"
@@ -61,8 +147,8 @@
     (def sent-ids (set (doall
                         (for [x alphabet-string]
                           (-> (martian/response-for m :item/new {:item/name (str x) 
-                                                                 :item/tags [tag]
-                                                                 :owner tommy})
+                                                                     :item/tags [tag]
+                                                                     :owner tommy})
                               :body
                               :xt/id)))))
     
