@@ -1,7 +1,7 @@
 :sorter.impl/todo
   actions todo
-    delete vote
-    vote
+    vote (always show)
+    add item (always show, just one field.. then extend)
     ...
     
   get more actions going, start with forms :thinking:

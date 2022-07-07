@@ -114,8 +114,18 @@ $handle-color: $voting-color-strong;
 
 .votingaddpanel {
 	background: $voting-color-weak;
-}
+	width: 600px;
 
+	h1 {
+		font-size: 40px;
+	}
+}
+@media only screen and (max-width: 600px) {
+	.votingaddpanel {
+		background: $voting-color-weak;
+		width: 100%;
+	}
+}
 .vote {
 	background: $voting-color-medium;
 }

@@ -105,6 +105,7 @@
        (doall
         (for [item-i sorted]
           (let [item-i (assoc item-i :key (:xt/id item-i))]
+            (def item-i item-i)
             [item item-i])))]]]))
 
 (defn mini-slider [perc]
@@ -131,7 +132,7 @@
     (let [idtoname @(subscribe [:idtoname])
           votes @(subscribe [:votes])]
       (doall (map (fn [i]
-                    [voterow i])
+                    [voterow (assoc i :key (:xt/id i))])
                   votes)))]])
 
 (defn errors []
@@ -163,7 +164,7 @@
         ""
         [attrs/attributes-panel]])
 
-     (when (:vote_panel show)
+     (when true
        [c/pairvoter])
      
      [:div.threepanels
