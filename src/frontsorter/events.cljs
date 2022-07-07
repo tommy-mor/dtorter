@@ -59,7 +59,19 @@
  (fn [db [_ {:keys [body errors] :as payload}]]
    ;; TODO add errors to error element
    (def payload payload)
-   (merge db body {:percent 50})
+   (assoc (merge db body {:percent 50})
+          :errors [])
+   ;; PROBLEM: t has pair
+   ))
+
+(reg-event-db
+ ::http-failure
+ interceptor-chain
+ (fn [db [_ error]]
+   ;; TODO add errors to error element
+   (update db :errors conj (-> error ex-message))
+   
+   
    ;; PROBLEM: t has pair
    ))
 
@@ -108,9 +120,24 @@
                [::http-failure]]}))
 
 (reg-event-fx
+ :vote
+ (fn [{:keys [db]} _]
+   {:db (if js/itemid (cancel-vote db) db)
+    :dispatch [::martian/request
+               :vote/new
+               {:vote/left-item (-> db :pair :left :xt/id)
+                :vote/right-item (-> db :pair :right :xt/id)
+                :vote/attribute (-> db :interface.filter/attribute)
+                :vote/tag js/tagid
+                :vote/magnitude (:percent db)
+                :owner js/userid}
+               
+               [:refresh-state]
+               [::http-failure]]}))
+
+(reg-event-fx
  :delete-vote
  (fn [{:keys [db]} [_ vote]]
-   (def vote vote)
    {:dispatch [::martian/request
                :vote/delete
                {:id (:xt/id vote)}

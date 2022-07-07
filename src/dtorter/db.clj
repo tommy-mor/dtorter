@@ -4,18 +4,19 @@
    [clojure.java.io :as io]
    [dtorter.data :as data]))
 
-(comment
-  (defn lmdb-at [f] {:kv-store {:xtdb/module 'xtdb.lmdb/->kv-store
-                                       :db-dir (io/file f)}})
-  (def node (xt/start-node
-                    {:xtdb/index-store (lmdb-at "/tmp/idx")
-                     :xtdb/document-store (lmdb-at "/tmp/ds")
-                     :xtdb/tx-log (lmdb-at "/tmp/log")})))
+(defn lmdb-at [f] {:kv-store {:xtdb/module 'xtdb.lmdb/->kv-store
+                              :db-dir (io/file f)}})
+(defn node [] (if false
+                (xt/start-node
+                 {:xtdb/index-store (lmdb-at "/tmp/xtdb/idx")
+                  :xtdb/document-store (lmdb-at "/tmp/xtdb/ds")
+                  :xtdb/tx-log (lmdb-at "/tmp/xtdb/log")})
+                (xt/start-node {})))
 
 
 (defn start []
-  (let [node (xt/start-node {})]
-    (xt/await-tx node (xt/submit-tx node (for [tx (data/get-transactions)]
+  (let [node (node)]
+    #_(xt/await-tx node (xt/submit-tx node (for [tx (data/get-transactions)]
                                            [::xt/put tx])))
     node))
 

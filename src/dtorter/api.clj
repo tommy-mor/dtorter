@@ -19,12 +19,12 @@
                                              :taginfo 3 })
             ctx)})
 
-(defn api-interceptors [] [swag-interceptor])
+(defn api-interceptors [] [swag-interceptor])u
 
 
 ;; has to mess with arguments, cause vote api endpoint has more parameters..
 ;; only at route creation time for now..
-(defn crud-methods [swagger-tag spec queries overrides]
+(defn crud-methods [swagger-tag spec overrides]
   [(str "/" swagger-tag)
    {:swagger {:tags [swagger-tag]}}
    (into [["/"
@@ -42,9 +42,14 @@
                    :handler (fn [req]
                               (def req req)
                               (let [{:keys [node]} req]
+                                (def node node)
                                 {:status 200
                                  :body
-                                 (into [] ((:get-all queries) (:node req)))}))}})]
+                                 (into [] (map first
+                                               (xt/q (xt/db node) '[:find (pull e [*])
+                                                                    :where [e :type t]
+                                                                    :in t]
+                                                     (keyword swagger-tag))))}))}})]
           ["/:id"
            ((:individual overrides)
             {:parameters {:path {:id string?}}
@@ -71,6 +76,7 @@
 
 (defn api-routes [] 
   [
-   (crud-methods "tag" ::sp/tag queries/tag-queries overrides/tag)
-   (crud-methods "item" ::sp/item queries/item-queries overrides/item) 
-   (crud-methods "vote" ::sp/vote queries/vote-queries dtorter.api.overrides/vote)])
+   (crud-methods "tag" ::sp/tag overrides/tag)
+   (crud-methods "item" ::sp/item overrides/item) 
+   (crud-methods "vote" ::sp/vote dtorter.api.overrides/vote)
+   (crud-methods "user" ::sp/user dtorter.api.overrides/user)])

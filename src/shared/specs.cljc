@@ -10,6 +10,8 @@
 (s/def :xt/id uuid-str)
 
 (s/def :user/name string?)
+(s/def :user/password string?)
+(s/def :user.parameters/new (s/keys :req [:user/name :user/password]))
 
 (s/def ::user (s/keys :req [:xt/id :user/name]))
 (s/def ::owner uuid-str)

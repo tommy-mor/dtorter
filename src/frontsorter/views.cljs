@@ -37,11 +37,6 @@
        [:pre (prn-str (forms/messages ?name))]])))
 
 
-(comment (defn addpanel []
-   (let [fields (c/fields-from-format
-                 @(subscribe [:format]))]
-     [:input.addinput {:type "text" :placeholder "item title"}])))
-
 (defn tag-info []
   (let [{:keys [name description
                 numusers numitems numvotes
