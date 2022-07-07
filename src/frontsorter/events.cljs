@@ -110,11 +110,11 @@
 (reg-event-fx
  :delete-vote
  (fn [{:keys [db]} [_ vote]]
-   (def v vote)
+   (def vote vote)
    {:dispatch [::martian/request
                :vote/delete
                {:id (:xt/id vote)}
-               [::refresh-db]
+               [:refresh-state]
                [::http-failure]]}))
 ;; ui events
 

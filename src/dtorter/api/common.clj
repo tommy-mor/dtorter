@@ -7,6 +7,9 @@
 (defn document-interceptor [spec]
   {:enter (fn [ctx]
             (def ctx ctx)
+            (-> ctx
+                :request
+                :parameters)
             (let [req (ctx :request)
                   method (req :request-method)
                   id (-> req :path-params :id)
