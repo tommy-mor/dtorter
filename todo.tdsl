@@ -1,4 +1,9 @@
 :sorter.impl/todo
+  actions todo
+    delete vote
+    vote
+    ...
+    
   get more actions going, start with forms :thinking:
 
   not intelligent enough to do forms right now... (sick)
@@ -45,10 +50,28 @@
   they are stored in database as just list of keywords..
   
 
-
 :sorter/permissions
   inspired by kekkonen, determine which apis are availible by quering the router.
   the router has list of endpoints. convert endpoints into capabilities, include that in appdb
+
+  maybe its a list of rule triples.
+
+  [OBJECT, GROUP, DENY/ALLOW, ACTION] (optional name? so that you can reuse permissionsets?)
+
+  groups
+    anyone on internet
+    any sorter user
+    any user in this group
+    one of these users (anonymous user group?)
+    me
+    nobody
+    my public followers
+    my friends
+
+  actions
+    index(or unlisted), view, edit/delete, add items to, add votes to
+    
+  
   
 
 :sorter/interface-components
@@ -267,3 +290,7 @@
   when not logged in, things are disabled with hover that says "log in"
   dont make things invisible
 
+
+:sorter/performance
+  put the calculation into this?
+  https://github.com/plumatic/plumbing

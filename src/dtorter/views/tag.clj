@@ -24,13 +24,15 @@
 
 
 (defn jsonstring [req tagid itemid]
-  (let [info (queries/tag-info req)]
+  (let [info (queries/tag-info req)
+        userid (-> req :session :user-id)]
     (def info info) ; for use by test snippets in comment blocks in math.clj
     #_(s/explain ::sp/db info)
     {:string (str "var tagid = '" tagid "';\n"
                   "var itemid = " (if itemid
                                     (str "'" itemid "'")
                                     itemid) ";\n"
+                  "var userid = '" userid "';\n"
                   "var init = \"" (str/escape (pr-str info)
                                               {\" "\\\""
                                                \\ "\\\\"}) "\"")

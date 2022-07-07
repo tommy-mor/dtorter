@@ -91,7 +91,7 @@
                    :status)))
     
     (def sorted (-> (martian/response-for m :tag/sorted {:id tag :attribute "good attribute"})
-                    :body ))
+                    :body))
     
     (is (-> sorted :tag.filtered/sorted count zero?))))
 

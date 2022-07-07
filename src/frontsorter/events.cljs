@@ -26,7 +26,6 @@
                                                                       :coeffects :db))
                                                           db)
                                                 :after nil}])
-
 ;; re-graph stuff
 ;; fill db with default db
 (reg-event-fx
@@ -88,16 +87,6 @@
                         [::refresh-db]]}))
 
          (reg-event-fx
-          :delete-vote
-          (fn [{:keys [db]} [_ vote]]
-            {:dispatch [:mutate
-                        :delete-vote
-                        qs/del-vote
-                        (merge (appdb-args db)
-                               {:voteid (:id vote)})
-                        [::refresh-db]]}))
-
-         (reg-event-fx
           :add-item
           (fn [{:keys [db]} [_ item]]
             {:dispatch [:mutate
@@ -115,6 +104,16 @@
    {:dispatch [::martian/request
                :tag/sorted          
                (appdb-args db)
+               [::refresh-db]
+               [::http-failure]]}))
+
+(reg-event-fx
+ :delete-vote
+ (fn [{:keys [db]} [_ vote]]
+   (def v vote)
+   {:dispatch [::martian/request
+               :vote/delete
+               {:id (:xt/id vote)}
                [::refresh-db]
                [::http-failure]]}))
 ;; ui events
