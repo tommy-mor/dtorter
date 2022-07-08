@@ -88,6 +88,7 @@
                                                                  (update :vote/right-item id->item))))}))
       (def rawinfo (merge rawinfo {:pair (math/getpair (assoc rawinfo
                                                               :id->item id->item))}))
+      rawinfo
       (when (not (s/valid? ::sp/db rawinfo))
         (expound/expound ::sp/db rawinfo)
         (throw (ex-info "generated bad db"
@@ -97,6 +98,7 @@
 
 
 (defn tag-info [req]
+  (def req req)
   (let [{:keys [node path-params query-params]} req
         tagid (:id path-params)
         ;; todo move {:vote/_tag [*]} into first pull expression.. 
@@ -111,10 +113,12 @@
                                 [tid :owner owner]
                                 [tid :tag/name _]]
                            tagid))
-        query-params (cond-> query-params
-                       (not (:attribute query-params))
-                       (assoc :attribute (biggest-attribute node tagid)))
+        query-params (assoc query-params
+                            :attribute (or (:attribute query-params)
+                                           (biggest-attribute node tagid)
+                                           :interface.filter/no-attribute))
         logged-in-user (-> req :session :user-id)]
+    (def query-params query-params)
 
     (tag-info-calc db query logged-in-user query-params)))
 
