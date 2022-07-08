@@ -114,7 +114,7 @@
    {:key (:xt/id i)}
    [:td (-> i :vote/left-item :item/name)]
    [:td
-    [mini-slider (- 100 (:vote/magnitude i))]]
+    [mini-slider (:vote/magnitude i)]]
    [:td (-> i :vote/right-item :item/name)]
    (if (= (:owner i) js/userid)
      [:td [c/smallbutton "x" #(dispatch [:delete-vote i])]])])
