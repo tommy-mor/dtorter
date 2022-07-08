@@ -1,6 +1,12 @@
 :sorter.impl/todo
+  api call heaven/perfectly clean data...
+    need to fix bug: when I run entire clean_data file, the new thing (loses cookies)
+      but also does not include votes in the final tag...
+  
+  need schemas... right now just list of fields (keywords), which are in database..
+    data, go through each one, find distinct keys.
+     the great data cleanening? maybe don't grab from data anymore, but make large amounts of api calls...
   actions todo
-    vote (always show)
     add item (always show, just one field.. then extend)
     ...
     

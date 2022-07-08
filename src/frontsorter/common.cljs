@@ -53,10 +53,6 @@
       
       true [:span "unknown format"])))
 
-(-> re-frame.db/app-db
-    deref
-    :pair)
-
 ;; TODO get rid fo format map here, can dislpay any item. format restriction happens only on server
 (defn itemview [side]
   (def side side)

@@ -53,7 +53,7 @@
 
                          :value @new-attr-name
                          :on-change #(reset! new-attr-name (.. % -target -value))
-                         :placeholder "default"}]
+                         :placeholder "type attribute here"}]
             [:button.btn
              {:on-click #(do
                            (dispatch-sync [:attribute-selected @new-attr-name])
