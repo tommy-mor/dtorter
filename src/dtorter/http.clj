@@ -29,9 +29,10 @@
             [dtorter.exceptions]
             [clojure.spec.alpha :as s]
             [shared.specs :as sp]
-            [dtorter.views.routes :as views]))
+            [dtorter.views.routes :as views]
+            [crypto.random :as random]))
 
-(def cookies (middlewares/session {:store (cookie/cookie-store)}))
+(def cookies (middlewares/session {:store (cookie/cookie-store {:key (random/bytes 16)})}))
 
 (defn router [node]
   (pedestal/routing-interceptor

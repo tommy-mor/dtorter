@@ -1,4 +1,54 @@
+:sorter.cleantags/todo
+  setup image: has all tags and all tdsl todo lists...
+    use photoshop to group them manually.
+
+    each small category can be a tag, groups are grouped tags?
+    todo tags are a query over everything?
+
+    use tdsl tool to merge things together?
+
+    
+    
+
+
+  what do i do now. which tags do i want, and in which org structure. need to think about this.
+  skip to tdsl integration?
+
+  want to as quickly as possible use it for my decision making/media watching.
+  need separation of to watch and watched...
+    todo tags are global
+
+:sorter/combining-tags
+  meta tags that import.
+  should have some sort of design hint that these are transient.
+    you cant add items to them
+    maybe they are dashed?
+    maybe just an actual picture?
+
+  can chose to import attributes/votes as well (optional)
+
+  examples:
+    todo/read
+
+      (imports only items from other tags, not votes)
+      (or (is in mutual exclusion tag with have-read tag. (not really sorted.)))
+          (has list of excluded items (done pile..) until a generalization appears)
+      (maybe pair chose/prioritize stuff that is in done pile, but not sorted in atom tag)
+
+    todo/code
+      imports from tdsl certain namespaces... (through api..)
+      also github issues
+
+    todo/watch
+    todo/listen
+    todo.listen/music
+
 :sorter.impl/todo
+  setup image..
+
+  its possible that using api for clean data is a bit silly... stops me from being able to modify things on the fly.
+    once i get tdsl/github api sync going, will know how to sync data. then it will be fine...
+
   api call heaven/perfectly clean data...
     need to fix bug: when I run entire clean_data file, the new thing (loses cookies)
       but also does not include votes in the final tag...
@@ -6,6 +56,7 @@
   need schemas... right now just list of fields (keywords), which are in database..
     data, go through each one, find distinct keys.
      the great data cleanening? maybe don't grab from data anymore, but make large amounts of api calls...
+
   actions todo
     add item (always show, just one field.. then extend)
     ...

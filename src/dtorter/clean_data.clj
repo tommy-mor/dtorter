@@ -25,11 +25,9 @@
 (comment (def user->votecount (into {} (for [ [id c] (frequencies (map :user_id d/votes))]
                                  [ (userid->name id) c])))) 
 
-(def title->id (into {} (map (juxt :title :id) d/tags)))
-(def tagid->tag (into {} (map (juxt :id identity) d/tags)))
+(def title->tag (into {} (map (juxt :title identity) d/tags)))
 
 (resp :user/list-all)
-
 
 (def tommy (resp :user/new
                  {:user/name "tommy"
@@ -37,6 +35,9 @@
 (def blobbed (resp :user/new
                    {:user/name "blobbed"
                     :user/password "blobbed1"}))
+
+(def olduser->newuser {(name->userid "tommy") tommy
+                       (name->userid "blobbed") blobbed})
 
 (resp :user/list-all)
 
@@ -56,28 +57,40 @@
        distinct
        (map itemid->item)))
 
-(def votes (gather-votes "Fruits" ["tommy" "blobbed"]))
-(def items (gather-items votes))
+(defn import-tag [tagname users newtag attribute]
 
-(defn olditem->item [old]
-  old)
+  (def votes (gather-votes tagname users))
+  (def items (gather-items votes))
 
-(def fruits (resp :tag/new {:tag/name "fruits"
-                            :tag/description "fruits quiz"
-                            :owner tommy}))
+  (defn olditem->item [old]
+    old)
 
-(def oldid->newid (into {} (for [item items]
-                             [(:id item) (resp :item/new {:item/name (:name item)
-                                                          :item/tags [fruits]
-                                                          :owner tommy})])))
-(for [vote votes]
-  (resp :vote/new
-        {:vote/left-item (-> vote :item_a oldid->newid)
-         :vote/right-item (-> vote :item_b oldid->newid)
-         :vote/magnitude (-> vote :magnitude)
-         :vote/attribute "deliciousness"
-         :vote/tag fruits
-         :owner tommy}))
+  (def tag (title->tag "Fruits"))
 
-(-> (resp :tag/sorted {:id fruits :attribute "deliciousness"})
-    :tag.filtered/unvoted-items)
+  (def fruits (resp :tag/new (merge newtag
+                                    {:owner tommy})))
+
+  (def oldid->newid (into {} (for [item items]
+                               [(:id item) (resp :item/new {:item/name (:name item)
+                                                            :item/tags [fruits]
+                                                            :owner tommy})])))
+
+  (doall (for [vote votes]
+           (resp :vote/new
+                 {:vote/left-item (-> vote :item_a oldid->newid)
+                  :vote/right-item (-> vote :item_b oldid->newid)
+                  :vote/magnitude (min 100 (max 0 (-> vote :magnitude)))
+                  :vote/attribute attribute
+                  :vote/tag fruits
+                  :owner (olduser->newuser (:user_id vote))}))))
+
+(import-tag "Fruits" ["tommy" "blobbed"]
+            {:tag/name "fruits"
+             :tag/description "are cool"}
+            "deliciousness")
+
+(import-tag "ways to laugh while texting"
+            ["tommy" "blobbed"]
+            {:tag/name "ways to laugh while texting"
+             :tag/description "..."}
+            "humor level")
