@@ -10,6 +10,7 @@
   (let [title (:title response)
         session (-> request :session)]
     
+    (def ctx ctx)
     [:html
      [:head
       [:meta {:charset "utf-8"}]
@@ -28,8 +29,8 @@
        [:a.currentpage {:href 3 #_(url-for :users-page)} "users"]]
       (if-let [username (:user-name session)]
         [:div.topright
-         [:a.currentpage {:href (c/rurl-for ctx :logff)} "logoff"]
-         [:span (prn-str session)]]
+         [:a.currentpage {:href (c/rurl-for ctx :logoff)} "logoff"]
+         [:span (:user-name session)]]
         [:div.topright
          [:a.currentpage {:href (c/rurl-for ctx :login)} "login"]
          [:a.currentpage "make account"]

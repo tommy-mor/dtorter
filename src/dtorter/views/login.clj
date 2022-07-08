@@ -42,20 +42,24 @@
                                                 :user-name (:user/name user-doc)})))
                     ((:leave login-page) ctx)))))})
 
-(defn login-routes []
-  [["/login" {:name :login
-              :get {:interceptors [login-page]
-                    :handler (fn [req] {:status 200})}
-              :post {:interceptors [login-done]
-                     :handler (fn [req] {:status 200})}}]])
-
 (defn users-page [req]
   {:status 200
    :html [:h1 "users"]})
 
 (def log-off
-  {:name ::log-off
+  {:name :logoff
    :enter (fn [ctx]
             (-> ctx
                 (assoc :response (-> (ring-resp/redirect (c/rurl-for ctx :front-page))
                                      (assoc :session nil)))))})
+
+(defn login-routes []
+  [["/login" {:name :login
+              :get {:interceptors [login-page]
+                    :handler (fn [req] {:status 200})}
+              :post {:interceptors [login-done]
+                     :handler (fn [req] {:status 200})}}]
+   ["/logoff"
+    {:name :logoff
+     :get {:interceptors [log-off]
+           :handler (constantly {:status 200}) }}]])
