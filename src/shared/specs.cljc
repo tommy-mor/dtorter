@@ -65,7 +65,8 @@
 (s/def ::pair (s/nilable (s/keys :req-un [::left ::right])))
 ;; eventually this will be (s/coll-of [attribute count])
 (s/def ::attributes (s/coll-of string?))
-(s/def :interface.filter/attribute string?)
+(s/def :interface.filter/attribute (s/or :specified string?
+                                         :empty #{:interface.filter/no-attribute}))
 (s/def :interface.filter/user (s/or :all #{:interface.filter/all-users} :specified uuid-str))
 (s/def :pair/percent :vote/magnitude)
 

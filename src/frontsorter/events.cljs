@@ -65,11 +65,19 @@
    ))
 
 (reg-event-db
- ::http-failure
+ :error
  interceptor-chain
  (fn [db [_ error]]
    ;; TODO add errors to error element
-   (update db :errors conj (-> error ex-message))
+   (update db :errors conj error)))
+
+(reg-event-fx
+ ::http-failure
+ interceptor-chain
+ 
+ (fn [_ [_ error]]
+   ;; TODO add errors to error element
+   {:dispatch [:error (ex-message error)]}
    
    
    ;; PROBLEM: t has pair
@@ -122,18 +130,21 @@
 (reg-event-fx
  :vote
  (fn [{:keys [db]} _]
-   {:db (if js/itemid (cancel-vote db) db)
-    :dispatch [::martian/request
-               :vote/new
-               {:vote/left-item (-> db :pair :left :xt/id)
-                :vote/right-item (-> db :pair :right :xt/id)
-                :vote/attribute (-> db :interface.filter/attribute)
-                :vote/tag js/tagid
-                :vote/magnitude (:percent db)
-                :owner js/userid}
-               
-               [:refresh-state]
-               [::http-failure]]}))
+   (if  (= (:interface.filter/attribute db)
+           :interface.filter/no-attribute)
+     {:dispatch [:error "must specify attribute before voting"]}
+     {:db (if js/itemid (cancel-vote db) db)
+      :dispatch [::martian/request
+                 :vote/new
+                 {:vote/left-item (-> db :pair :left :xt/id)
+                  :vote/right-item (-> db :pair :right :xt/id)
+                  :vote/attribute (-> db :interface.filter/attribute)
+                  :vote/tag js/tagid
+                  :vote/magnitude (:percent db)
+                  :owner js/userid}
+                 
+                 [:refresh-state]
+                 [::http-failure]]})))
 
 (reg-event-fx
  :delete-vote

@@ -11,7 +11,6 @@
                                      (constantly ::empty)))
 
 (reg-sub :raw-attributes :interface/attributes)
-
 (reg-sub :attributes
          :<- [:current-attribute]
          :<- [:raw-attributes]
@@ -37,7 +36,8 @@
             attributes @(subscribe [:attributes])]
         [:div {:style {:display "flex"}} "you are voting on"
          (if (and (not (empty? attributes))
-                  (not @editing))
+                  (not @editing)
+                  (not (#{:interface.filter/no-attribute} current-attribute)))
            [:select
             {:on-change #(let [new-attr (.. % -target -value)]
                            (case new-attr
