@@ -1,4 +1,11 @@
 :sorter.cleantags/todo
+  fix current gathering...
+    make it non destructive/syncable
+
+  gather tdsl tasks!!
+  make task page that does (non general) query of all todos.
+  actually start using (by tonight!)
+
   setup image: has all tags and all tdsl todo lists...
     use photoshop to group them manually.
 

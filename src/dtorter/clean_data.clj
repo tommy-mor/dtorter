@@ -21,6 +21,7 @@
 (def name->userid (into {} (map (juxt :username :id) d/users)))
 
 (def itemid->item (into {} (map (juxt :id identity) d/items)))
+(def title->id (into {} (map (juxt :title :id) d/tags)))
 
 (comment (def user->votecount (into {} (for [ [id c] (frequencies (map :user_id d/votes))]
                                  [ (userid->name id) c])))) 
@@ -61,7 +62,7 @@
 
   (def votes (gather-votes tagname users))
   (def items (gather-items votes))
-
+  
   (defn olditem->item [old]
     old)
 

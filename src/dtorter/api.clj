@@ -11,7 +11,8 @@
 
 
 (def swag-interceptor
-  {:enter #(assoc % :swag 3)
+  {:name :test-interceptor-does-nothing-yet
+   :enter #(assoc % :swag 3)
    :leave (fn [ctx]
             (def ctx ctx)
             (-> ctx :response)
@@ -19,7 +20,7 @@
                                              :taginfo 3 })
             ctx)})
 
-(defn api-interceptors [] [swag-interceptor])u
+(defn api-interceptors [] [swag-interceptor])
 
 
 ;; has to mess with arguments, cause vote api endpoint has more parameters..

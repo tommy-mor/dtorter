@@ -30,7 +30,8 @@
             [clojure.spec.alpha :as s]
             [shared.specs :as sp]
             [dtorter.views.routes :as views]
-            [crypto.random :as random]))
+            [crypto.random :as random]
+            [tdsl.show]))
 
 (def cookies (middlewares/session {:store (cookie/cookie-store {:key (random/bytes 16)})}))
 
@@ -39,6 +40,8 @@
    (http/router
     
     [["" (views/routes)]
+     ["/tdsl" (tdsl.show/routes)]
+     
      ["/api"
       {:interceptors (api/api-interceptors) 
        ;; :parameters

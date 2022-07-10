@@ -1,7 +1,6 @@
 (ns dtorter.views.routes
   (:require [dtorter.views.front-page :as fp]
             [clojure.string :as str]
-            [hiccup.core :refer [html]]
             [dtorter.views.login :as login]
             [dtorter.views.common :as c]
             [dtorter.views.tag :as tag]))
@@ -40,20 +39,6 @@
 
 
 
-(def html-interceptor
-  {:name  ::html-response
-   :leave (fn [{:keys [response]
-                :as   ctx}]
-            (if (contains? response :html)
-              (let [html-body (->> response
-                                   :html
-                                   html
-                                   (str "\n"))]
-                (assoc ctx :response (-> response
-                                         (assoc :body html-body)
-                                         (assoc-in [:headers "Content-Type"] "text/html"))))
-              ctx))})
-
 (def layout-interceptor
   {:leave (fn [{:keys [response]
                 :as ctx}]
@@ -65,7 +50,7 @@
 
 (defn routes []
   [""
-   {:interceptors [html-interceptor layout-interceptor]}
+   {:interceptors [c/html-interceptor layout-interceptor]}
    ["/"
     {:name :front-page
      :get {:handler (fn [req] {:status 200
