@@ -14,8 +14,6 @@
 
 (defonce show-body (r/atom true))
 
-(js/console.log "rtsst")
-
 (defn query-from-match []
   (-> @match
       :query-params

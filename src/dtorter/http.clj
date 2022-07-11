@@ -33,7 +33,7 @@
             [crypto.random :as random]
             [tdsl.show]))
 
-(def cookies (middlewares/session {:store (cookie/cookie-store {:key (random/bytes 16)})}))
+(defonce cookies (middlewares/session {:store (cookie/cookie-store {:key (random/bytes 16)})}))
 
 (defn router [node]
   (pedestal/routing-interceptor

@@ -3,8 +3,19 @@
             [dtorter.data :as d]
             [martian.core :as martian]
             [martian.clj-http :as martian-http]
-            [clojure.set :as se]))
+            [clojure.set :as se]
+            [tentacles.repos :as tr]
+            [tentacles.issues :as ti]
+            [clojure.data :as data]
+            [lambdaisland.deep-diff2 :as ddiff]))
 
+(def token {:oauth-token "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"})
+
+(def repo (tr/specific-repo "tommy-mor" "dtorter" token))
+(defn get-issues []
+  (ti/issues "tommy-mor" "dtorter" token))
+
+(def issues (get-issues))
 ;; this data is super clean usable for my daily workflow. will become whole eventually but rn its just me
 (reset)
 (def m (martian-http/bootstrap-openapi "http://localhost:8080/api/swagger.json"))
@@ -16,7 +27,6 @@
                          [:xt/id]))
       (:xt/id r)
       r)))
-
 (def userid->name (into {} (map (juxt :id :username) d/users)))
 (def name->userid (into {} (map (juxt :username :id) d/users)))
 
@@ -58,18 +68,24 @@
        distinct
        (map itemid->item)))
 
-(defn import-tag [tagname users newtag attribute]
+(defn import-tag [tagname users attribute]
 
+  (def existing-tags (resp :tag/list-all))
+  
+  (when (some (comp #{tagname} :tag/name) existing-tags)
+    (throw (ex-info "tag already exists, try updating" existing-tags)))
+  
   (def votes (gather-votes tagname users))
   (def items (gather-items votes))
   
   (defn olditem->item [old]
     old)
 
-  (def tag (title->tag "Fruits"))
+  (def tag (title->tag tagname))
 
-  (def fruits (resp :tag/new (merge newtag
-                                    {:owner tommy})))
+  (def fruits (resp :tag/new {:tag/name (:title tag)
+                              :tag/description (:description tag)
+                              :owner tommy}))
 
   (def oldid->newid (into {} (for [item items]
                                [(:id item) (resp :item/new {:item/name (:name item)
@@ -86,12 +102,70 @@
                   :owner (olduser->newuser (:user_id vote))}))))
 
 (import-tag "Fruits" ["tommy" "blobbed"]
-            {:tag/name "fruits"
-             :tag/description "are cool"}
             "deliciousness")
 
 (import-tag "ways to laugh while texting"
             ["tommy" "blobbed"]
-            {:tag/name "ways to laugh while texting"
-             :tag/description "..."}
             "humor level")
+
+(defn sync-ghtag []
+
+  (println "strlgh"))
+
+(defn ghissue->item [tagid issue]
+  {:item/name (str "gh#" (:number issue) ": " (:title issue))
+   :item/url (:html_url issue)
+   :item/tags [tagid]
+   :owner tommy})
+
+(defn update-issues [tagid]
+
+  (def issues (into {} (map (juxt :item/url identity))
+                    (map (partial ghissue->item tagid) (get-issues))))
+  (def items (into {} (map (juxt :item/url identity))
+                   (resp :tag/items {:id tagid})))
+
+  (def issuekeys (set (keys issues)))
+  (def itemkeys (set (keys items)))
+
+  (def to-change (->> (se/intersection issuekeys itemkeys)
+                      (filter #(not= (dissoc (items %) :xt/id :type) (issues %)))))
+  (def to-add (se/difference issuekeys itemkeys))
+  (def to-delete (se/difference itemkeys issuekeys))
+
+  (->> to-add
+       (map issues)
+       (map (partial resp :item/new)))
+  
+  (->> to-delete
+       (map items)
+       (map :xt/id)
+       (map #(resp :item/delete {:id %})))
+  
+  (->> to-change
+       (map (juxt items issues))
+       (map (fn [[item issue]]
+              (resp :item/put (assoc issue :id (:xt/id item))))))
+  [to-change, to-add, to-delete])
+
+(defn ghtag []
+
+  (if-let [tag (first (filter (comp #{"gh issues"} :tag/name) (resp :tag/list-all)))]
+    (update-issues (:xt/id tag))
+    (do
+      (def tagid (resp :tag/new {:tag/name "gh issues"
+                                 :tag/description "synced"
+                                 :owner tommy}))
+      (update-issues tagid))))
+
+(defn delete-ghtags []
+  (map (comp #(resp :tag/delete {:id %}) :xt/id )
+       (filter (comp #{"gh issues"} :tag/name) (resp :tag/list-all))))
+
+(delete-ghtags)
+
+(ghtag)
+
+
+
+

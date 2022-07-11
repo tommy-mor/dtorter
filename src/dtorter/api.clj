@@ -36,7 +36,9 @@
                     :handler (fn [req]
                                (let [{:keys [node body-params]} req
                                      uuid (str (java.util.UUID/randomUUID))]
-                                 (xt/submit-tx node [[::xt/put (assoc body-params :xt/id uuid)]])
+                                 (xt/submit-tx node [[::xt/put (assoc body-params
+                                                                      :xt/id uuid
+                                                                      :type (keyword swagger-tag))]])
                                  {:status 201 :body {:xt/id uuid}}))}
              :get {:operationId (keyword swagger-tag "list-all")
                    :summary (str "list all " swagger-tag "s")

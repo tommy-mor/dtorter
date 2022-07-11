@@ -1,8 +1,17 @@
 :sorter.cleantags/todo
+  how to do done/finished?
+    mutual exclusion tag? + move semantics?
+    column?
+    archive?
+    delete?
+
+
   fix current gathering...
     make it non destructive/syncable
+    (then sync with github? might be really easy..)
 
   gather tdsl tasks!!
+
   make task page that does (non general) query of all todos.
   actually start using (by tonight!)
 
@@ -24,6 +33,11 @@
   want to as quickly as possible use it for my decision making/media watching.
   need separation of to watch and watched...
     todo tags are global
+
+:sorter/filter
+  generic concept of a filter?
+    (so same component can be used for graph axis picking, and main ui)
+
 
 :sorter/combining-tags
   meta tags that import.
