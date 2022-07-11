@@ -5,8 +5,6 @@
             [martian.clj-http :as martian-http]
             [clojure.string :as str]))
 
-(def alphabet-string "abcdefghijklmnopqrstuvwxyz")
-
 (defn resp-m [m a & [b]]
   (try (let [r (-> (martian/response-for m a b)
                    :body)]
@@ -18,19 +16,22 @@
          (def e e)
          (-> e
              ex-data
-             ((juxt (comp slurp :body) identity))))))
+             ((juxt #(if (:body %)
+                       (-> % :body slurp)
+                       nil) identity))))))
 
-(def m (martian-http/bootstrap-openapi "http://localhost:8080/api/swagger.json"))
-(defn tommyfn [] (or
-                (->> (resp-m m :user/list-all) (filter (comp #{"testuser"} :user/name)) first :xt/id)
-                (resp-m m :user/new {:user/name "testuser"
-                                     :user/password "testuser-secret"})))
+
+(defn tommyfn [m] (or
+                  (->> (resp-m m :user/list-all) (filter (comp #{"testuser"} :user/name)) first :xt/id)
+                  (resp-m m :user/new {:user/name "testuser"
+                                       :user/password "testuser-secret"})))
 
 (deftest vote-crud
   (reset)
   (def m (martian-http/bootstrap-openapi "http://localhost:8080/api/swagger.json"))
-  (def tommy (tommyfn))
+  (def tommy (tommyfn m))
   (def resp (partial resp-m m))
+  
   (testing "can create vote"
     (def t {:tag/name "testing tag"
             :tag/description "epic"
@@ -100,7 +101,7 @@
     (is (= ["item2" "item1"] (->> sorted
                                   :tag.filtered/sorted
                                   (map :item/name))))
-    (is (= 204 (-> (resp :vote/delete {:id v1})
+    (is (= 204 (-> (martian/response-for m :vote/delete {:id v1})
                    :status)))
     
     (def sorted (-> (martian/response-for m :tag/sorted {:id tag :attribute "good attribute"})
@@ -111,6 +112,9 @@
 (deftest postget
   (reset)
   (def m (martian-http/bootstrap-openapi "http://localhost:8080/api/swagger.json"))
+  (def tommy (tommyfn m))
+  (def resp (partial resp-m m))
+  
   (testing "can put tags"
     (def t {:tag/name "testing tag"
             :tag/description "epic"
@@ -125,7 +129,8 @@
 
     (is (:status t-get) 200)
     
-    (is (= t (-> t-get :body (dissoc :xt/id))))
+    (is (= t (-> t-get :body (dissoc :xt/id
+                                     :type))))
 
     (is (= 204 (:status
                 (martian/response-for m :tag/put
@@ -142,6 +147,7 @@
                 (martian/response-for m :tag/delete {:id t-id})))))
   (stop))
 
+(def alphabet-string "abcdefghijklmnopqrstuvwxyz")
 (defn calc-score [a b]
   (let [idx1 (str/index-of alphabet-string a)
         idx2 (str/index-of alphabet-string b)]
@@ -150,6 +156,8 @@
 (deftest alphabet
   (reset)
   (def m (martian-http/bootstrap-openapi "http://localhost:8080/api/swagger.json"))
+  (def tommy (tommyfn m))
+  (def resp (partial resp-m m))
   (testing "can sort the alphabet with relative weights"
     (def tag (-> (martian/response-for m :tag/new {:tag/name "TESTING alphabet"
                                                    :tag/description "for testing"
@@ -160,8 +168,8 @@
     (def sent-ids (set (doall
                         (for [x alphabet-string]
                           (-> (martian/response-for m :item/new {:item/name (str x) 
-                                                                     :item/tags [tag]
-                                                                     :owner tommy})
+                                                                 :item/tags [tag]
+                                                                 :owner tommy})
                               :body
                               :xt/id)))))
     
@@ -170,9 +178,8 @@
     (is (= (set (map :xt/id items-in-tag))
            sent-ids))
 
-    (def pair (-> (martian/response-for m :tag/sorted {:id tag
-                                                       :attribute "good attribute"})
-                  :body
+    (def pair (-> (resp :tag/sorted {:id tag
+                                     :attribute "good attribute"})
                   :pair))
     (def left (:left pair))
     (def right (:right pair))
@@ -195,25 +202,25 @@
     (is (= 1 (count (:tag/votes sorted))))
     (is (= {"good attribute" 1} (sorted :interface/attributes)))
     
-    (for [_ (range 100)]
-      
-      (let [{{:keys [left right]} :pair}
-            (:body
-             (martian/response-for m :tag/sorted
-                                   {:id tag
-                                    :attribute "good attribute"
-                                    :pair-strategy :random}))
-            
-            mag
-            (calc-score (:item/name left) (:item/name right))]
-        
-        
-        (martian/response-for m :vote/new {:vote/left-item (:xt/id left)
-                                           :vote/right-item (:xt/id right)
-                                           :vote/magnitude mag
-                                           :vote/attribute "good attribute"
-                                           :vote/tag tag
-                                           :owner tommy})))
+    (doall (for [_ (range 100)]
+             
+             (let [{{:keys [left right]} :pair}
+                   (:body
+                    (martian/response-for m :tag/sorted
+                                          {:id tag
+                                           :attribute "good attribute"
+                                           :pair-strategy :random}))
+                   
+                   mag
+                   (calc-score (:item/name left) (:item/name right))]
+               
+               
+               (martian/response-for m :vote/new {:vote/left-item (:xt/id left)
+                                                  :vote/right-item (:xt/id right)
+                                                  :vote/magnitude mag
+                                                  :vote/attribute "good attribute"
+                                                  :vote/tag tag
+                                                  :owner tommy}))))
 
     (def final-sort (->> (martian/response-for m :tag/sorted {:id tag :attribute "good attribute"})
                          :body
@@ -239,6 +246,9 @@
 (deftest alphabet-filtering
   (reset)
   (def m (martian-http/bootstrap-openapi "http://localhost:8080/api/swagger.json"))
+  (def tommy (tommyfn m))
+  (def resp (partial resp-m m))
+  
   (testing "can sort the alphabet forwards and backwards"
     (def tag (-> (martian/response-for m :tag/new {:tag/name "TESTING alphabet"
                                                    :tag/description "for testing"
@@ -261,10 +271,10 @@
     (def pair (-> (martian/response-for m :tag/sorted {:id tag :attribute "good attribute"})
                   :body
                   :pair))
-        
+    
     (def left (:left pair))
     (def right (:right pair))
-        
+    
     (let [mag (calc-score (:item/name left)
                           (:item/name right))]
       (is (= 201 (:status
@@ -317,6 +327,8 @@
 (deftest illegal-item
   (reset)
   (def m (martian-http/bootstrap-openapi "http://localhost:8080/api/swagger.json"))
+  (def tommy (tommyfn m))
+  
   (testing "cant add item to nonsense tag"
     
     (def tag (-> (martian/response-for m :tag/new {:tag/name "TESTING alphabet"
