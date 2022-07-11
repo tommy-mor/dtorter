@@ -5,12 +5,32 @@
             [martian.clj-http :as martian-http]
             [clojure.string :as str]))
 
-(def tommy "092d58c9-d64b-40ab-a8a2-d683c92aa319")
 (def alphabet-string "abcdefghijklmnopqrstuvwxyz")
+
+(defn resp-m [m a & [b]]
+  (try (let [r (-> (martian/response-for m a b)
+                   :body)]
+         (if (and (map? r) (= (keys r)
+                              [:xt/id]))
+           (:xt/id r)
+           r))
+       (catch clojure.lang.ExceptionInfo e
+         (def e e)
+         (-> e
+             ex-data
+             ((juxt (comp slurp :body) identity))))))
+
+(def m (martian-http/bootstrap-openapi "http://localhost:8080/api/swagger.json"))
+(defn tommyfn [] (or
+                (->> (resp-m m :user/list-all) (filter (comp #{"testuser"} :user/name)) first :xt/id)
+                (resp-m m :user/new {:user/name "testuser"
+                                     :user/password "testuser-secret"})))
 
 (deftest vote-crud
   (reset)
   (def m (martian-http/bootstrap-openapi "http://localhost:8080/api/swagger.json"))
+  (def tommy (tommyfn))
+  (def resp (partial resp-m m))
   (testing "can create vote"
     (def t {:tag/name "testing tag"
             :tag/description "epic"
@@ -22,25 +42,18 @@
 
     (def t-id (-> t-resp :body :xt/id))
     
-    (def t-get (martian/response-for m :tag/get {:id t-id}))
-    (def tag (-> t-get
-                 :body
-                 :xt/id))
+    (def tag (:xt/id (resp :tag/get {:id t-id})))
     
-    (def i1 (-> (martian/response-for m :item/new {:item/name "item1" 
-                                                   :item/tags [tag]
-                                                   :owner tommy})
-                :body
-                :xt/id))
+    (def i1 (resp :item/new {:item/name "item1" 
+                             :item/tags [tag]
+                             :owner tommy}))
     
-    (def i2 (-> (martian/response-for m :item/new {:item/name "item2" 
-                                                   :item/tags [tag]
-                                                   :owner tommy})
-                :body
-                :xt/id))
+    (def i2 (resp :item/new {:item/name "item2" 
+                             :item/tags [tag]
+                             :owner tommy}))
 
-    (def sorted (-> (martian/response-for m :tag/sorted {:id tag :attribute "good attribute"})
-                    :body))
+    (def sorted (resp :tag/sorted {:id tag :attribute "good attribute"}))
+    
     (is (= 0 (-> sorted :tag/votes count)))
     (is (= 0 (-> sorted :tag.filtered/sorted count)))
     
@@ -87,7 +100,7 @@
     (is (= ["item2" "item1"] (->> sorted
                                   :tag.filtered/sorted
                                   (map :item/name))))
-    (is (= 204 (-> (martian/response-for m  :vote/delete {:id v1})
+    (is (= 204 (-> (resp :vote/delete {:id v1})
                    :status)))
     
     (def sorted (-> (martian/response-for m :tag/sorted {:id tag :attribute "good attribute"})

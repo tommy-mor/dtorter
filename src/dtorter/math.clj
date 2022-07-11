@@ -191,7 +191,9 @@
                             flatten
                             set))
       
-      (def rightitem (or (draw-coll unvoteditems (kixi.stats.distribution/uniform 0 1))
+      (def rightitem (or (draw-coll (filter (comp not (partial = leftitem))
+                                            unvoteditems)
+                                    (kixi.stats.distribution/uniform 0 1))
                          (->> (into (pm/priority-map)
                                     (for [item (filter #(voted-pairs (:xt/id %)) sorted)]
                                       {(:xt/id item) (Math/abs (- (:elo item)

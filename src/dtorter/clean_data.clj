@@ -27,6 +27,7 @@
                          [:xt/id]))
       (:xt/id r)
       r)))
+
 (def userid->name (into {} (map (juxt :id :username) d/users)))
 (def name->userid (into {} (map (juxt :username :id) d/users)))
 

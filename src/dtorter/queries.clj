@@ -40,6 +40,7 @@
 
 (defn tag-info-calc [db query logged-in-user {:keys [attribute user] :as query-params}]
   (let [[tag owner votes items] query]
+    
     (when (and (not *testing*) (some nil? [tag owner votes items]))
       (throw (ex-info "query failed" {:query query})))
     
@@ -63,9 +64,6 @@
           userids (distinct (map :owner votes))
           
           ]
-      (comment (sc.api/spy (+ 3 3))
-               (sc.api/defsc 1))
-      
       (def rawinfo (merge tag {:interface/owner (dissoc owner :user/password-hash)
                                :tag/votes votes
                                :tag/items items
@@ -119,7 +117,9 @@
                                            :interface.filter/no-attribute))
         logged-in-user (-> req :session :user-id)]
     (def query-params query-params)
-
+    
+    (comment (sc.api/spy (+ 3 3))
+             (sc.api/defsc 17))
     (tag-info-calc db query logged-in-user query-params)))
 
 (defn unsorted-calc [items votes voted-ids]
