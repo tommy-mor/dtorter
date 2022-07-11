@@ -38,7 +38,7 @@
 
 (def title->tag (into {} (map (juxt :title identity) d/tags)))
 
-(resp :user/list-all)
+(def users (resp :user/list-all))
 
 (def tommy (resp :user/new
                  {:user/name "tommy"
@@ -49,8 +49,6 @@
 
 (def olduser->newuser {(name->userid "tommy") tommy
                        (name->userid "blobbed") blobbed})
-
-(resp :user/list-all)
 
 (defn gather-votes [tagname users]
   (def tagname tagname)
@@ -72,34 +70,36 @@
 
   (def existing-tags (resp :tag/list-all))
   
-  (when (some (comp #{tagname} :tag/name) existing-tags)
-    (throw (ex-info "tag already exists, try updating" existing-tags)))
-  
-  (def votes (gather-votes tagname users))
-  (def items (gather-items votes))
-  
-  (defn olditem->item [old]
-    old)
+  (if (some (comp #{tagname} :tag/name) existing-tags)
+    "tag already exists, not doing anything"
+    (do 
+      
+      (def votes (gather-votes tagname users))
+      (def items (gather-items votes))
+      
+      (defn olditem->item [old]
+        old)
 
-  (def tag (title->tag tagname))
+      (def tag (title->tag tagname))
 
-  (def fruits (resp :tag/new {:tag/name (:title tag)
-                              :tag/description (:description tag)
-                              :owner tommy}))
+      (def fruits (resp :tag/new {:tag/name (:title tag)
+                                  :tag/description (:description tag)
+                                  :owner tommy}))
 
-  (def oldid->newid (into {} (for [item items]
-                               [(:id item) (resp :item/new {:item/name (:name item)
-                                                            :item/tags [fruits]
-                                                            :owner tommy})])))
+      (def oldid->newid (into {} (for [item items]
+                                   [(:id item) (resp :item/new {:item/name (:name item)
+                                                                :item/tags [fruits]
+                                                                :owner tommy})])))
 
-  (doall (for [vote votes]
-           (resp :vote/new
-                 {:vote/left-item (-> vote :item_a oldid->newid)
-                  :vote/right-item (-> vote :item_b oldid->newid)
-                  :vote/magnitude (min 100 (max 0 (-> vote :magnitude)))
-                  :vote/attribute attribute
-                  :vote/tag fruits
-                  :owner (olduser->newuser (:user_id vote))}))))
+      (doall (for [vote votes]
+               (resp :vote/new
+                     {:vote/left-item (-> vote :item_a oldid->newid)
+                      :vote/right-item (-> vote :item_b oldid->newid)
+                      :vote/magnitude (min 100 (max 0 (-> vote :magnitude)))
+                      :vote/attribute attribute
+                      :vote/tag fruits
+                      :owner (olduser->newuser (:user_id vote))}))))))
+
 
 (import-tag "Fruits" ["tommy" "blobbed"]
             "deliciousness")
@@ -107,10 +107,6 @@
 (import-tag "ways to laugh while texting"
             ["tommy" "blobbed"]
             "humor level")
-
-(defn sync-ghtag []
-
-  (println "strlgh"))
 
 (defn ghissue->item [tagid issue]
   {:item/name (str "gh#" (:number issue) ": " (:title issue))
@@ -161,8 +157,6 @@
 (defn delete-ghtags []
   (map (comp #(resp :tag/delete {:id %}) :xt/id )
        (filter (comp #{"gh issues"} :tag/name) (resp :tag/list-all))))
-
-(delete-ghtags)
 
 (ghtag)
 

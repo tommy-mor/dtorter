@@ -1,10 +1,18 @@
-:sorter.cleantags/todo
-  how to do done/finished?
-    mutual exclusion tag? + move semantics?
-    column?
-    archive?
-    delete?
+:sorter.impl/todo
+  push this to prod...
+    run tests
+    make sure it starts from cli..
 
+  tdsl clean of todos. (move this file into egregore..)
+  work on tdsl integration..
+  which might include manually converting things into sorter todos
+
+:sorter.cleantags/todo
+  mutual exclusion tag
+
+  aggregate tag..
+      for sorter todo items,
+      tdsl todo items, work todo items, tdsl todo items..
 
   fix current gathering...
     make it non destructive/syncable
@@ -33,6 +41,11 @@
   want to as quickly as possible use it for my decision making/media watching.
   need separation of to watch and watched...
     todo tags are global
+
+:sorter/github
+  make :item/type :github/issue
+    key that makes crud actions sync to the corresponding api
+      (making new sorter item would make new issue)
 
 :sorter/filter
   generic concept of a filter?
