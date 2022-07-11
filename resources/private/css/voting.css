@@ -108,13 +108,39 @@ $handle-color: $voting-color-strong;
 	border: $border-many;
 	border-color: $voting-color-strong;
 	border-style: $border-many-style;
+	overflow:  scroll;
+	max-height: 70vh;
 }
 
 .votingaddpanel {
 	background: $voting-color-weak;
-}
+	width: 600px;
 
+	h1 {
+		font-size: 40px;
+	}
+}
+@media only screen and (max-width: 600px) {
+	.votingaddpanel {
+		background: $voting-color-weak;
+		width: 100%;
+	}
+}
 .vote {
 	background: $voting-color-medium;
 }
+
+.mini-slider {
+	background: hsla($voting-color-hue, 100%, 70%, 0.3);
+	width: 100px;
+}
+
+.mini-slider-box {
+	background: hsla($voting-color-hue, 100%, 70%, 1.0);
+	width: 10px;
+	height: 10px;
+}
+
+
+/* vote panel... */
 

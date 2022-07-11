@@ -1,36 +1,29 @@
 (ns dtorter.views.common
-  (:require [io.pedestal.http.route :refer [url-for]]
-            [com.walmartlabs.lacinia :as lacinia]))
+  (:require [reitit.core :as r]
+            [clojure.string :as str]
+            [hiccup.core :refer [html]]))
 
-(defn q [ctx query-string args]
-  (lacinia/execute (:gql-schema ctx)
-                   query-string
-                   args
-                   (select-keys ctx [:node :request])))
+(defn rurl-for
+  ([ctx name] (rurl-for ctx name {}))
+  ([ctx name args]
+   (-> ctx
+       :request
+       ::r/router
+       (r/match-by-name name args)
+       :path)))
 
-(defn layout [{:keys [session]} inner {:keys [title]}]
-  [:html
-   [:head
-    [:meta {:charset "utf-8"}]
-    [:meta {:name "viewport"
-            :content "width=device-width, initial-scale=1.0"}]
-    [:link {:href "/css/site.css"
-            :rel "stylesheet"
-            :type "text/css"}]
-    [:script {:src "/js/shared.js"
-              :type "text/javascript"}]
-    [:title (or (str title ", sorter") "sorter")]]
-   [:div.topbar
-    [:span (prn-str session)]
-    [:div.topleft
-     [:span "sorter"]
-     [:a.currentpage {:href (url-for :front-page)} "home"]
-     [:a.currentpage {:href (url-for :users-page)} "users"]]
-    (if-let [username (:user-name session)]
-      [:div.topright
-       [:a.currentpage {:href (url-for :log-off)} "logoff"]]
-      [:div.topright
-       [:a.currentpage {:href (url-for :login-page)} "login"]
-       [:a.currentpage "make account"]])
-    [:div.mainbody
-     inner]]])
+(def html-interceptor
+  {:name  ::html-response
+   :leave (fn [{:keys [response]
+                :as   ctx}]
+            (if (contains? response :html)
+              (let [html-body (->> response
+                                   :html
+                                   html
+                                   (str "\n"))]
+                (assoc ctx :response (-> response
+                                         (assoc :body html-body)
+                                         (assoc-in [:headers "Content-Type"] "text/html"))))
+              ctx))})
+
+

@@ -4,7 +4,7 @@
             [re-frame.core :as re-frame]
             [shared.specs :as sp]))
 
-(def default-db nil)
+(def default-db {})
 
 (comment (tap> @re-frame.db/app-db))
 

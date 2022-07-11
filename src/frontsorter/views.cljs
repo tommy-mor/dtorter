@@ -37,17 +37,12 @@
        [:pre (prn-str (forms/messages ?name))]])))
 
 
-(comment (defn addpanel []
-   (let [fields (c/fields-from-format
-                 @(subscribe [:format]))]
-     [:input.addinput {:type "text" :placeholder "item title"}])))
 
 (defn tag-info []
   (let [{:keys [name description
                 numusers numitems numvotes
                 creator]} @(subscribe [:tag])
         {:keys [edit_tag]} @(subscribe [:show])]
-    (def deb @(subscribe [:tag]))
     [c/editable-link
      
      "TAG"
@@ -66,9 +61,10 @@
       ]]))
 
 (defn item [item]
-  [c/hoveritem ^{:key (:id item)} {:on-click #(let [url (str "/t/" js/tagid "/" (:id item))]
-                                                (set! js/window.location.href url))
-                                   :key (:id item)}
+  [c/hoveritem ^{:key (:xt/id item)}
+   {:on-click #(let [url (str "/t/" js/tagid "/" (:id item))]
+                 (set! js/window.location.href url))
+    :key (:xt/id item)}
    
    (when (:elo item)
      
@@ -76,24 +72,26 @@
                        (.toFixed 2))])
    ;; customize by type (display url for links?)
    
-   [:td {:key 2} (:votecount item)]
-   [:td {:key 3} (:name item)]])
+   [:td {:key 2} (:item/votecount item)]
+   [:td {:key 3} (:item/name item)]])
 
 (defn sortedlist [sorted sorted-count]
-  (let [size @(subscribe [sorted-count])
-        sorted @(subscribe [sorted])
+  (let [sorted @(subscribe [sorted])
         all-users @(subscribe [:users])
         selected-user @(subscribe [:current-user])]
     
     [:div "by user "
      [:form {:autoComplete "off"}
-      [:select {:on-change #(dispatch [:user-selected (.. % -target -value)])
+      [:select {:on-change #(dispatch [:user-selected (let [v (.. % -target -value)]
+                                                        (case v
+                                                          "-1" :interface.filter/all-users
+                                                          v))])
                 :value selected-user
                 :autoComplete "nope"}  
-       [:option {:value "all users"} "all users combined"]
+       [:option {:value "-1"} "all users combined"]
        (for [user all-users]
-         [:option {:key (:name user)
-                   :value (:id user)} (:name user)])]]
+         [:option {:key (:user/name user)
+                   :value (:xt/id user)} (:user/name user)])]]
 
      
      [:table
@@ -102,27 +100,35 @@
       [:tbody
        (doall
         (for [item-i sorted]
-          (let [item-i (assoc item-i :key (:id item-i))]
+          (let [item-i (assoc item-i :key (:xt/id item-i))]
+            (def item-i item-i)
             [item item-i])))]]]))
+
+(defn mini-slider [perc]
+  [:div.mini-slider
+   [:div.mini-slider-box {:style {:margin-left (str (- perc 5) "%")}}]])
+
+(defn voterow [i]
+  (def i i)
+  [:tr.vote 
+   {:key (:xt/id i)}
+   [:td (-> i :vote/left-item :item/name)]
+   [:td
+    [mini-slider (:vote/magnitude i)]]
+   [:td (-> i :vote/right-item :item/name)]
+   (if (= (:owner i) js/userid)
+     [:td [c/smallbutton "x" #(dispatch [:delete-vote i])]])])
 
 (defn votelist []
 
-  [:table
+ [:table
    [:thead
     [:tr [:th "left"] [:th "pts"] [:th "right"] [:th "pts"]]]
    [:tbody
     (let [idtoname @(subscribe [:idtoname])
           votes @(subscribe [:votes])]
-      
       (doall (map (fn [i]
-                    [:tr.vote 
-                     {:key (:id i)}
-                     [:td (-> i :left_item :name)]
-                     [:td (- 100 (:magnitude i))]
-                     [:td (-> i :right_item :name)]
-                     [:td (:magnitude i)]
-                     (if (:vote_edit @(subscribe [:show]))
-                       [:td [c/smallbutton "delete" #(dispatch [:delete-vote i])]])])
+                    [voterow (assoc i :key (:xt/id i))])
                   votes)))]])
 
 (defn errors []
@@ -154,29 +160,29 @@
         ""
         [attrs/attributes-panel]])
 
-     (when (:vote_panel show)
+     (when true
        [c/pairvoter])
      
-     (when @(subscribe [:sorted-not-empty])
-       [c/collapsible-cage
-        true
-        "RANKING"
-        "itemranking"
-        [sortedlist :sorted :sorted-count]])
-     
-     (when @(subscribe [:unsorted-not-empty])
-       [c/collapsible-cage
-        true
-        "UNRANKED ITEMS"
-        "itemranking"
-        [sortedlist :unsorted :unsorted-count]])
-     
-     (when (:vote_edit show)
-       [c/collapsible-cage
-        false
-        (str "MY VOTES (" @(subscribe [:votes-count]) ") on attribute "
-             (or @(subscribe [:current-attribute])
-                 "default"))
-        "votinglistpanel"
-        [votelist]])]))
+     [:div.threepanels
+      (when @(subscribe [:sorted-not-empty])
+        [c/collapsible-cage
+         true
+         "RANKING"
+         "itemranking"
+         [sortedlist :sorted :sorted-count]])
+      
+      (when @(subscribe [:unsorted-not-empty])
+        [c/collapsible-cage
+         true
+         "UNRANKED ITEMS"
+         "itemranking"
+         [sortedlist :unsorted :unsorted-count]])
+      
+      (when @(subscribe [:votes-not-empty])
+        [c/collapsible-cage
+         true
+         (str "MY VOTES (" @(subscribe [:votes-count]) ") on attribute "
+              @(subscribe [:current-attribute]))
+         "votinglistpanel"
+         [votelist]])]]))
 

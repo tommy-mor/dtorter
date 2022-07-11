@@ -1,44 +1,54 @@
 (ns shared.specs
-  (:require [clojure.spec.alpha :as s]
-            #?@(:clj
-                [[dtorter.queries :as q]
-                 [dtorter.util :refer [strip]]])))
+  (:require [clojure.spec.alpha :as s]))
 
 
 
 (def uuid-regex #"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
 
-(def uuid-str #(re-matches uuid-regex %))
+(def uuid-str (s/and string? #(re-matches uuid-regex %)))
+
 (s/def :xt/id uuid-str)
 
-(s/def ::user (s/keys :req-un [:xt/id :user/name]))
+(s/def :user/name string?)
+(s/def :user/password string?)
+(s/def :user.parameters/new (s/keys :req [:user/name :user/password]))
 
-(s/def ::tag (s/keys :req-un [:xt/id :tag/name :tag/description :tag/owner]))
+(s/def ::user (s/keys :req [:xt/id :user/name]))
+(s/def ::owner uuid-str)
+
+(defn collapsible [spec]
+  (s/or :id uuid-str :full spec))
+
+(s/def ::tag (s/keys :req [:tag/name :tag/description]
+                     :opt [:xt/id]
+                     :req-un [::owner]))
 (s/def :tag/name string?)
 (s/def :tag/description string?)
 (s/def :tag/votecount int?)
 (s/def :tag/usercount int?)
 (s/def :tag/itemcount int?)
-(s/def :tag/owner ::user)
-
 ;; add elo
 ;; TODO make sure that :un is correct
-(s/def ::item (s/keys :req-un [:xt/id :item/name]
-                      :opt-un [:item/url :item/tags :item/owner]))
+(s/def ::item (s/keys :req [:item/name :item/tags]
+                      :req-un [::owner]
+                      :opt [:xt/id :item/url :item/paragraph]))
 
 (s/def :item/name string?)
 (s/def :item/owner uuid-str)
 (s/def :item/tags (s/coll-of uuid-str))
 (s/def :item/url string?)
+(s/def :item/paragraph string?)
 
-(s/def ::vote (s/keys :req-un [:xt/id
-                               :vote/left_item
-                               :vote/right_item
-                               :vote/magnitude
-                               :vote/attribute]
-                      :opt-un [:vote/owner :vote/tag]))
-(s/def :vote/left_item ::item)
-(s/def :vote/right_item ::item)
+(s/def ::vote (s/keys :req [:vote/left-item
+                            :vote/right-item
+                            :vote/magnitude
+                            :vote/attribute
+                            :vote/tag]
+                      :opt [:xt/id]
+                      :req-un [::owner]))
+
+(s/def :vote/left-item uuid-str)
+(s/def :vote/right-item uuid-str)
 (s/def :vote/tag uuid-str)
 (s/def :vote/attribute string?)
 (s/def :vote/magnitude (s/and int? #(and (>= % 0) (<= % 100))))
@@ -55,20 +65,50 @@
 (s/def ::pair (s/nilable (s/keys :req-un [::left ::right])))
 ;; eventually this will be (s/coll-of [attribute count])
 (s/def ::attributes (s/coll-of string?))
-(s/def ::current-attribute (s/or :none nil? :exists string?))
-(s/def ::percent :vote/magnitude)
+(s/def :interface.filter/attribute (s/or :specified string?
+                                         :empty #{:interface.filter/no-attribute}))
+(s/def :interface.filter/user (s/or :all #{:interface.filter/all-users} :specified uuid-str))
+(s/def :pair/percent :vote/magnitude)
 
-(s/def ::db (s/keys :req-un [:tag/name :tag/description :tag/owner :tag/votecount :tag/usercount
-                             ::attributes ::votes ::show ::sorted ::unsorted]
-                    :opt-un [::percent
-                             ::current-attribute])) ;; transient state of webapp
+(s/def :interface/owner ::user)
+
+(s/def :tag/votes (s/coll-of ::vote))
+(s/def :tag/items (s/coll-of ::item))
+(s/def :tag.filtered/votes (s/coll-of ::vote))
+(s/def :tag.filtered/items (s/coll-of ::item))
+(s/def :tag.filtered/unvoted-items (s/coll-of ::item))
+(s/def :tag.filtered/sorted (s/coll-of ::item))
+(s/def :tag/item-vote-counts (s/map-of uuid-str int?))
+(s/def :interface/attributes (s/map-of string? int?))
+(s/def :interface/users (s/coll-of ::user))
+
+;; todo maybe have different specs (mostly same)
+;; that are for the api call, and one for the frontend database
+(s/def ::db (s/keys :req [:tag/name :tag/description
+                          :tag/votecount :tag/usercount
+                          :tag/votes :tag/items
+
+                          :tag.filtered/votes
+                          :tag.filtered/items
+                          :tag.filtered/unvoted-items
+                          :tag.filtered/sorted
+
+                          :tag/item-vote-counts
+                          :interface/attributes
+                          :interface/owner
+                          :interface/users
+                          :interface.filter/attribute
+                          :interface.filter/user]
+                    :req-un [::owner]))
+
+;; the query that describes a tag view..
+(s/def :tag.query/attribute string?)
+(s/def :tag.query/user string?)
+(s/def ::tag-query
+  (s/keys :req-un [:tag.query/attribute]
+          :opt-un [:tag.query/user]))
+;; transient state of webapp
 
 ;; TODO add format map to this system (unless its useless cause we want to handle on server)
 
-(comment
-  (def tag (first (q/all-tags dtorter.http/db)))
-  (def item (first (q/items-for-tag dtorter.http/db (:xt/id tag))))
-  (def vote (first (q/votes-for-tag dtorter.http/db (:xt/id tag))))
-  (s/explain ::tag (strip tag))
-  (s/explain ::item item)
-  (s/explain ::vote vote))
+

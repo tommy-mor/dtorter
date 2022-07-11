@@ -1,37 +1,34 @@
 (ns frontsorter.subs
   (:require [re-frame.core :refer [reg-sub subscribe]]))
 
-(reg-sub :all (fn [x] x))
 
+(reg-sub :all (fn [x] x))
 ;; show 
 ; second arg is a function that takes db
-(reg-sub :show :show)
-
+(reg-sub :show (constantly {:thing "epic"}))
 ;; tag info subs
 ;; pair subs
 
 (reg-sub :left (comp :left :pair))
 
 (reg-sub :right (comp :left :pair))
-
 (reg-sub :percent :percent)
-
 (reg-sub :pair
- (fn [query-v _]
-   [(subscribe [:left]) (subscribe [:right]) (subscribe [:percent])])
+         (fn [query-v _]
+           [(subscribe [:left]) (subscribe [:right]) (subscribe [:percent])])
 
- 
- (fn [[left right percent] _]
-   {:left left
-    :right right
-    :percent percent}))
+         
+         (fn [[left right percent] _]
+           {:left left
+            :right right
+            :percent percent}))
 
-(reg-sub :name :name)
-(reg-sub :description :description)
-(reg-sub :owner :owner)
-(reg-sub :usercount :usercount)
-(reg-sub :votecount :votecount)
-(reg-sub :itemcount :itemcount)
+(reg-sub :name :tag/name)
+(reg-sub :description :tag/description)
+(reg-sub :owner :interface/owner)
+(reg-sub :usercount :tag/usercount)
+(reg-sub :votecount :tag/votecount)
+(reg-sub :itemcount :tag/itemcount)
 (reg-sub :tag
          :<- [:name]
          :<- [:description]
@@ -79,20 +76,23 @@
 
 ;; ranklist subs
 
-(reg-sub :sorted :sorted)
-
+(reg-sub :sorted :tag.filtered/sorted)
 (reg-sub :sorted-count :<- [:sorted] count)
 (reg-sub :sorted-not-empty :<- [:sorted-count] (complement zero?)) 
 
-(reg-sub :users :users)
-(reg-sub :current-user :current-user)
+(reg-sub :users :interface/users)
+(reg-sub :current-user :interface.filter/user)
 
-(reg-sub :unsorted :unsorted)
+(reg-sub :unsorted :tag.filtered/unvoted-items)
 (reg-sub :unsorted-count :<- [:unsorted] count)
 (reg-sub :unsorted-not-empty :<- [:unsorted-count] (complement zero?))
 
-(reg-sub :votes :votes)
+(-> @(subscribe [:all])
+    :tag.session/votes)
+
+(reg-sub :votes :tag.session/votes)
 (reg-sub :votes-count :<- [:votes] count)
+(reg-sub :votes-not-empty :<- [:votes-count] (complement zero?))
 
 (reg-sub :idtoname :<- [:sorted] #(into {} (map (juxt :id :name) %)))
 
@@ -114,4 +114,6 @@
              (and (:item db)
                   (not (:pair db))) :itemview
              true (js/console.log "bad state"))))
+
+@(subscribe [:current-user])
 

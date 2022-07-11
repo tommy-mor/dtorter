@@ -1,146 +1,15 @@
 (ns dtorter.queries
   (:require [xtdb.api :as xt]
             [dtorter.math :as math]
-            [dtorter.util :refer [strip]]))
-
-(defn user-by-id [ctx node e]
-  (ffirst (xt/q (xt/db node)
-                '[:find (pull e [*])
-                  :in e
-                  :where
-                  [e :user/name _]]
-                e)))
-
-(defn item-by-id [ctx node e]
-  (ffirst (xt/q (xt/db node)
-                '[:find (pull e [*])
-                  :in e
-                  :where
-                  [e :item/owner _]]
-                e)))
-
-(defn tag-by-id [ctx node e]
-  (ffirst (xt/q (xt/db node)
-                '[:find (pull e [*])
-                  :in e
-                  :where
-                  [e :tag/owner _]]
-                e)))
-
-(defn all-tags [ctx node]
-  (map first
-       (xt/q (xt/db node)
-             '[:find (pull e [*])
-               :where
-               [e :tag/name nme]
-               [e :tag/description desc]])))
-
-(defn items-for-tag [ctx node tid]
-  (map first (xt/q (xt/db node)
-                   '[:find (pull e [*])
-                     :in tid
-                     :where
-                     [e :item/tags tid]]
-                   tid)))
-
-(defn votes-for-tag [ctx node tid attribute]
-  (map first (xt/q (xt/db node)
-                   '[:find (pull vote [*])
-                     :in tid
-                     :where
-                     [vote :vote/tag tid]]
-                   tid
-                   attribute)))
-
-(comment
-  "perfornance testing..."
-  
-  (def mtg "fdd74412-92e4-460f-ae80-19d6befef509")
-  (use 'criterium.core)
-  (with-progress-reporting
-    (first (quick-bench (doall (for [vote (votes-for-tag dtorter.http/db mtg nil)]
-                                 (let [left (item-by-id dtorter.http/db (:vote/left-item vote))
-                                       right (item-by-id dtorter.http/db (:vote/right-item vote))]
-                                   {:l left :r right}))))))
-  "402 ms"
-  (with-progress-reporting
-    (count (quick-bench (votes-for-tag dtorter.http/db mtg nil))))
-  "32.932 ms"
-  (with-progress-reporting
-    (count (quick-bench (xt/q dtorter.http/db '[:find (pull e [*]) (pull item1 [*]) (pull item2 [*])
-                                                :in tid
-                                                :where
-                                                [e :vote/tag tid]
-                                                [e :vote/left-item item1]
-                                                [e :vote/right-item item2]]
-                              mtg))))
-  "90ms"
-  (-> (xt/q dtorter.http/db '[:find (distinct owner) (pull e [*]) (pull item1 [*]) (pull item2 [*])
-                              :in tid
-                              :where
-                              [e :vote/tag tid]
-                              [e :vote/left-item item1]
-                              [e :vote/right-item item2]
-
-                              [tid :tag/owner owner]
-                              ]
-            mtg)
-      count)
-  "idk"
-  (with-progress-reporting
-    (quick-bench (-> (xt/q dtorter.http/db '[:find (pull tid [*]) (pull owner [*])
-                                             (pull tid [{:vote/_tag [*]}])
-                                             (pull tid [{:item/_tags [*]}])
-                                             (pull tid [{:item/_tags [*]}])
-                                             :in tid
-                                             :where
-                                             [tid :tag/owner owner]
-                                             ]
-                           mtg)
-                     first
-                     (nth 3))))
-  "27 ms, it includes tag, owner, all votes. counts just use count function."
-  
-  )
-
-
-
-(defn count-votes [ctx db tid attribute]
-  (or (ffirst (xt/q db
-                    '[:find (count vote)
-                      :in tid
-                      :where
-                      [vote :vote/tag tid]
-                      [vote :vote/attribute attribute]]
-                    tid
-                    attribute))
-      0))
-
-(defn count-users [ctx db tid]
-  (or (ffirst (xt/q db
-                    '[:find (count-distinct user)
-                      :in tid
-                      :where
-                      [vote :vote/tag tid]
-                      [vote :vote/owner user]]
-                    tid))
-      0))
-
-(defn count-items [ctx db tid]
-  (or (ffirst (xt/q db
-                    '[:find (count item)
-                      :in tid
-                      :where
-                      [item :item/tags tid]]
-                    tid))
-      0))
+            [clojure.spec.alpha :as s]
+            [shared.specs :as sp]
+            [expound.alpha :as expound]))
 
 (defn get-voted-ids [votes]
   (frequencies
-   (flatten (map (juxt :left-item :right-item) (strip votes)))))
+   (flatten (map (juxt :vote/left-item :vote/right-item) votes))))
 
-
-(defn biggest-attribute [ctx node {:keys [tagid]}]
+(defn biggest-attribute [node tagid]
   (def node node)
   (def tagid tagid)
   (->> (xt/q (xt/db node)
@@ -148,13 +17,20 @@
                :in tid
                :where
                [e :vote/tag tid]
-               [e :vote/attribute atr]] tagid)
+               [e :vote/attribute atr]]
+             tagid)
        (map first)
        frequencies
        (sort-by second)
        last
        first))
 
+(defn get-vt-last-updated [db eid]
+  "from https://github.com/xtdb/xtdb/issues/267 "
+  (with-open [h (xt/open-entity-history db eid :desc)]
+    (-> (iterator-seq h)
+        first
+        ::xt/valid-time)))
 
 (def ^:dynamic *testing* false)
 
@@ -162,65 +38,94 @@
   (reverse (for [[elo item] (math/getranking (vec items) (vec votes))]
              (assoc item :elo elo))))
 
-(defn tag-info-calc [ctx query {{:keys [attribute user]} :info :as args}]
+(defn tag-info-calc [db query logged-in-user {:keys [attribute user] :as query-params}]
   (let [[tag owner votes items] query]
-
+    
     (when (and (not *testing*) (some nil? [tag owner votes items]))
-      (throw (ex-info (str "found a null" (prn-str args)) args)))
+      (throw (ex-info "query failed" {:query query})))
     
     
     
-    (let [votes (strip (or (:vote/_tag votes) []))
-          items (strip (or (:item/_tags items) []))
+    (let [votes (or (:vote/_tag votes) [])
+          items (or (:item/_tags items) [])
 
-          freqs (sort-by second (frequencies (map :attribute votes)))
-          filteredvotes (filter #(and (= (:attribute %) attribute) 
+          freqs (frequencies (map :vote/attribute votes))
+          filteredvotes (filter #(and (= (:vote/attribute %) attribute) 
                                       (or (not user)
                                           (= (:owner %) user)))
                                 votes)
           item-vote-counts (get-voted-ids filteredvotes)
-          items (map #(assoc % :votecount (item-vote-counts (:id %))) items)
-          stuff (group-by #(nil? (item-vote-counts (:id %))) items)
+          items (map #(assoc % :item/votecount (item-vote-counts (:xt/id %))) items)
+          stuff (group-by #(nil? (item-vote-counts (:xt/id %))) items)
           voted-items (or (get stuff false) [])
           unvoted-items (or (get stuff true) [])
-          id->item (into {} (map (juxt :id identity) items))
-          sorted (sorted-calc voted-items filteredvotes)]
-      (def t items)
-      (def rawinfo (merge tag {:owner owner
-                               :allvotes votes
-                               :allitems items
-                               :filteredvotes filteredvotes
-                               :voteditems voted-items
-                               :unvoteditems unvoted-items
-                               :itemvotecounts item-vote-counts
-                               :frequencies freqs
-                               :id->item id->item
-                               :sorted sorted}))
+          id->item (into {} (map (juxt :xt/id identity) items))
+          sorted (sorted-calc voted-items filteredvotes)
+          userids (distinct (map :owner votes))
+          
+          ]
+      (def rawinfo (merge tag {:interface/owner (dissoc owner :user/password-hash)
+                               :tag/votes votes
+                               :tag/items items
+                               :tag/votecount (count votes)
+                               :tag/itemcount (count items)
+                               :tag/usercount (count (distinct (map :owner votes)))
+                               :tag.filtered/votes filteredvotes
+                               :tag.filtered/items voted-items
+                               :tag.filtered/unvoted-items unvoted-items
+                               :tag/item-vote-counts item-vote-counts
+                               :tag.filtered/sorted sorted
+                               :interface.filter/attribute attribute
+                               :interface.filter/user (or user :interface.filter/all-users)
+                               :interface/attributes freqs
+                               :interface/users (xt/pull-many db [:user/name :xt/id] userids)
+                               :tag.session/votes (->> filteredvotes
+                                                       (filter #(= (:owner %) logged-in-user))
+                                                       (map #(-> %
+                                                                 (update :vote/left-item id->item)
+                                                                 (update :vote/right-item id->item))))}))
+      (def rawinfo (merge rawinfo {:pair (math/getpair (assoc rawinfo
+                                                              :id->item id->item))}))
+      rawinfo
+      (when (not (s/valid? ::sp/db rawinfo))
+        (expound/expound ::sp/db rawinfo)
+        (throw (ex-info "generated bad db"
+                        {:status 500})))
+      rawinfo)))
 
-      (merge rawinfo {:pair (math/getpair ctx rawinfo)}))))
 
 
-(defn tag-info [ctx node {{:keys [tagid]} :info :as args }]
-
-  
-  (comment "TODO must have permissions on this query... use xtdb query functions")
-  (xt/sync node)
-  (let [query (first (xt/q (xt/db node) '[:find
-                                          (pull tid [*])
-                                          (pull owner [*])
-                                          (pull tid [{:vote/_tag [*]}])
-                                          (pull tid [{:item/_tags [*]}])
-                                          :in tid
-                                          :where
-                                          [tid :tag/owner owner]]
-                           tagid))]
-
-    (tag-info-calc ctx query args)))
+(defn tag-info [req]
+  (def req req)
+  (let [{:keys [node path-params query-params]} req
+        tagid (:id path-params)
+        ;; todo move {:vote/_tag [*]} into first pull expression.. 
+        db (xt/db node)
+        query (first (xt/q db '[:find
+                                (pull tid [*])
+                                (pull owner [*])
+                                (pull tid [{:vote/_tag [*]}])
+                                (pull tid [{:item/_tags [*]}])
+                                :in tid
+                                :where
+                                [tid :owner owner]
+                                [tid :tag/name _]]
+                           tagid))
+        query-params (assoc query-params
+                            :attribute (or (:attribute query-params)
+                                           (biggest-attribute node tagid)
+                                           :interface.filter/no-attribute))
+        logged-in-user (-> req :session :user-id)]
+    (def query-params query-params)
+    
+    (comment (sc.api/spy (+ 3 3))
+             (sc.api/defsc 17))
+    (tag-info-calc db query logged-in-user query-params)))
 
 (defn unsorted-calc [items votes voted-ids]
   (def voted-ids)
   (filter #(not (voted-ids (:id %)))
-          items))
+          items)) 
 
 
 (comment 

@@ -1,87 +1,121 @@
 (ns dtorter.http
   (:require [io.pedestal.http :as server]
-            [io.pedestal.http.route :as route]
-            [com.walmartlabs.lacinia.pedestal2 :as lp]
+
+            [reitit.ring :as ring]
+            [reitit.http :as http]
+            [reitit.coercion.spec]
+            [reitit.http.coercion :as coercion]
+            [reitit.dev.pretty :as pretty]
+            [reitit.http.interceptors.parameters :as parameters]
+            [reitit.http.interceptors.muuntaja :as muuntaja]
+            [reitit.pedestal :as pedestal]
+            [reitit.swagger :as swagger]
+            [reitit.swagger-ui :as swagger-ui]
+            [reitit.http.interceptors.dev :as dev]
+
+            [reitit.ring.spec :as rrs]
+
             
-            [dtorter.views.front-page :as views]
-            [hiccup.core :refer [html]]
+            [clojure.core.async :as a]
+            [clojure.java.io :as io]
+
+            [muuntaja.core :as m]
             
             [ring.middleware.session.cookie :as cookie]
             [io.pedestal.http.ring-middlewares :as middlewares]
             [dtorter.db :as db]
-            [dtorter.api]))
+            [dtorter.api :as api]
+            [dtorter.swagger :as dagger]
+            [dtorter.exceptions]
+            [clojure.spec.alpha :as s]
+            [shared.specs :as sp]
+            [dtorter.views.routes :as views]
+            [crypto.random :as random]
+            [tdsl.show]))
 
+(defonce cookies (middlewares/session {:store (cookie/cookie-store {:key (random/bytes 16)})}))
 
-(def cookies (middlewares/session {:store (cookie/cookie-store)}))
+(defn router [node]
+  (pedestal/routing-interceptor
+   (http/router
+    
+    [["" (views/routes)]
+     ["/tdsl" (tdsl.show/routes)]
+     
+     ["/api"
+      {:interceptors (api/api-interceptors) 
+       ;; :parameters
+       ;; {:query ::sp/tag-query} ;; don't put these into swagger cause its confusing 
+       }
+      (conj (api/api-routes)
+            ["/swagger.json"
+             {:get {:no-doc true
+                    :swagger {:info {:title "sorter api"
+                                     :description "for sorting things and stuff"}}
+                    :handler (dtorter.swagger/create-swagger-handler)}}])]]
+    ;; https://github.com/metosin/reitit/blob/master/examples/pedestal-swagger/src/example/server.clj
+    ;; TODO add more things here from example
+    
+    {#_:reitit.interceptor/transform #_dev/print-context-diffs
+     :exception pretty/exception
+     :validate rrs/validate
+     :data {:coercion reitit.coercion.spec/coercion
+            :muuntaja m/instance
+            :interceptors  [
+                            {:enter #(assoc-in % [:request :node] node)}
+                            dtorter.exceptions/middleware
+                            swagger/swagger-feature
+                            (parameters/parameters-interceptor)
+                            (muuntaja/format-negotiate-interceptor)
+                            (muuntaja/format-response-interceptor)
+                            (muuntaja/format-request-interceptor)
+                            (coercion/coerce-response-interceptor)
+                            (coercion/coerce-request-interceptor)]}})
+   (ring/routes
+    (swagger-ui/create-swagger-ui-handler
+     {:path "/api/docs"
+      :url "/api/swagger.json"
+      :config {:validatorUrl nil
+               :operationsSorter "alpha"}})
+    (ring/create-resource-handler)
+    (ring/create-default-handler))))
 
-(defn enable-graphql [service-map schema]
-  (let [interceptors (into [cookies] (lp/default-interceptors schema {}))]
-    (-> service-map
-        (update ::server/routes conj
-                ["/api" :post interceptors :route-name ::graphql-api]))))
-
-(defn enable-ide [service-map schema]
-  (-> service-map
-      (update ::server/routes conj
-              ["/ide" :get (lp/graphiql-ide-handler {}) :route-name ::graphql-ide])
-      (update ::server/routes into
-              (lp/graphiql-asset-routes "/assets/graphiql"))
-      (assoc ::server/secure-headers nil)))
-
-
-(defn common-interceptors [schema node]
-  [cookies
-   {:name ::load-gql-schema
-    :enter (fn [ctx]
-             (assoc ctx
-                    :gql-schema schema
-                    :node node))}
-
-   
-   ;; https://souenzzo.com.br/clojure-ssr-app-with-pedestal-and-hiccup.html
-   {:name  ::html-response
-    :leave (fn [{:keys [response]
-                 :as   ctx}]
-             (if (contains? response :html)
-               (let [html-body (->> response
-                                    :html
-                                    html
-                                    (str "\n"))]
-                 (assoc ctx :response (-> response
-                                          (assoc :body html-body)
-                                          (assoc-in [:headers "Content-Type"] "text/html"))))
-               ctx))}])
+(defn router-dev [node]
+  (io.pedestal.interceptor/interceptor
+   {:name :hack-dev
+    :enter
+    (fn [ctx]
+      (def ctx ctx)
+      (:enter (router node))
+      (let [real-interceptor (router node)]
+        ((:enter real-interceptor) (assoc ctx :hack/interceptor real-interceptor))))
+    :leave
+    (fn [ctx]
+      (let [real-fn (-> ctx :hack/interceptor :leave)]
+        (real-fn ctx)))}) )
 
 ;; TODO use :server/enable-session {}
-(defn start [{:keys [prod] :or {prod false}}]
-  (defonce server (atom nil))
+(defonce server (atom nil))
 
+(defn start [{:keys [prod] :or {prod false}}]
   (def node (dtorter.db/start))
-  (def resolver (dtorter.api/load-schema node))
-  
   (-> {:env (if prod :prod :dev)
-       ::server/host (if prod "sorter.isnt.online" "localhost")
+       #_::server/host #_(if prod "sorter.isnt.online" "localhost")
        ::server/type :jetty
        ::server/port 8080
        ::server/resource-path "/public"
-       ::server/routes (views/routes (common-interceptors resolver
-                                                          node))}
+       ::server/routes []}
       
-      (enable-graphql resolver)
-      (as-> $ (if prod
-                (enable-ide $ resolver)
-                $))
-
       #_(update ::server/routes route/expand-routes)
       ;; TODO make prod make this evaluated, not a function
-      (assoc ::server/routes #(let [resolver (dtorter.api/load-schema node)]
-                                (-> {::server/routes
-                                     (views/routes (common-interceptors
-                                                    resolver node))}
-                                    (enable-graphql resolver)
-                                    (enable-ide resolver)
-                                    ::server/routes
-                                    route/expand-routes)))
+      #_(assoc ::server/routes #(let [resolver (dtorter.api/load-schema node)]
+                                  (-> {::server/routes
+                                       (views/routes (common-interceptors
+                                                      resolver node))}
+                                      (enable-graphql resolver)
+                                      (enable-ide resolver)
+                                      ::server/routes
+                                      route/expand-routes)))
       
       (merge {::server/join? prod
               ::server/allowed-origin {:creds true :allowed-origins (constantly true)}
@@ -93,6 +127,8 @@
       
 
       server/default-interceptors
+      (pedestal/replace-last-interceptor (router-dev node))
+      (update ::server/interceptors #(cons cookies %))
       server/dev-interceptors
       server/create-server
       server/start
@@ -106,7 +142,10 @@
     (stop))
   (start {}))
 
-(comment (reset))
+
+
+(comment (reset)
+         (stop))
 
 
 
@@ -118,12 +157,6 @@
             `(sorter ~kw)))
 
          (dtorter.http/sorter :books))
-
-
-
-
-
-
 
 
 

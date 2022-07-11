@@ -1,167 +1,85 @@
 (ns dtorter.api
-  (:require [clojure.java.io :as io]
-            [com.walmartlabs.lacinia :as lacinia]
-            [com.walmartlabs.lacinia.util :as util]
-            [com.walmartlabs.lacinia.schema :as schema]
-            [com.walmartlabs.lacinia.resolve :as resolve]
-            [clojure.edn  :as edn]
-            [clojure.walk :refer [postwalk]]
-
-            [dtorter.queries :as queries]
-            [dtorter.mutations :as mutations]
+  (:require [dtorter.queries :as queries]
             [dtorter.math :as math]
-            [dtorter.util :refer [strip]]
-            [xtdb.api :as xt]))
+            
+            [xtdb.api :as xt]
 
-;; TODO might be easier to to have tag-by-id return entire tag with all caluclations at once. would save some duplicate queries we are having...
-(defn grab-user [ctx] (-> ctx :request :session :user-id))
-
-
-(defn resolver-map [node]
-  (comment "how to get one open-db per lacinia request...")
-  {:query/tag-by-id
-   (fn [ctx args _]
-     (strip (queries/tag-info ctx node args)))
-   
-   :query/item-by-id
-   (fn [ctx {{:keys [itemid]} :info} _]
-     (strip (queries/item-by-id ctx node itemid)))
-   
-   :query/all-tags
-   (fn [ctx _ value]
-     (strip (queries/all-tags ctx node)))
-   
-   :Tag/items
-   (fn [_ {} value]
-     (or (:allitems value)
-         (throw (ex-info "not implemented" value))))
-   
-   :Tag/votes
-   (fn [ctx {{:keys [attribute]} :info} {:keys [allitems allvotes id->item] :as value}]
-     (def allitems allitems)
-     (let [votes (if (and allitems allvotes)
-                   (map #(assoc %
-                                :left-item (id->item (:left-item %))
-                                :right-item (id->item (:right-item %))) allvotes)
-                   (throw (ex-info "not implemented" value)))
-           user (grab-user ctx)]
-       (filter #(and (= (:owner %) user)
-                     (= (:attribute %) attribute)) votes)))
-   
-   :Tag/votecount (fn [_ _ value]
-                    (if (:allvotes value)
-                      (count (:allvotes value))
-                      (throw (ex-info "not implemented" value))))
-   :Tag/usercount (fn [_ _ value]
-                    (if-not (nil? (:allvotes value))
-                      (->> value
-                           :allvotes
-                           (map :owner)
-                           distinct
-                           count)
-                      (throw (ex-info "not implemented" value))))
-   :Tag/users (fn [_ _ value]
-                (if (:allvotes value)
-                  (->> value
-                       :allvotes
-                       (map :owner)
-                       distinct
-                       (xt/pull-many (xt/db node) '[*])
-                       strip)
-                  (throw (ex-info "can't do this yet" value))))
-   :Tag/itemcount (fn [_ _ value]
-                    (if (:allitems value)
-                      (count (:allitems value))
-                      (throw (ex-info "not implemented" value))))
-   
-
-   :Vote/tag
-   (fn [ctx _ value]
-     (strip (queries/tag-by-id ctx node (:tag value))))
-
-   :Vote/left-item
-   (fn [ctx _ value]
-     (if (string? (:left-item value))
-       (strip (queries/item-by-id ctx node (:left-item value)))
-       (:left-item value)))
-   
-   :Vote/right-item
-   (fn [ctx _ value]
-     (if (string? (:right-item value))
-       (strip (queries/item-by-id ctx node (:right-item value)))
-       (:right-item value)))
-   
-   ;; does calculations
-   :Tag/sorted
-   (fn [ctx _ {:keys [sorted] :as value}]
-     (if (and sorted)
-       (strip sorted)
-       
-       (throw (ex-info "this data is wrong" value))))
-   
-   :Tag/unsorted
-   (fn [ctx _ {:keys [unvoteditems] :as value}]
-     (if (and unvoteditems)
-       unvoteditems
-       (throw (ex-info "not implemented" value))))
-   
-   :Tag/attributes
-   (fn [ctx _ value]
-     (if (:frequencies value)
-       (map first (:frequencies value))
-       (throw (ex-info "what" value))))
-   
-   :Tag/attributecounts
-   (fn [ctx _ value]
-     (if (:frequencies value)
-       (map second (:frequencies value))
-       (throw (ex-info "don't know how to calculate this rn" value))))
-   
-   :Tag/pair
-   (fn [ctx _ value]
-     (if (:pair value)
-       (strip (:pair value))
-       (throw (ex-info "should have pair" value))))
-
-   :Item/tags
-   (fn [ctx _ item]
-     (strip (map #(queries/tag-by-id ctx node %) (:tags item))))
-
-   :All/owner
-   (fn [ctx _ item]
-     (if (string? (:owner item))
-       (strip (queries/user-by-id ctx node (:owner item)))
-       (:owner item)))
+            [shared.specs :as sp]
+            [clojure.spec.alpha :as s]
+            [dtorter.api.overrides :as overrides]
+            [dtorter.api.common :refer [document-interceptor]]))
 
 
-   
-   
-   
-   :mutation/vote
-   (fn [ctx args _]
-     (mutations/vote ctx node args))
-   
-   :mutation/delvote
-   (fn [ctx args _]
-     (mutations/delvote ctx node args))
-   
-   :mutation/additem
-   (fn [ctx args _]
-     (mutations/add-item ctx node args))})
+(def swag-interceptor
+  {:name :test-interceptor-does-nothing-yet
+   :enter #(assoc % :swag 3)
+   :leave (fn [ctx]
+            (def ctx ctx)
+            (-> ctx :response)
+            (assoc-in ctx [:response :body] {:response (-> ctx :response :body)
+                                             :taginfo 3 })
+            ctx)})
 
-(defn load-schema [node]
-  (-> (io/resource "schema.edn")
-      slurp
-      edn/read-string
-      (util/attach-resolvers (resolver-map node))
-      schema/compile))
-
-(defn q [query-string]
-    (def schema (load-schema))
-    (lacinia/execute schema query-string nil nil))
-
-(comment (q "{ tag_by_id(id: \"foo\") {id name}}"))
+(defn api-interceptors [] [swag-interceptor])
 
 
+;; has to mess with arguments, cause vote api endpoint has more parameters..
+;; only at route creation time for now..
+(defn crud-methods [swagger-tag spec overrides]
+  [(str "/" swagger-tag)
+   {:swagger {:tags [swagger-tag]}}
+   (into [["/"
+           ((:all overrides)
+            {:post {:operationId (keyword swagger-tag "new")
+                    :summary (str "create a " swagger-tag)
+                    :parameters {:body spec}
+                    :handler (fn [req]
+                               (let [{:keys [node body-params]} req
+                                     uuid (str (java.util.UUID/randomUUID))]
+                                 (xt/submit-tx node [[::xt/put (assoc body-params
+                                                                      :xt/id uuid
+                                                                      :type (keyword swagger-tag))]])
+                                 {:status 201 :body {:xt/id uuid}}))}
+             :get {:operationId (keyword swagger-tag "list-all")
+                   :summary (str "list all " swagger-tag "s")
+                   :handler (fn [req]
+                              (def req req)
+                              (let [{:keys [node]} req]
+                                (def node node)
+                                {:status 200
+                                 :body
+                                 (into [] (map first
+                                               (xt/q (xt/db node) '[:find (pull e [*])
+                                                                    :where [e :type t]
+                                                                    :in t]
+                                                     (keyword swagger-tag))))}))}})]
+          ["/:id"
+           ((:individual overrides)
+            {:parameters {:path {:id string?}}
+             :interceptors [(document-interceptor spec)]
+             
+             :get {:handler (fn [{:keys [resource]}] {:status 200 :body resource})
+                   :summary (str "get a " swagger-tag)
+                   :operationId (keyword swagger-tag "get")}
+             
+             :put {:parameters {:body spec}
+                   :handler
+                   (fn [{:keys [resource node body-params] :as ctx}]
+                     (xt/submit-tx node [[::xt/put (assoc body-params :xt/id (-> ctx :path-params :id))]])
+                     {:status 204 :body "received"})
+                   :summary (str "update/replace a " swagger-tag)
+                   :operationId (keyword swagger-tag "put")}
+             
+             :delete {:handler (fn [{:keys [resource node]}]
+                                 (xt/submit-tx node [[::xt/delete (:xt/id resource)]])
+                                 {:status 204})
+                      :summary (str "delete a " swagger-tag)
+                      :operationId (keyword swagger-tag "delete")}})]]
+         (:extra-routes overrides))])
 
-
+(defn api-routes [] 
+  [
+   (crud-methods "tag" ::sp/tag overrides/tag)
+   (crud-methods "item" ::sp/item overrides/item) 
+   (crud-methods "vote" ::sp/vote dtorter.api.overrides/vote)
+   (crud-methods "user" ::sp/user dtorter.api.overrides/user)])

@@ -1,4 +1,265 @@
 :sorter.impl/todo
+  push this to prod...
+    run tests
+    make sure it starts from cli..
+
+  tdsl clean of todos. (move this file into egregore..)
+  work on tdsl integration..
+  which might include manually converting things into sorter todos
+
+:sorter.cleantags/todo
+  mutual exclusion tag
+
+  aggregate tag..
+      for sorter todo items,
+      tdsl todo items, work todo items, tdsl todo items..
+
+  fix current gathering...
+    make it non destructive/syncable
+    (then sync with github? might be really easy..)
+
+  gather tdsl tasks!!
+
+  make task page that does (non general) query of all todos.
+  actually start using (by tonight!)
+
+  setup image: has all tags and all tdsl todo lists...
+    use photoshop to group them manually.
+
+    each small category can be a tag, groups are grouped tags?
+    todo tags are a query over everything?
+
+    use tdsl tool to merge things together?
+
+    
+    
+
+
+  what do i do now. which tags do i want, and in which org structure. need to think about this.
+  skip to tdsl integration?
+
+  want to as quickly as possible use it for my decision making/media watching.
+  need separation of to watch and watched...
+    todo tags are global
+
+:sorter/github
+  make :item/type :github/issue
+    key that makes crud actions sync to the corresponding api
+      (making new sorter item would make new issue)
+
+:sorter/filter
+  generic concept of a filter?
+    (so same component can be used for graph axis picking, and main ui)
+
+
+:sorter/combining-tags
+  meta tags that import.
+  should have some sort of design hint that these are transient.
+    you cant add items to them
+    maybe they are dashed?
+    maybe just an actual picture?
+
+  can chose to import attributes/votes as well (optional)
+
+  examples:
+    todo/read
+
+      (imports only items from other tags, not votes)
+      (or (is in mutual exclusion tag with have-read tag. (not really sorted.)))
+          (has list of excluded items (done pile..) until a generalization appears)
+      (maybe pair chose/prioritize stuff that is in done pile, but not sorted in atom tag)
+
+    todo/code
+      imports from tdsl certain namespaces... (through api..)
+      also github issues
+
+    todo/watch
+    todo/listen
+    todo.listen/music
+
+:sorter.impl/todo
+  setup image..
+
+  its possible that using api for clean data is a bit silly... stops me from being able to modify things on the fly.
+    once i get tdsl/github api sync going, will know how to sync data. then it will be fine...
+
+  api call heaven/perfectly clean data...
+    need to fix bug: when I run entire clean_data file, the new thing (loses cookies)
+      but also does not include votes in the final tag...
+  
+  need schemas... right now just list of fields (keywords), which are in database..
+    data, go through each one, find distinct keys.
+     the great data cleanening? maybe don't grab from data anymore, but make large amounts of api calls...
+
+  actions todo
+    add item (always show, just one field.. then extend)
+    ...
+    
+  get more actions going, start with forms :thinking:
+
+  not intelligent enough to do forms right now... (sick)
+
+  get frontend display/interaction fixed.
+    voting
+    voting/editing in tag page
+    query/filter parameters for actions (user/attribute selection)
+    
+  get frontend actions working... (crud forms...)
+
+  redo style (more ltr..)
+
+  sync filters with url...
+
+  layout use a lot more horizontal space.
+  have crud actions INTERFACE be generic to type of item/spec..
+
+  permissions only owner can do any crud action.
+  voting/adding to a tag needs to be controlled. with user selector.
+
+  user group system... can be anonymous or named...
+    named user groups can be crud'd
+
+  need an endpoint to find the attributes... tag/attributes or include in tag/get
+
+  do git integration..
+
+  attribute selection
+    replace default attribute with appropriate based on tag.
+          (rap-verses/default -> rap-verses/lyrics)
+
+:sorter/schema
+  the schema is a list of attributes with check box.
+  they are these:
+
+  :name
+  :url
+  :url/youtube
+  :url/image
+  :url/twitter
+
+  they each have semantics as defined by spec
+  they are stored in database as just list of keywords..
+  
+
+:sorter/permissions
+  inspired by kekkonen, determine which apis are availible by quering the router.
+  the router has list of endpoints. convert endpoints into capabilities, include that in appdb
+
+  maybe its a list of rule triples.
+
+  [OBJECT, GROUP, DENY/ALLOW, ACTION] (optional name? so that you can reuse permissionsets?)
+
+  groups
+    anyone on internet
+    any sorter user
+    any user in this group
+    one of these users (anonymous user group?)
+    me
+    nobody
+    my public followers
+    my friends
+
+  actions
+    index(or unlisted), view, edit/delete, add items to, add votes to
+    
+  
+  
+
+:sorter/interface-components
+   http://metosin.github.io/komponentit/#!/example.autocomplete
+
+
+:sorter/friends
+  user group permissions:
+    this user group can: see my actions
+    this user group can: see this tag
+    this user group can: vote on this tag
+
+  frontpage feed of friends actions
+    (controlled with user groups..)
+
+  frontpage also has feed of what your friends are doing/their most recent actions.
+    (with expanding.)
+
+:sorter.design/layout
+  more horizontal.
+  on frontpage have your tags on left, public tags on right.
+
+  maybe color code of ownership.. like you own it if its blue.
+
+  lean into html borders more... current frontpage too subtle?
+  use size for elo, see what that does.
+
+
+:sorter.ideas/layoutswapping
+  make html layout flexible (swappable? pog by using interceptors)
+    store layout in cookie.., hardcode switches into html
+      let people upload their own templates as like pug templates... make sure to sanitize them.
+      or they can use any hiccup/tailwindcss things. (to be more safe about santizing)
+
+
+:sorter/to-watch
+  talk by rich hickey about interceptors
+
+:tsdl/web
+  add small graph on page that shows history of number of lines of
+     code that has been in the directory
+      (looks through git history using jgit and finds )
+
+:sorter/design
+  make add item page front and center,
+     because you can post things to multiple tags.
+     how does this work with schemas....
+       (i wanted to add oilshell post, should add it, THEN chose tags?)
+       or chose smallest tag, let supertags deal with that..
+       or chose smallest tga, manually add to other tags.
+
+  i fear if we have mixed schema tags,
+    it will become basically just reddit
+  
+
+:sorter.impl/todo
+  write test up to alphabet..
+  add custom checks as I go...
+  maybe add test for errors?
+
+  !!!!!write tests for api....!!!!!!!!!!
+
+  then keep extending it...
+  then tie to frontend... simplify fromtend?
+  then tie to some other api...
+
+
+  pedestal
+    reitit (swagger https://github.com/metosin/reitit/blob/master/doc/ring/swagger.md)
+    reitit-swagger
+    muuntaja (content negotiation..)
+
+  https://github.com/metosin/muuntaja (better than pick?)
+    
+  keep using pedestal... but make it a healthy/conforman http service...
+  using rest.guide
+
+
+  really like url decoupled from resource...
+  maybe just use ring cause its fast now/has most support?
+
+  https://github.com/juxt/apex#rationale
+
+  put tag as resource, then refactor to have some code thats useful otherwise (for testing?)
+  put tag into object with methods, then subclass that for resource version...
+
+
+
+
+
+
+
+
+
+
+
+
   I dont think I need graphql, can just have well formed, compliant rest api.
     can be more flexible than gql, cause I use spec. (can use edn or json..)
     https://github.com/juxt/rest
@@ -120,3 +381,7 @@
   when not logged in, things are disabled with hover that says "log in"
   dont make things invisible
 
+
+:sorter/performance
+  put the calculation into this?
+  https://github.com/plumatic/plumbing
