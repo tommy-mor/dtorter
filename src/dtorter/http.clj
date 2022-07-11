@@ -100,7 +100,7 @@
 (defn start [{:keys [prod] :or {prod false}}]
   (def node (dtorter.db/start))
   (-> {:env (if prod :prod :dev)
-       #_::server/host #_(if prod "sorter.isnt.online" "localhost")
+       ::server/host (if prod "sorter.isnt.online" "localhost")
        ::server/type :jetty
        ::server/port 8080
        ::server/resource-path "/public"
