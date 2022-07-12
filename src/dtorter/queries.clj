@@ -48,9 +48,12 @@
     
     (let [votes (or (:vote/_tag votes) [])
           items (or (:item/_tags items) [])
+          itemid->items (into {} (map (juxt :xt/id identity) items))
 
           freqs (frequencies (map :vote/attribute votes))
-          filteredvotes (filter #(and (= (:vote/attribute %) attribute) 
+          filteredvotes (filter #(and (itemid->items (:vote/left-item %))
+                                      (itemid->items (:vote/right-item %))
+                                      (= (:vote/attribute %) attribute) 
                                       (or (not user)
                                           (= (:owner %) user)))
                                 votes)

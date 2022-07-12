@@ -26,6 +26,8 @@
 
 ;; note, must be keywordless. this will confuse ppl
 (defn getranking [items votes]
+  (def items items)
+  (def votes votes)
   (def nitems (count items))
   (def nvotes (count votes))
   

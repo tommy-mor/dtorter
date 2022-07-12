@@ -6,5 +6,7 @@
 
 (defn -main [& args]
   (println "welcome to my uberjar")
-  (nrepl-server/start-server :port 7888 :handlre cider-nrepl-handler)
+  ;; https://markusgraf.net/2020-03-03-Remote-Cider-nREPL.html
+  ;;  ssh -L 7889:localhost:8081 root@sorter.isnt.online
+  (nrepl-server/start-server :port 7888 :handler cider-nrepl-handler)
   (http/start {:prod true}))

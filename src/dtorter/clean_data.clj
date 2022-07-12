@@ -7,20 +7,9 @@
             [tentacles.repos :as tr]
             [tentacles.issues :as ti]
             [clojure.data :as data]
-            [lambdaisland.deep-diff2 :as ddiff]))
-
-(def token {:oauth-token "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"})
-
-(def repo (tr/specific-repo "tommy-mor" "dtorter" token))
-(defn get-issues []
-  (ti/issues "tommy-mor" "dtorter" token))
-
-(def issues (get-issues))
-;; this data is super clean usable for my daily workflow. will become whole eventually but rn its just me
-(reset)
-(def m (if true 
-         (martian-http/bootstrap-openapi "http://sorter.isnt.online:8080/api/swagger.json")
-         (martian-http/bootstrap-openapi "http://localhost:8080/api/swagger.json")))
+            [lambdaisland.deep-diff2 :as ddiff]
+            [ring.util.response :as ring-resp]
+            [dtorter.views.common :as c]))
 
 (defn resp [a & [b]]
   (let [r (-> (martian/response-for m a b)
@@ -30,28 +19,28 @@
       (:xt/id r)
       r)))
 
-(def userid->name (into {} (map (juxt :id :username) d/users)))
-(def name->userid (into {} (map (juxt :username :id) d/users)))
+(comment (def userid->name (into {} (map (juxt :id :username) d/users)))
+         (def name->userid (into {} (map (juxt :username :id) d/users)))
 
-(def itemid->item (into {} (map (juxt :id identity) d/items)))
-(def title->id (into {} (map (juxt :title :id) d/tags)))
+         (def itemid->item (into {} (map (juxt :id identity) d/items)))
+         (def title->id (into {} (map (juxt :title :id) d/tags))))
 
 (comment (def user->votecount (into {} (for [ [id c] (frequencies (map :user_id d/votes))]
                                  [ (userid->name id) c])))) 
 
-(def title->tag (into {} (map (juxt :title identity) d/tags)))
+(comment (def title->tag (into {} (map (juxt :title identity) d/tags)))
 
-(def users (resp :user/list-all))
+         (def users (resp :user/list-all))
 
-(def tommy (resp :user/new
-                 {:user/name "tommy"
-                  :user/password "tommy1"}))
-(def blobbed (resp :user/new
-                   {:user/name "blobbed"
-                    :user/password "blobbed1"}))
+         (comment (def tommy (resp :user/new
+                                   {:user/name "tommy"
+                                    :user/password "tommy1"}))
+                  (def blobbed (resp :user/new
+                                     {:user/name "blobbed"
+                                      :user/password "blobbed1"})))
 
-(def olduser->newuser {(name->userid "tommy") tommy
-                       (name->userid "blobbed") blobbed})
+         (def olduser->newuser {(name->userid "tommy") tommy
+                                (name->userid "blobbed") blobbed}))
 
 (defn gather-votes [tagname users]
   (def tagname tagname)
@@ -104,12 +93,12 @@
                       :owner (olduser->newuser (:user_id vote))}))))))
 
 
-(import-tag "Fruits" ["tommy" "blobbed"]
-            "deliciousness")
+(comment (import-tag "Fruits" ["tommy" "blobbed"]
+                     "deliciousness")
 
-(import-tag "ways to laugh while texting"
-            ["tommy" "blobbed"]
-            "humor level")
+         (import-tag "ways to laugh while texting"
+                     ["tommy" "blobbed"]
+                     "humor level"))
 
 (defn ghissue->item [tagid issue]
   {:item/name (str "gh#" (:number issue) ": " (:title issue))
@@ -119,6 +108,13 @@
 
 (defn update-issues [tagid]
 
+ (def token {:oauth-token "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"})
+
+  (def issues (ti/issues "tommy-mor" "dtorter" token))
+  ;; this data is super clean usable for my daily workflow. will become whole eventually but rn its just me
+  (def m (martian-http/bootstrap-openapi (str "http://"
+                                              "localhost"
+                                              ":8080/api/swagger.json")))
   (def issues (into {} (map (juxt :item/url identity))
                     (map (partial ghissue->item tagid) (get-issues))))
   (def items (into {} (map (juxt :item/url identity))
@@ -164,8 +160,14 @@
   (map (comp #(resp :tag/delete {:id %}) :xt/id )
        (filter (comp #{"gh issues"} :tag/name) (resp :tag/list-all))))
 
-(ghtag)
-
+(def refresh {:no-doc true
+              :get {:handler
+                    (fn [req]
+                      (def req req)
+                      (ghtag)
+                      (ring-resp/redirect (str "/t/" (-> req
+                                                         :path-params
+                                                         :tagid))))}})
 
 
 

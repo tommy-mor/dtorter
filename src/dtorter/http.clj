@@ -31,7 +31,8 @@
             [shared.specs :as sp]
             [dtorter.views.routes :as views]
             [crypto.random :as random]
-            [tdsl.show]))
+            [tdsl.show]
+            [dtorter.clean-data :as clean]))
 
 (defonce cookies (middlewares/session {:store (cookie/cookie-store {:key (random/bytes 16)})}))
 
@@ -40,6 +41,7 @@
    (http/router
     
     [["" (views/routes)]
+     ["/githubrefresh/:tagid" clean/refresh]
      ["/tdsl" (tdsl.show/routes)]
      
      ["/api"
@@ -100,7 +102,9 @@
 (defn start [{:keys [prod] :or {prod false}}]
   (def node (dtorter.db/start))
   (-> {:env (if prod :prod :dev)
-       ::server/host (if prod "sorter.isnt.online" "localhost")
+       ::server/host (if true
+                       (if prod "sorter.isnt.online" "localhost")
+                       (.. java.net.InetAddress getLocalHost getHostName))
        ::server/type :jetty
        ::server/port 8080
        ::server/resource-path "/public"

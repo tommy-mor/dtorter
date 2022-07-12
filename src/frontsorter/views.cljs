@@ -6,7 +6,6 @@
             
             [inside-out.forms :as forms])
   (:require-macros [inside-out.reagent :refer [with-form]]))
-
 (defn addpanel []
   (with-form [item {:name ?name
                     :url ?url
@@ -50,6 +49,10 @@
      (str "/t/" js/tagid "/edit")
      [:div {:style {:padding-left "10px"}}
       
+      [:a {:style {:background "red"
+                   :float "right"}
+           :href (str "/githubrefresh/" js/tagid) }
+       " REFRESH "]
       [:h1 name]
       [:i description]
       [:br]
@@ -57,6 +60,8 @@
       [:br]
       [:b numitems] " items "
       [:b numvotes] " votes by " [:b numusers] " users"
+      
+      
       ;; TODO make this use correct plurality/inflection
       ]]))
 
