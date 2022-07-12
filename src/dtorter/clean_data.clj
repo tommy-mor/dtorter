@@ -18,7 +18,9 @@
 (def issues (get-issues))
 ;; this data is super clean usable for my daily workflow. will become whole eventually but rn its just me
 (reset)
-(def m (martian-http/bootstrap-openapi "http://localhost:8080/api/swagger.json"))
+(def m (if true 
+         (martian-http/bootstrap-openapi "http://sorter.isnt.online:8080/api/swagger.json")
+         (martian-http/bootstrap-openapi "http://localhost:8080/api/swagger.json")))
 
 (defn resp [a & [b]]
   (let [r (-> (martian/response-for m a b)
@@ -132,17 +134,20 @@
 
   (->> to-add
        (map issues)
-       (map (partial resp :item/new)))
+       (map (partial resp :item/new))
+       doall)
   
   (->> to-delete
        (map items)
        (map :xt/id)
-       (map #(resp :item/delete {:id %})))
+       (map #(resp :item/delete {:id %}))
+       doall)
   
   (->> to-change
        (map (juxt items issues))
        (map (fn [[item issue]]
-              (resp :item/put (assoc issue :id (:xt/id item))))))
+              (resp :item/put (assoc issue :id (:xt/id item)))))
+       doall)
   [to-change, to-add, to-delete])
 
 (defn ghtag []

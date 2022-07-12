@@ -1,9 +1,10 @@
 :sorter.impl/todo
-  push this to prod...
-    run tests
-    make sure it starts from cli..
-
+  put github issues on to normal sorter
+  
   tdsl clean of todos. (move this file into egregore..)
+
+  think about tdsl/sorter
+
   work on tdsl integration..
   which might include manually converting things into sorter todos
 

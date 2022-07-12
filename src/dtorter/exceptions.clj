@@ -23,7 +23,7 @@
                         (def e e)
                         (def request request)
                         e
-                        #_(log/error :error e)
+                        (log/error :error e)
                         (handler e request))})))
 
 
