@@ -17,7 +17,11 @@
       (:xt/id r)
       r)))
 
-(comment (def userid->name (into {} (map (juxt :id :username) d/users)))
+(comment (def m (martian-http/bootstrap-openapi (str "http://"
+                                                     "sorter.isnt.online"
+                                                     ":8080/api/swagger.json")))
+         (def resp (partial resp-m m))
+         (def userid->name (into {} (map (juxt :id :username) d/users)))
          (def name->userid (into {} (map (juxt :username :id) d/users)))
 
          (def itemid->item (into {} (map (juxt :id identity) d/items)))
@@ -57,12 +61,6 @@
                 (map itemid->item)))
 
          (defn import-tag [tagname users attribute]
-           (def m (martian-http/bootstrap-openapi (str "http://"
-                                                       "sorter.isnt.online"
-                                                       ":8080/api/swagger.json")))
-           (def resp (partial resp-m m))
-           
-
            (def existing-tags (resp :tag/list-all))
            
            (if (some (comp #{tagname} :tag/name) existing-tags)
@@ -153,6 +151,11 @@
   [to-change, to-add, to-delete])
 
 (defn ghtag []
+  
+  (def m (martian-http/bootstrap-openapi (str "http://"
+                                              "localhost"
+                                              ":8080/api/swagger.json")))
+  (def resp (partial resp-m m))
 
   (if-let [tag (first (filter (comp #{"gh issues"} :tag/name) (resp :tag/list-all)))]
     (update-issues (:xt/id tag))
