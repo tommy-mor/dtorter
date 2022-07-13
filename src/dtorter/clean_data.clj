@@ -155,8 +155,9 @@
   
   (def m (martian-http/bootstrap-openapi host))
   
-  (def tommy (:xt/id (first (filter (comp (partial = "tommy") :user/name) (resp :user/list-all)))))
   (def resp (partial resp-m m))
+  
+  (def tommy (:xt/id (first (filter (comp (partial = "tommy") :user/name) (resp :user/list-all)))))
   (if-let [tag (first (filter (comp #{"gh issues"} :tag/name) (resp :tag/list-all)))]
     (update-issues (:xt/id tag))
     (do
