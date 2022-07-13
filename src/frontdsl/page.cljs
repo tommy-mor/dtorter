@@ -72,7 +72,7 @@
                    [expandable-kw kw thought])))]
        [:a.bg-blue-100.text-black.py-1.px-1
         {:href "/tdsl/refresh"
-         :on-click #(set! js/document.cookie (str"query=" (encoded-string-from-match)))}
+         :on-click #(set! js/document.cookie (str"query=" (encoded-string-from-match) "; path=/"))}
         "refresh from git"]])))
 
 (def routes

@@ -5,7 +5,8 @@
             [io.pedestal.http.route :refer [url-for]]
             [ring.util.response :as ring-resp]
             [clojure.string :as str]
-            [dtorter.views.common :refer [html-interceptor]]))
+            [dtorter.views.common :refer [html-interceptor]]
+            [reitit.core :as r]))
 
 (defn display [dir]
   (def files (parse/parse-files dir))
@@ -57,31 +58,31 @@
             [:div#app]
             [:script "frontdsl.page.run(" (json/generate-string (display dir)) ")"]]}))
 
-(def refresh
-  {:name ::refresh
-   :enter (fn [ctx]
-
-            (let [page  (-> ctx
-                            :request
-                            :headers
-                            (get "referer")
-                            (str/split #"/")
-                            last)
-                  qs (-> ctx
-                         :request
+(defn refresh
+  [req]
+  (def req req)
+  (let [page  (-> req
+                  :headers
+                  (get "referer")
+                  (str/split #"/")
+                  last)
+        query-params (-> req
                          :cookies
                          (get "query")
                          :value)]
-              
-              (parse/update-files page)
-              
-              (assoc ctx :response (ring-resp/redirect (str (url-for :tdsl-page :params {:base page}) "#" qs)))))})
+
+    (println "cookies" (req :cookies))
+    (def qq (req :cookies))
+    (println "qs----------------------" query-params)
+    (parse/update-files page)
+    (ring-resp/redirect (str (r/match->path (r/match-by-name (::r/router req) :tdsl-page {:base page})) "#" query-params))))
 
 
 (defn routes []
   [["/b/:base" {:get {:handler page}
+                :name :tdsl-page
                 :parameters {:path {:base string?}}
                 :interceptors [html-interceptor (only-users #{"tommy"})]}]
-   #_["/tdsl/refresh" :get
-    [refresh (only-users #{"tommy"})]
-    :route-name :tdsl-refresh]])
+   ["/refresh"
+    {:get {:handler refresh}
+     :interceptors [(only-users #{"tommy"})]}]])

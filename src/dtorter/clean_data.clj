@@ -17,11 +17,12 @@
       (:xt/id r)
       r)))
 
+(def host (str "http://"
+               "sorter.isnt.online"
+               ":8080/api/swagger.json"))
 
-(comment (def m (martian-http/bootstrap-openapi (str "http://"
-                                                     "localhost"
-                                                     (:io.pedestal.http/host @dtorter.http/server)
-                                                     ":8080/api/swagger.json")))
+
+(comment (def m (martian-http/bootstrap-openapi host))
          (def resp (partial resp-m m))
          (def userid->name (into {} (map (juxt :id :username) d/users)))
          (def name->userid (into {} (map (juxt :username :id) d/users)))
@@ -110,9 +111,7 @@
    :owner tommy})
 
 (defn update-issues [tagid]
-  (def m (martian-http/bootstrap-openapi (str "http://"
-                                              (:io.pedestal.http/host @dtorter.http/server)
-                                              ":8080/api/swagger.json")))
+  (def m (martian-http/bootstrap-openapi host))
   (def resp (partial resp-m m))
 
   (def tommy (:xt/id (first (filter (comp (partial = "tommy") :user/name) (resp :user/list-all)))))
@@ -154,9 +153,7 @@
 
 (defn ghtag []
   
-  (def m (martian-http/bootstrap-openapi (str "http://"
-                                              (:io.pedestal.http/host @dtorter.http/server)
-                                              ":8080/api/swagger.json")))
+  (def m (martian-http/bootstrap-openapi host))
   
   (def tommy (:xt/id (first (filter (comp (partial = "tommy") :user/name) (resp :user/list-all)))))
   (def resp (partial resp-m m))

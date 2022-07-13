@@ -25,6 +25,9 @@
       [:div.topleft
        [:span "sorter"]
        [:a.currentpage {:href (c/rurl-for ctx :front-page)} "home"]
+       [:a.currentpage {:href (c/rurl-for ctx :tdsl-page {:base (if (= "tommy" (:user-name session))
+                                                                  "tdsl"
+                                                                  nil)})} "tdsl"]
        [:a.currentpage {:href 3 #_(url-for :users-page)} "users"]]
       (if-let [username (:user-name session)]
         [:div.topright
