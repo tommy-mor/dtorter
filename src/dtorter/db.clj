@@ -8,9 +8,9 @@
                               :db-dir (io/file f)}})
 (defn node [] (if true
                 (xt/start-node
-                 {:xtdb/index-store (lmdb-at "~/sorter-xtdb/idx")
-                  :xtdb/document-store (lmdb-at "~/sorter-xtdb/ds")
-                  :xtdb/tx-log (lmdb-at "~/sorter-xtdb/log")})
+                 {:xtdb/index-store (lmdb-at "sorter-xtdb/idx")
+                  :xtdb/document-store (lmdb-at "sorter-xtdb/ds")
+                  :xtdb/tx-log (lmdb-at "sorter-xtdb/log")})
                 (xt/start-node {})))
 
 

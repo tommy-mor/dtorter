@@ -21,12 +21,12 @@
          (def name->userid (into {} (map (juxt :username :id) d/users)))
 
          (def itemid->item (into {} (map (juxt :id identity) d/items)))
-         (def title->id (into {} (map (juxt :title :id) d/tags))))
+         (def title->id (into {} (map (juxt :title :id) d/tags)))
 
-(comment (def user->votecount (into {} (for [ [id c] (frequencies (map :user_id d/votes))]
-                                 [ (userid->name id) c])))) 
+         (def user->votecount (into {} (for [ [id c] (frequencies (map :user_id d/votes))]
+                                         [ (userid->name id) c])))
 
-(comment (def title->tag (into {} (map (juxt :title identity) d/tags)))
+         (def title->tag (into {} (map (juxt :title identity) d/tags)))
 
          (def users (resp :user/list-all))
 
@@ -58,7 +58,7 @@
 
          (defn import-tag [tagname users attribute]
            (def m (martian-http/bootstrap-openapi (str "http://"
-                                                       "localhost"
+                                                       "sorter.isnt.online"
                                                        ":8080/api/swagger.json")))
            (def resp (partial resp-m m))
            
@@ -93,10 +93,10 @@
                                :vote/magnitude (min 100 (max 0 (-> vote :magnitude)))
                                :vote/attribute attribute
                                :vote/tag fruits
-                               :owner (olduser->newuser (:user_id vote))})))))))
+                               :owner (olduser->newuser (:user_id vote))}))))))
 
 
-(comment (import-tag "Fruits" ["tommy" "blobbed"]
+         (import-tag "Fruits" ["tommy" "blobbed"]
                      "deliciousness")
 
          (import-tag "ways to laugh while texting"
@@ -113,7 +113,6 @@
   (def m (martian-http/bootstrap-openapi (str "http://"
                                               "localhost"
                                               ":8080/api/swagger.json")))
-
   (def resp (partial resp-m m))
 
   (def tommy (:xt/id (first (filter (comp (partial = "tommy") :user/name) (resp :user/list-all)))))
