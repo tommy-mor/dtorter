@@ -53,6 +53,22 @@
                          "frontsorter.tag.init_BANG_()"]]
      :title info}))
 
+(defn graph-handler
+  [req]
+  (def req req)
+  (let [tagid (-> req :path-params :id)]
+    {:status 200 :html [:div
+                        ;; [:span (json/generate-string tag)]
+                        [:div#app.appbody]
+                        [:script {:type "text/javascript"} (str "const tagid = '" tagid "';")]
+                        [:script {:type "text/javascript"
+                                  :src "/js/graph.js"}]
+                        [:script {:type "text/javascript"}
+                         "frontsorter.graph.init_BANG_('"
+                         (pr-str (:interface/attributes (queries/tag-info req)))
+                         "')"]]
+     :title info}))
+
 (def item-page
   {:name ::item-page
    :enter (fn [{:keys [node request] :as ctx}]

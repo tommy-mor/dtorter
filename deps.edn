@@ -8,5 +8,6 @@
         io.github.mhuebert/inside-out {:git/sha "c8134d2f6effa37a0165a705c4ce899b24e8bf7d"}
         metosin/reitit {:mvn/version "0.5.18"}
         com.github.oliyh/martian {:mvn/version "0.1.21"}
-        com.github.oliyh/martian-re-frame {:mvn/version "0.1.21"}}
+        com.github.oliyh/martian-re-frame {:mvn/version "0.1.21"}
+        com.github.oliyh/martian-cljs-http {:mvn/version "0.1.21"}}
  :paths ["src" "src/gen"]}

@@ -1,4 +1,9 @@
 :sorter.impl/todo
+  make graph work
+  fix cyclic
+  push
+  sort
+
   put github issues on to normal sorter
   
   tdsl clean of todos. (move this file into egregore..)

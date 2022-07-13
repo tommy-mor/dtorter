@@ -49,10 +49,15 @@
      (str "/t/" js/tagid "/edit")
      [:div {:style {:padding-left "10px"}}
       
-      [:a {:style {:background "red"
+      (if (= name "gh issues")
+        [:a {:style {:background "red"
+                     :float "right"}
+             :href (str "/githubrefresh/" js/tagid) }
+         " REFRESH "])
+      [:a {:style {:background "green"
                    :float "right"}
-           :href (str "/githubrefresh/" js/tagid) }
-       " REFRESH "]
+           :href (str "/t/" js/tagid "/graph") }
+       " graph "]
       [:h1 name]
       [:i description]
       [:br]

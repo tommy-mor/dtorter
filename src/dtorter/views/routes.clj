@@ -61,5 +61,10 @@
      :parameters {:path {:id string?}}
      :get {:handler
            tag/tag-handler}}]
+   ["/t/:id/graph"
+    {:name :graph-page
+     :parameters {:path {:id string?}}
+     :get {:handler
+           tag/graph-handler}}]
    
    (login/login-routes)])
