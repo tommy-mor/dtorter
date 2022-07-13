@@ -20,3 +20,4 @@ src/gen/
 *.swp
 *.port
 resources/public/css/*.css
+sorter-xtdb/

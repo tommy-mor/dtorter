@@ -17,8 +17,10 @@
       (:xt/id r)
       r)))
 
+
 (comment (def m (martian-http/bootstrap-openapi (str "http://"
-                                                     "sorter.isnt.online"
+                                                     "localhost"
+                                                     (:io.pedestal.http/host @dtorter.http/server)
                                                      ":8080/api/swagger.json")))
          (def resp (partial resp-m m))
          (def userid->name (into {} (map (juxt :id :username) d/users)))
@@ -109,7 +111,7 @@
 
 (defn update-issues [tagid]
   (def m (martian-http/bootstrap-openapi (str "http://"
-                                              "localhost"
+                                              (:io.pedestal.http/host @dtorter.http/server)
                                               ":8080/api/swagger.json")))
   (def resp (partial resp-m m))
 
@@ -153,10 +155,11 @@
 (defn ghtag []
   
   (def m (martian-http/bootstrap-openapi (str "http://"
-                                              "localhost"
+                                              (:io.pedestal.http/host @dtorter.http/server)
                                               ":8080/api/swagger.json")))
+  
+  (def tommy (:xt/id (first (filter (comp (partial = "tommy") :user/name) (resp :user/list-all)))))
   (def resp (partial resp-m m))
-
   (if-let [tag (first (filter (comp #{"gh issues"} :tag/name) (resp :tag/list-all)))]
     (update-issues (:xt/id tag))
     (do
