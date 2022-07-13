@@ -1,5 +1,4 @@
 :sorter.impl/todo
-  fix refresh button... wtff is goin gon..
   sort !!! /clean todos,,, add todos...
 
   put github issues on to normal sorter
@@ -34,9 +33,6 @@
     todo tags are a query over everything?
 
     use tdsl tool to merge things together?
-
-    
-    
 
 
   what do i do now. which tags do i want, and in which org structure. need to think about this.

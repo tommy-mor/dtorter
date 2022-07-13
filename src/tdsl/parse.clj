@@ -21,6 +21,10 @@
     (parse-file f)))
 
 (defn update-files [dir]
+  (def dir dir)
   (if (fs/directory? (str "../" dir))
-    (shell/sh "git" "pull" :dir (str "../" dir))
-    #_(shell/sh "git" "clone" "git@github.com:tommy-mor/tdsl.git" :dir "../")))
+    (do
+      (shell/sh "git" "commit" "-am\"clicked button on website\"" :dir (str "../" dir))
+      
+      (shell/sh "git" "pull" :dir (str "../" dir)))
+    #_ (shell/sh "git" "clone" "git@github.com:tommy-mor/tdsl.git" :dir "../")))

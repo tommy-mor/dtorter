@@ -70,10 +70,6 @@
                          :cookies
                          (get "query")
                          :value)]
-
-    (println "cookies" (req :cookies))
-    (def qq (req :cookies))
-    (println "qs----------------------" query-params)
     (parse/update-files page)
     (ring-resp/redirect (str (r/match->path (r/match-by-name (::r/router req) :tdsl-page {:base page})) "#" query-params))))
 
