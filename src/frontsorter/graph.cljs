@@ -17,42 +17,45 @@
 (def chart (atom nil))
 
 (defn show-revenue-chart
-  [data]
-  (def data data)
-  data
+  []
+
   (let [context (.getContext (.getElementById js/document "rev-chartjs") "2d")
         chart-data {:type "scatter"
-                    :data {:datasets [{:data (vec data)
+                    :data {:datasets [{:data []
                                        :label "matchup"
                                        :backgroundColor "#90EE90"}]}
                     :options {:interaction {:mode "nearest"}
                               :plugins {:tooltip
                                         {:callbacks
                                          {:label
-                                          #(.. % -raw -name)}}}
-                              :scales {:x {:type "linear"
-                                           :position "bottom"
-                                           :min 0
-                                           :max 100}
-                                       :y {:type "linear"
-                                           :min 0
-                                           :max 100}}}}
+                                          #(.. % -raw -name)}}}}}
         chart-data (clj->js chart-data)]
     (reset! chart (js/Chart. context chart-data))))
 
 (defn graph-data
-  [data]
+  []
   (create-class
-   {:component-did-mount #(show-revenue-chart data)
+   {:component-did-mount show-revenue-chart
     :display-name        "chartjs-component"
     :reagent-render      (fn []
                            
                            [:canvas {:id "rev-chartjs" :width "700" :height "380"}])
-    :key data}))
+    :key 123}))
 
-(defn render-graph [data]
-  [graph-data data])
+(defn render-graph []
+  [graph-data])
 
+(defonce x-data (atom false))
+(defonce y-data (atom false))
+
+(defn gather-data []
+  (def yid->item (into {} (map (juxt :xt/id identity) (-> @y-data))))
+  (def xid->item (into {} (map (juxt :xt/id identity) (-> @x-data))))
+  (seq (doall (for [id (set/intersection (set (map :xt/id @x-data)) (set (map :xt/id @y-data)))]
+                (do
+                  {:x (:elo (xid->item id))
+                   :y (:elo (yid->item id))
+                   :name (:item/name (yid->item id))})))))
 (defn attribute-selector [selected-atom data-atom attributes]
   [:select
    {:on-change #(let [new-attr (.. % -target -value)]
@@ -61,14 +64,18 @@
                                             <!
                                             :body
                                             :tag.filtered/sorted))
-                      (when @chart
+                      (js/console.log (clj->js @data-atom))
+                      (when (and @chart
+                                 @x-data
+                                 @y-data)
                         (js/console.log @chart)
                         (set! (.-data @chart)
                               
-                              (clj->js {:datasets [{:data [{:x 3 :y 4}]
+                              (clj->js {:datasets [{:data (gather-data)
                                                     :label "matchup2"
                                                     :backgroundColor "#90EE90"
-                                                    }]})))))
+                                                    }]}))
+                        (. @chart update))))
     :value @selected-atom}
 
    [:option {:disabled true :value false} "select an option"]
@@ -77,25 +84,10 @@
                :key attribute}
       (str (name attribute) " (" number " votes)")])])
 
-
-(def x-data (atom []))
-(def y-data (atom []))
-
-(defn gather-data []
-  (def yid->item (into {} (map (juxt :xt/id identity) (-> @y-data))))
-  (def xid->item (into {} (map (juxt :xt/id identity) (-> @x-data))))
-  (doall (for [id (set/intersection (set (map :xt/id @x-data)) (set (map :xt/id @y-data)))]
-           (do
-             {:x (:elo (xid->item id))
-              :y (:elo (yid->item id))
-              #_:name #_(:item/name (yid->item id))}))))
-
 (defn graph [attrs]
   (let [x-attr (atom false)
         y-attr (atom false)]    
     (fn [attrs]
-      (js/console.log (clj->js data))
-      
       #_ (GET (str "/t/" js/tagid "/graph/" @x-attr "/" @y-attr)
               {:handler #(do
                            (reset! data %)
@@ -105,6 +97,10 @@
                                                                  :backgroundColor "#90EE90"}]}))
                            (. @chart update))})
       [:div
+       [:a {:style {:background "green"
+                    :float "left"}
+            :href (str "/t/" js/tagid)}
+        "<<back to tag"]
        "x attribute"
        [attribute-selector x-attr x-data attrs]
        "y attribute"
@@ -113,8 +109,7 @@
        (when (and @x-attr
                   @y-attr
                   (not (= @x-attr @y-attr)))
-         [render-graph (gather-data)])])
-    ))
+         (render-graph))])))
 
 (defn mount-root [attrs]
   (d/render [graph attrs] (.getElementById js/document "app")))
