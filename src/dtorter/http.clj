@@ -40,9 +40,13 @@
   (pedestal/routing-interceptor
    (http/router
     
-    [["" (views/routes)]
-     ["/githubrefresh/:tagid" clean/refresh]
-     ["/tdsl" (tdsl.show/routes)]
+    [[""
+      {:no-doc true} (views/routes)]
+     ["/githubrefresh/:tagid"
+      {:no-doc true} clean/refresh]
+     ["/tdsl"
+      {:no-doc true}
+      (tdsl.show/routes)]
      
      ["/api"
       {:interceptors (api/api-interceptors) 

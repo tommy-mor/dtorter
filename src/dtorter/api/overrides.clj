@@ -56,30 +56,17 @@
                                                      
                                                      :xt/id uuid}]]))
                        {:status 201 :body {:xt/id uuid}})
-                     {:status 400 :body "username taken"}))}})
-   :extra-routes []})
+                     {:status 400 :body "username taken"}))}})})
 
 (def vote
-  {:individual identity
-   :all #(dissoc % :get)
-   :extra-routes []})
+  {:all #(dissoc % :get)})
 
 (def item
-  {:individual
-   #(assoc
-     %
-     :post
-     ;; do custom logic to check for tag existence,
-     ;; tag permissions, 
-     {})
-   :all #(dissoc % :get)
-   :extra-routes []})
+  {:all #(dissoc % :get)})
 
 ;; todo add response spec checking in reitit...
 (def tag
-  {:individual identity
-   :all identity
-   :extra-routes
+  {:extra-routes
    [["/:id/items"
      {:get {:operationId :tag/items
             :summary "get all the items added to this tag"
@@ -106,5 +93,4 @@
             (fn [req]
               {:status 200 :body (queries/tag-info req)})}}]]})
 
-(def routes-todo
-  {"/api/tag/{id}/items" "get only, item things all stay in item resource.."})
+

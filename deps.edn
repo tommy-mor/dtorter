@@ -9,5 +9,7 @@
         metosin/reitit {:mvn/version "0.5.18"}
         com.github.oliyh/martian {:mvn/version "0.1.21"}
         com.github.oliyh/martian-re-frame {:mvn/version "0.1.21"}
-        com.github.oliyh/martian-cljs-http {:mvn/version "0.1.21"}}
+        com.github.oliyh/martian-cljs-http {:mvn/version "0.1.21"}
+        com.cognitect/transit-cljs {:mvn/version "0.8.269"}}
+ 
  :paths ["src" "src/gen"]}

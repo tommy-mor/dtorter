@@ -7,7 +7,10 @@
             [shared.query-strings :as qs]
             [shared.specs :as sp]
             [clojure.spec.alpha :as s]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+
+            [cognitect.transit :as transit])
+  (:import [java.io ByteArrayOutputStream]))
 
 (def show-all {:vote_panel true
                :vote_edit true
@@ -25,17 +28,20 @@
 
 (defn jsonstring [req tagid itemid]
   (let [info (queries/tag-info req)
-        userid (-> req :session :user-id)]
+        userid (-> req :session :user-id)
+        out (ByteArrayOutputStream. 4096)
+        writer (transit/writer out :json)]
     (def info info) ; for use by test snippets in comment blocks in math.clj
     #_(s/explain ::sp/db info)
+    (transit/write writer info)
     {:string (str "var tagid = '" tagid "';\n"
                   "var itemid = " (if itemid
                                     (str "'" itemid "'")
                                     itemid) ";\n"
                   "var userid = '" userid "';\n"
-                  "var init = \"" (str/escape (pr-str info)
-                                              {\" "\\\""
-                                               \\ "\\\\"}) "\"")
+                  "var init = " \" (str/escape (.toString out)
+                                            {\" "\\\"" 
+                                             \\ "\\\\"}) "\";")
      :info (:tag/name info)}))
 
 (defn tag-handler

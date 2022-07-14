@@ -6,7 +6,9 @@
    [shared.specs :as sp]
    [cljs.reader :refer [read-string]]
    [martian.re-frame :as martian]
-   [lambdaisland.uri :as uri]))
+   [lambdaisland.uri :as uri]
+   [cognitect.transit :as transit]))
+
 ;; spec checking from
 ;; https://github.com/day8/re-frame/blob/master/examples/todomvc/src/todomvc/events.cljs#L49
 ;; TODO check spec differently for tag page
@@ -33,8 +35,7 @@
  interceptor-chain
  ;; TODO add spec checking here
  (fn [{:keys [db]} [_ mergee]]
-   {:db (let [db (-> js/init
-                     read-string)]
+   {:db (let [db (transit/read (transit/reader :json) js/init)]
           (merge db mergee))}))
 
 (defn appdb-args [db]
