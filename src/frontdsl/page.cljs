@@ -1,4 +1,5 @@
 (ns frontdsl.page
+  (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [reagent.core :as r]
             [reagent.dom :as rdom]
             [clojure.string :as str]
@@ -6,7 +7,9 @@
             [reitit.core]
             [reitit.frontend.easy :as rfe]
 
-            [frontsorter.common :refer [collapsible-cage]]))
+            [frontsorter.common :refer [collapsible-cage]]
+            [cljs-http.client :as http]
+            [cljs.core.async :refer [<!]]))
 
 (defonce todos (r/atom {}))
 
@@ -79,23 +82,30 @@
        
        [:label {:for "edit_box"} "show edit box"]
        [:div.flex.gap-2.flex-wrap
-        (doall (for [[kw thought] (->> @todos
-                                       (filter #(if (not (empty? q))
-                                                  (str/includes? (str (first %)) q)
-                                                  true))
-                                       (filter #(if (not (empty? @body-query))
-                                                  (str/includes? (str (second %)) @body-query)
-                                                  true)))]
+        (doall (for [{:keys [name body] :as thought} 
+                     (->> @todos
+                          (filter #(if (not (empty? q))
+                                     (str/includes? (:name %) q)
+                                     true))
+                          (filter #(if (not (empty? @body-query))
+                                     (str/includes? (:body %) @body-query)
+                                     true)))]
                  (if @show-body
-                   [:div {:key thought}
-                    [:div.align-top [:pre {:class (find-color kw)} (str kw)]]
-                    [:div [:pre (str/trim thought)]]]
-                   [expandable-kw kw thought])))]
+                   [:div {:key body}
+                    [:div.align-top [:pre {:class (find-color name)} (str name)]]
+                    [:div [:pre (str/trim body)]]]
+                   [expandable-kw name body])))]
        [:textarea "raartsrast"]
        [:a.bg-blue-100.text-black.py-1.px-1
         {:href "/tdsl/refresh"
          :on-click #(set! js/document.cookie (str"query=" (encoded-string-from-match) "; path=/"))}
-        "refresh from git"]])))
+        "refresh from git"]
+       [:div.bg-blue-100.text-black.py-1.px-1
+        {:on-click
+         (fn [] (http/post (str "/tdsl/b/" js/dir "/update")
+                           {:edn-params @todos}))}
+        
+        "send things"]])))
 
 (def routes
   [["/"
@@ -104,7 +114,8 @@
      :parameters {:query {:q string?}}}]])
 
 (defn ^:export run [inp]
-  (reset! todos (js->clj inp))
+  ;; TODO make this edn so that the keyword values stay keywords. have to escape it like in dtortr
+  (reset! todos (js->clj inp :keywordize-keys true))
   (rfe/start!
    (rf/router routes)
    (fn [m] (reset! match m))

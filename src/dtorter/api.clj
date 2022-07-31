@@ -43,7 +43,6 @@
                :get {:operationId (keyword swagger-tag "list-all")
                      :summary (str "list all " swagger-tag "s")
                      :handler (fn [req]
-                                (def req req)
                                 (let [{:keys [node]} req]
                                   (def node node)
                                   {:status 200

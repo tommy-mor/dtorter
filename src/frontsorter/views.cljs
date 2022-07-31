@@ -72,7 +72,7 @@
 
 (defn item [item]
   [c/hoveritem ^{:key (:xt/id item)}
-   {:on-click #(let [url (str "/t/" js/tagid "/" (:id item))]
+   {:on-click #(let [url (str "/t/" js/tagid "/i/" (:xt/id item))]
                  (set! js/window.location.href url))
     :key (:xt/id item)}
    

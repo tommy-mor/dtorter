@@ -42,21 +42,23 @@
    [c/itemview :item]])
 
 (defn votepanel [rowitem]
+  (def t rowitem)
+  t
   (let [vote @(subscribe [:vote-on rowitem])
-        [mag mag2] (c/calcmag vote (:id rowitem))
+        [mag mag2] (c/calcmag vote (:xt/id rowitem))
         ignoreitem (or @(subscribe [:item :item])
                        @(subscribe [:item :left]))
         editfn #(dispatch [:voteonpair vote ignoreitem rowitem])
         delfn #(dispatch [:delete-vote vote])]
     (if vote
       [:div.vote
-       [:td [:<> "" [:b mag] " vs " [:b mag2] "  " (:name ignoreitem)]]
+       [:td [:<> "" [:b mag] " vs " [:b mag2] "  " (:xt/name ignoreitem)]]
        [:td 
         [c/smallbutton "edit " editfn]]
        [:td]
        [:td 
         [c/smallbutton " delete" delfn]]]
-      (if (= (:id rowitem) js/itemid)
+      (if (= (:xt/id rowitem) js/itemid)
         [:td "--"]
         [:td [c/smallbutton "vote" editfn]]))))
 
@@ -64,38 +66,35 @@
 (defn rowitem [rowitem]
   (let [show @(subscribe [:show])]
     (def rowitem rowitem)
-    rowitem
-    
-    (:id rowitem)
+    (:xt/id rowitem)
     
     [:tr 
      [:td (.toFixed (:elo rowitem) 2)]
      ;; customize by type (display url for links?)
      
-     [:td (:votecount rowitem)]
-     [:td [:b (if (= js/itemid (:id rowitem))
+     [:td (:item/votecount rowitem)]
+     [:td [:b (if (= js/itemid (:xt/id rowitem))
                 "x"
                 " ")]]
-     [:td (let [url (str "/t/" js/tagid "/" (:id rowitem))
+     [:td (let [url (str "/t/" js/tagid "/i/" (:xt/id rowitem))
                 name [:div
                       {:onClick (fn [] (set! js/window.location.href url))}
-                      (:name rowitem)]
-                id (:id rowitem)
+                      (:item/name rowitem)]
+                id (:xt/id rowitem)
                 right @(subscribe [:item :right])]
             (def right right)
             right
             (cond
               (and right
-                   (= id (:id right))) [:b name]
+                   (= id (:xt/id right))) [:b name]
               (= id js/itemid) [:b name]
               true name))]
      
-     [:td [:b (if (= (:id @(subscribe [:item :right])) (:id rowitem))
+     [:td [:b (if (= (:xt/id @(subscribe [:item :right])) (:xt/id rowitem))
                 "x"
                 " ")]]
      
-     (if (:vote_edit show)
-       [votepanel rowitem])]))
+     [votepanel rowitem]]))
 
 (defn ranklist []
   ;; (js/console.log "rank")
@@ -108,7 +107,7 @@
      [:tbody
       (doall (for [n sorted]
                [rowitem (-> n
-                            (assoc :key (:id n)))]))]]))
+                            (assoc :key (:xt/id n)))]))]]))
 
 (defn home-page []
   #_ (fn []
@@ -128,8 +127,7 @@
    [c/collapsible-cage true "ATTRIBUTES" ""
     [attrs/attributes-panel]]
    [c/collapsible-cage true "MATCHUPS" "itemranking"
-    [ranklist]] 
-   ])
+    [ranklist]]])
 
 
 (defn mount-root []

@@ -10,13 +10,11 @@
 
 (defn display [dir]
   (def files (parse/parse-files dir))
-  (def thoughts (sort-by first (apply concat (for [f files]
-                                               (for [thought f]
-                                                 (first thought))))))
+  (def thoughts (sort-by :name files))
 
   (->> thoughts
-       (filter (comp (complement nil?) second))
-       (filter (comp not #{(keyword "(ns")} first))))
+       (filter (comp (complement nil?) :body))
+       (filter (comp not #{(keyword "(ns")} :name))))
 
 (defn only-users [users]
   {:name :filter :enter
@@ -41,8 +39,6 @@
     (def dir dir)
     (def username username)
     (def access access)
-    
-    
     (if-not access (throw (ex-info "access denied" req)))
     
     {:status 200
@@ -54,7 +50,8 @@
              [:script {:src "/js/shared.js"
                        :type "text/javascript"}]
              [:script {:src "/js/tdsl.js"
-                       :type "text/javascript"}]]
+                       :type "text/javascript"}]
+             [:script (str "const dir = '" dir "';")]]
             [:div#app]
             [:script "frontdsl.page.run(" (json/generate-string (display dir)) ")"]]}))
 
@@ -74,11 +71,23 @@
     (ring-resp/redirect (str (r/match->path (r/match-by-name (::r/router req) :tdsl-page {:base page})) "#" query-params))))
 
 
+(defn rewrite [req]
+  (def req req)
+  (def thoughts (-> req :body-params))
+  (= (first (sort-by (juxt :file :position) thoughts))
+     (first (sort-by (juxt :file :position) files)))
+  (ring-resp/redirect "/"))
+
 (defn routes []
   [["/b/:base" {:get {:handler page}
                 :name :tdsl-page
                 :parameters {:path {:base string?}}
                 :interceptors [html-interceptor (only-users #{"tommy"})]}]
+   ["/b/:base/update"
+    {:post {:handler rewrite}
+     :name :tdsl-write
+     :parameters {:path {:base string?}}
+     :interceptors [html-interceptor (only-users #{"tommy"})]}]
    ["/refresh"
     {:get {:handler refresh}
      :interceptors [(only-users #{"tommy"})]}]])

@@ -25,8 +25,6 @@
                 :summary "list all usernames"
                 :handler
                 (fn [req]
-                  (def req req)
-                  req
                   {:status 200 :body (map first (xt/q (xt/db (:node req))
                                                       '[:find (pull e [:user/name :xt/id])
                                                         :where [e :type :user]]))})}
@@ -35,7 +33,6 @@
                  :summary "register a new user"
                  :handler
                  (fn [req]
-                   (def req req)
                    (def username (-> req :body-params :user/name))
 
                    (def uuid (str (java.util.UUID/randomUUID)))
@@ -73,7 +70,6 @@
             :parameters {:path {:id string?}}
             :interceptors [(document-interceptor ::sp/tag)]
             :handler (fn [req]
-                       (def req req)
                        (let [{:keys [node path-params]} req
                              tid (:id path-params)]
                          {:status 200

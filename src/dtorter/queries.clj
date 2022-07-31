@@ -38,7 +38,7 @@
   (reverse (for [[elo item] (math/getranking (vec items) (vec votes))]
              (assoc item :elo elo))))
 
-(defn tag-info-calc [db query logged-in-user {:keys [attribute user] :as query-params}]
+(defn tag-info-calc [db query logged-in-user {:keys [attribute user] :as query-params} itemid]
   (let [[tag owner votes items] query]
     
     (when (and (not *testing*) (some nil? [tag owner votes items]))
@@ -83,13 +83,21 @@
                                :interface/attributes freqs
                                :interface/users (xt/pull-many db [:user/name :xt/id] userids)
                                :tag.session/votes (->> filteredvotes
-                                                       (filter #(= (:owner %) logged-in-user))
+                                                       (filter #(and (= (:owner %) logged-in-user)
+                                                                     (or (not itemid)
+                                                                         (or (= itemid (:vote/left-item %))
+                                                                             (= itemid (:vote/right-item %))))))
                                                        (map #(-> %
                                                                  (update :vote/left-item id->item)
                                                                  (update :vote/right-item id->item))))}))
-      (def rawinfo (merge rawinfo {:pair (math/getpair (assoc rawinfo
-                                                              :id->item id->item))}))
-      rawinfo
+      (when (and itemid (not (id->item itemid)))
+        (throw (ex-info "item not in tag" {:status 400})))
+      
+      
+      (def rawinfo (if itemid
+                     (merge rawinfo {:item (id->item itemid)})
+                     (merge rawinfo {:pair (math/getpair (assoc rawinfo
+                                                                :id->item id->item))})))
       (when (not (s/valid? ::sp/db rawinfo))
         (expound/expound ::sp/db rawinfo)
         (throw (ex-info "generated bad db"
@@ -99,9 +107,11 @@
 
 
 (defn tag-info [req]
-  (def req req)
+  (def t req)
+  t
   (let [{:keys [node path-params query-params]} req
-        tagid (:id path-params)
+        tagid (:tagid path-params)
+        itemid (or (:itemid path-params) false)
         ;; todo move {:vote/_tag [*]} into first pull expression.. 
         db (xt/db node)
         query (first (xt/q db '[:find
@@ -123,7 +133,7 @@
     
     (comment (sc.api/spy (+ 3 3))
              (sc.api/defsc 17))
-    (tag-info-calc db query logged-in-user query-params)))
+    (tag-info-calc db query logged-in-user query-params itemid)))
 
 (defn unsorted-calc [items votes voted-ids]
   (def voted-ids)
