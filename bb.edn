@@ -10,4 +10,3 @@
                                 -o ./resources/public/css/site.css
                                 ./resources/private/css/site.css --watch")
          build-jar (shell "lein uberjar")}}
-

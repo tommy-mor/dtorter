@@ -12,13 +12,18 @@
             [cljs.core.async :refer [<!]]))
 
 (defonce todos (r/atom {}))
+(->> todos
+     deref
+     (take 3))
 
 (defonce match (r/atom nil))
 
 (defonce show-body (r/atom true))
-(defonce show-edit (r/atom false))
-
 (defonce body-query (r/atom ""))
+
+(defonce editbox-state (r/atom {:name ""
+                                :body ""
+                                :file ""}))
 
 (defn query-from-match []
   (-> @match
@@ -56,14 +61,42 @@
       (str c " bg-green-100")
       c)))
 
-(defn expandable-kw [kw body]
+(defn expandable-kw [{:keys [name body file] :as note}]
   (let [expanded (r/atom false)]
-    (fn [kw body]
-      [:div
-       [:div.align-top {:on-click #(swap! expanded not)}
-        [:pre {:class (find-color kw)} (str kw)]]
-       (when @expanded
-         [:div [:pre (str/trim body)]])])))
+    (fn [{:keys [name body file] :as note}]
+      (let [show (or @expanded @show-body)]
+        [:div
+         [:div.align-top {:on-click #(swap! expanded not)
+                          :class (find-color name)}
+          [:pre (str name) (when show
+                             [:div {:href "#"
+                                    :style {:color "blue"
+                                            :float "right"
+                                            :cursor "pointer"}
+                                    :on-click #(do
+                                                 (.stopPropagation %)
+                                                 (reset! editbox-state note)
+                                                 false)} "e"])]]
+         (when show
+           [:div [:pre (str/trim body)]])]))))
+
+(def editbox
+  (r/create-class 
+   {:reagent-render
+    (fn [e]
+      [:div.w-full
+       [:textarea.border-4.w-full {:value (-> @editbox-state :name)}]
+       [:textarea#editbox.border-4.w-full.h-full {:value (-> @editbox-state :body)
+                                                  :on-change
+                                                  (fn [e]
+                                                    (swap! editbox-state
+                                                           assoc :body (.. e -target -value)))}]])
+    :component-did-update
+    (fn []
+      (let [box (js/document.getElementById "editbox")]
+        (js/console.log box)
+        (set! (.. box -style -height)
+              (str (+ (.. box -scrollHeight) 8) "px"))))}))
 
 (defn tdsl-app []
   (fn []
@@ -76,13 +109,9 @@
                          :value @show-body
                          :on-change #(swap! show-body not)}]
        [:label {:for "show_box"} "show text"]
-       [:input#edit_box{:type "checkbox"
-                         :value @show-edit
-                         :on-change #(swap! show-edit not)}]
-       
-       [:label {:for "edit_box"} "show edit box"]
        [:div.flex.gap-2.flex-wrap
-        (doall (for [{:keys [name body] :as thought} 
+        [editbox]
+        (doall (for [{:keys [name body file] :as thought} 
                      (->> @todos
                           (filter #(if (not (empty? q))
                                      (str/includes? (:name %) q)
@@ -90,12 +119,7 @@
                           (filter #(if (not (empty? @body-query))
                                      (str/includes? (:body %) @body-query)
                                      true)))]
-                 (if @show-body
-                   [:div {:key body}
-                    [:div.align-top [:pre {:class (find-color name)} (str name)]]
-                    [:div [:pre (str/trim body)]]]
-                   [expandable-kw name body])))]
-       [:textarea "raartsrast"]
+                 [expandable-kw thought]))]
        [:a.bg-blue-100.text-black.py-1.px-1
         {:href "/tdsl/refresh"
          :on-click #(set! js/document.cookie (str"query=" (encoded-string-from-match) "; path=/"))}
