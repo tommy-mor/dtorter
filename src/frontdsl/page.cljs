@@ -12,10 +12,6 @@
             [cljs.core.async :refer [<!]]))
 
 (defonce todos (r/atom {}))
-(->> todos
-     deref
-     (take 3))
-
 (defonce match (r/atom nil))
 
 (defonce show-body (r/atom true))
@@ -23,7 +19,8 @@
 
 (defonce editbox-state (r/atom {:name ""
                                 :body ""
-                                :file ""}))
+                                :file ""
+                                :position 0}))
 
 (defn query-from-match []
   (-> @match
@@ -81,22 +78,34 @@
            [:div [:pre (str/trim body)]])]))))
 
 (def editbox
-  (r/create-class 
-   {:reagent-render
-    (fn [e]
-      [:div.w-full
-       [:textarea.border-4.w-full {:value (-> @editbox-state :name)}]
-       [:textarea#editbox.border-4.w-full.h-full {:value (-> @editbox-state :body)
-                                                  :on-change
-                                                  (fn [e]
-                                                    (swap! editbox-state
-                                                           assoc :body (.. e -target -value)))}]])
-    :component-did-update
-    (fn []
-      (let [box (js/document.getElementById "editbox")]
-        (js/console.log box)
-        (set! (.. box -style -height)
-              (str (+ (.. box -scrollHeight) 8) "px"))))}))
+  (r/create-class
+   (let [submitfn (fn []
+                    (reset! editbox-state {:name ""
+                                           :body ""
+                                           :position 0
+                                           :file ""}))]
+     {:reagent-render
+      (fn [e]
+        [:div.w-full
+         [:input.border-4.w-full {:value (-> @editbox-state :name)
+                                  :class (find-color (-> @editbox-state :name))}]
+         [:textarea#editbox.border-4.w-full {:value (-> @editbox-state :body)
+                                             :on-change
+                                             (fn [e]
+                                               (swap! editbox-state
+                                                      assoc :body (.. e -target -value)))
+                                             :on-key-down
+                                             (fn [e]
+                                               (def e e)
+                                               (when (and (.. e -ctrlKey)
+                                                          (= (.. e -code)
+                                                             "Enter"))
+                                                 (submitfn)))}]])
+      :component-did-update
+      (fn []
+        (let [box (js/document.getElementById "editbox")]
+          (set! (.. box -style -height)
+                (str (+ (.. box -scrollHeight) 8) "px"))))})))
 
 (defn tdsl-app []
   (fn []
@@ -118,7 +127,9 @@
                                      true))
                           (filter #(if (not (empty? @body-query))
                                      (str/includes? (:body %) @body-query)
-                                     true)))]
+                                     true))
+                          (filter #(not= (select-keys % [:file :position])
+                                         (select-keys @editbox-state [:file :position]))))]
                  [expandable-kw thought]))]
        [:a.bg-blue-100.text-black.py-1.px-1
         {:href "/tdsl/refresh"
