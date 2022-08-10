@@ -70,12 +70,12 @@
     (parse/update-files page)
     (ring-resp/redirect (str (r/match->path (r/match-by-name (::r/router req) :tdsl-page {:base page})) "#" query-params))))
 
-
 (defn rewrite [req]
   (def req req)
   (def thoughts (-> req :body-params))
-  (= (first (sort-by (juxt :file :position) thoughts))
-     (first (sort-by (juxt :file :position) files)))
+  (def files (parse/parse-files dir))
+  (parse/rewrite files (-> req
+                           :body-params))
   (ring-resp/redirect "/"))
 
 (defn routes []

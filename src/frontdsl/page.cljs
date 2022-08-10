@@ -9,7 +9,8 @@
 
             [frontsorter.common :refer [collapsible-cage]]
             [cljs-http.client :as http]
-            [cljs.core.async :refer [<!]]))
+            [cljs.core.async :refer [<!]]
+            [tick.core :as t]))
 
 (defonce todos (r/atom {}))
 (defonce match (r/atom nil))
@@ -77,9 +78,38 @@
          (when show
            [:div [:pre (str/trim body)]])]))))
 
+(defonce last-send (r/atom (t/now)))
+(defonce pending (r/atom false))
+(defonce updated (r/atom true))
+;; IDK what to do with this... its not great.
+;; maybe have server return what it got, so state knows if it is synced? or returns hash?
+;; keeps bouncing back and forth until hash matches. but bounces can only happen max once every 3 seconds..
+
 (def editbox
   (r/create-class
-   (let [submitfn (fn []
+   (let [httpfn (fn []
+                  (http/post (str "/tdsl/b/" js/dir "/update")
+                             {:edn-params [(update @editbox-state :name keyword)]}))
+         sendfn (fn sendfn []
+                  (reset! updated false)
+                  (if (and (not @pending)
+                           (t/> (t/now) (t/>> @last-send (t/new-duration 1 :seconds))))
+                    (go 
+                      (let [response (httpfn)]
+                        (reset! last-send (t/now))
+                        (reset! updated true)
+                        (js/console.log "response")
+                        (js/console.log response)))
+                    (when (not @pending)
+                      (reset! pending true)
+                      (js/setTimeout #(do
+                                        (go (httpfn)
+                                            (reset! last-send (t/now))
+                                            (reset! updated true)
+                                            (reset! pending false)))
+                                     3000))))
+         submitfn (fn []
+                    (httpfn)
                     (reset! editbox-state {:name ""
                                            :body ""
                                            :position 0
@@ -93,14 +123,23 @@
                                              :on-change
                                              (fn [e]
                                                (swap! editbox-state
-                                                      assoc :body (.. e -target -value)))
+                                                      assoc :body (.. e -target -value))
+                                               (sendfn))
                                              :on-key-down
                                              (fn [e]
                                                (def e e)
                                                (when (and (.. e -ctrlKey)
                                                           (= (.. e -code)
                                                              "Enter"))
-                                                 (submitfn)))}]])
+                                                 (sendfn)
+                                                 (submitfn)))}]
+         [:pre {:style {:color (if @updated "green" "red")}}
+          @last-send]
+         [:pre
+          (if @pending "PENDING" "not pending")
+          "\n"
+          (if @updated "UPDATED" "not updated") 
+          ]])
       :component-did-update
       (fn []
         (let [box (js/document.getElementById "editbox")]
