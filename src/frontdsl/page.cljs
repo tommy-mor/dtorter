@@ -10,7 +10,8 @@
             [frontsorter.common :refer [collapsible-cage]]
             [cljs-http.client :as http]
             [cljs.core.async :refer [<!]]
-            [tick.core :as t]))
+            [tick.core :as t]
+            [clojure.set :refer [index]]))
 
 (defonce todos (r/atom {}))
 (defonce match (r/atom nil))
@@ -110,6 +111,16 @@
                                      3000))))
          submitfn (fn []
                     (httpfn)
+                    
+                    (comment
+                      "TODO this is for when you press ctrl-enter, we want to see the updated text"
+                      (reset! todos
+                              (vec (let [idx (select-keys @editbox-state [:position :file])]
+                                     (map first (-> @todos
+                                                    (index [:position :file])
+                                                    (assoc idx @editbox-state)
+                                                    vals))))))
+                    
                     (reset! editbox-state {:name ""
                                            :body ""
                                            :position 0
@@ -118,21 +129,24 @@
       (fn [e]
         [:div.w-full
          [:input.border-4.w-full {:value (-> @editbox-state :name)
-                                  :class (find-color (-> @editbox-state :name))}]
-         [:textarea#editbox.border-4.w-full {:value (-> @editbox-state :body)
-                                             :on-change
-                                             (fn [e]
-                                               (swap! editbox-state
-                                                      assoc :body (.. e -target -value))
-                                               (sendfn))
-                                             :on-key-down
-                                             (fn [e]
-                                               (def e e)
-                                               (when (and (.. e -ctrlKey)
-                                                          (= (.. e -code)
-                                                             "Enter"))
-                                                 (sendfn)
-                                                 (submitfn)))}]
+                                  :class (find-color (-> @editbox-state :name))
+                                  :style {:width "60%"}}]
+         [:textarea#editbox.border-4 {:value (-> @editbox-state :body)
+                                      :style {:width "60%"}
+                                      :on-change
+                                      (fn [e]
+                                        (swap! editbox-state
+                                               assoc :body (.. e -target -value))
+                                        (sendfn))
+                                      
+                                      :on-key-down
+                                      (fn [e]
+                                        (def e e)
+                                        (when (and (.. e -ctrlKey)
+                                                   (= (.. e -code)
+                                                      "Enter"))
+                                          (sendfn)
+                                          (submitfn)))}]
          [:pre {:style {:color (if @updated "green" "red")}}
           @last-send]
          [:pre

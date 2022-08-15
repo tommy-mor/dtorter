@@ -8,7 +8,7 @@
 
 (println "strst")
 
-(parse/rewrite (parse/parse-files "../programming/tdsl"))
+(parse/rewrite (parse/parse-files "../programming/tdsl") [])
 
 (shell/sh "git" "add" ".")
 (println "formatted tdsl files")
