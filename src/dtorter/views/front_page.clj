@@ -19,7 +19,7 @@
   (def size (Math/sqrt (* 3 (+ votecount itemcount))))
   [:div.tag-small
    {:style (str "font-size: " (max size 12) "px")}
-   [:a {:href (href-for :tag-page {:tagid (:xt/id tag)})}
+   [:a {:href (href-for :tag-page {:id (:xt/id tag)})}
     (:tag/name tag)]])
 
 

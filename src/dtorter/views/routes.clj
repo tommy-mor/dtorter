@@ -59,17 +59,17 @@
      :get {:handler (fn [req] {:status 200
                                :title "frontpage"
                                :html (fp/page req)})}}]
-   ["/t/:tagid/i/:itemid"
+   ["/t/:id/i/:itemid"
     {:name :item-page
-     :parameters {:path {:tagid string? :itemid string?}}
+     :parameters {:path {:id string? :itemid string?}}
      :get {:handler tag/item-handler}}]
-   ["/t/:tagid"
+   ["/t/:id"
     {:name :tag-page
-     :parameters {:path {:tagid string?}}
+     :parameters {:path {:id string?}}
      :get {:handler tag/tag-handler}}]
-   ["/t/:tagid/graph"
+   ["/t/:id/graph"
     {:name :graph-page
-     :parameters {:path {:tagid string?}}
+     :parameters {:path {:id string?}}
      :get {:handler tag/graph-handler}}]
    
    (login/login-routes)])

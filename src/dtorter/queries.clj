@@ -108,9 +108,9 @@
 
 (defn tag-info [req]
   (def t req)
-  t
+  (def req req)
   (let [{:keys [node path-params query-params]} req
-        tagid (:tagid path-params)
+        tagid (:id path-params)
         itemid (or (:itemid path-params) false)
         ;; todo move {:vote/_tag [*]} into first pull expression.. 
         db (xt/db node)

@@ -34,22 +34,19 @@
     (def info info) ; for use by test snippets in comment blocks in math.clj
     #_(s/explain ::sp/db info)
     (transit/write writer info)
-    (-> info
-        :pair
-        )
     {:string (str "var tagid = '" tagid "';\n"
                   "var itemid = " (if itemid
                                     (str "'" itemid "'")
                                     itemid) ";\n"
                   "var userid = '" userid "';\n"
                   "var init = " \" (str/escape (.toString out)
-                                            {\" "\\\"" 
-                                             \\ "\\\\"}) "\";")
+                                               {\" "\\\"" 
+                                                \\ "\\\\"}) "\";")
      :info (:tag/name info)}))
 
 (defn tag-handler
   [req]
-  (let [tagid (-> req :path-params :tagid)
+  (let [tagid (-> req :path-params :id)
         {:keys [string info]} (jsonstring req tagid false)]
     {:status 200 :html [:div
                         ;; [:span (json/generate-string tag)]
@@ -63,7 +60,7 @@
 
 (defn item-handler
   [{:keys [node] :as req}]
-  (let [tagid (-> req :path-params :tagid)
+  (let [tagid (-> req :path-params :id)
         itemid (-> req :path-params :itemid)
         {:keys [string info]} (jsonstring req tagid itemid)]
     {:status 200
@@ -81,7 +78,7 @@
 
 (defn graph-handler
   [req]
-  (let [tagid (-> req :path-params :tagid)]
+  (let [tagid (-> req :path-params :id)]
     {:status 200 :html [:div
                         ;; [:span (json/generate-string tag)]
                         [:div#app.appbody]
