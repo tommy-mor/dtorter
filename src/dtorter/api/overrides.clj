@@ -9,6 +9,7 @@
 
 (def no-changes {:all identity :individual identity :extra-routes []})
 
+
 (def user
   {:individual
    #(assoc %

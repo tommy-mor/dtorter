@@ -42,7 +42,10 @@
                                     :user/password "tommy1"}))
                   (def blobbed (resp :user/new
                                      {:user/name "blobbed"
-                                      :user/password "blobbed1"})))
+                                      :user/password "blobbed1"}))
+                  (def eli (resp :user/new
+                                 {:user/name "eli"
+                                  :user/password "eli1"})))
 
          (def olduser->newuser {(name->userid "tommy") tommy
                                 (name->userid "blobbed") blobbed})
