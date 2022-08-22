@@ -17,6 +17,7 @@
       (:xt/id r)
       r)))
 
+
 (def host (str "http://"
                (or "sorter.isnt.online" "localhost")
                ":8080/api/swagger.json"))

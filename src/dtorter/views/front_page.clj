@@ -37,8 +37,32 @@
                     [tid :owner userid]
                     [tid :tag/name _]]
                   user))
+  (xt/q (xt/db node)
+        '[:find
+                    (pull uid [*])
+                    :in uid
+                    :where
+                    [tid :owner userid]
+                    [tid :tag/name _]]
+                  user)
   [:div.frontpage
-   [:h1 "all tags"]
+   [:b "goals"]
+   (when (= "tommy" (:user/name (xt/pull (xt/db node) '[*] user)))
+     [:pre ":goals/before-school
+  GOAL: by #inst \"2022-08-29T07:00:00.000-00:00\"
+    https://github.com/tommy-mor/dtorter/milestone/1
+     (combining tag which combines sorter todos and school todos (TDSL?))
+
+    ability to use markwhen to plan
+
+    STRETCH:
+      time features
+      (due dates, completed or not things, LATE marking)
+      calendar integration? planned/actual scheduling (daily and planning)
+      (integration with this page (my homepage))"
+      ])
+   [:b "all tags"]
+   
    [:ul.frontpage-tag-container
     (for [tag tags]
       (render-tag request tag))]])
