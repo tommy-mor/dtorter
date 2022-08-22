@@ -46,6 +46,15 @@
                     [tid :tag/name _]]
                   user)
   [:div.frontpage
+   [:b "program"]
+   [:pre "
+             follow schedule (not made yet, will be set by school).
+
+             then work through :concurrent/todo
+             then pop/consult :sorter.tags/ghissues and :goals whenever I need new thing
+                              (will be :sorter.tags/todo merge tag eventually)
+         "
+    ]
    [:b "goals"]
    (when (= "tommy" (:user/name (xt/pull (xt/db node) '[*] user)))
      [:pre ":goals/before-school
