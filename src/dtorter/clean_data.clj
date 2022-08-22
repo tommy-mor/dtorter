@@ -121,7 +121,8 @@
 
   (def token {:oauth-token "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"})
 
-  (def issues (ti/issues "tommy-mor" "dtorter" token))
+  (def issues (ti/issues "tommy-mor" "dtorter" (assoc token
+                                                      :all-pages true)))
   ;; this data is super clean usable for my daily workflow. will become whole eventually but rn its just me
   (def issues (into {} (map (juxt :item/url identity))
                     (map (partial ghissue->item tommy tagid) issues)))
