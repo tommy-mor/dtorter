@@ -43,7 +43,7 @@
     [[""
       {:no-doc true} (views/routes)]
      ["/githubrefresh/:tagid"
-      {:no-doc true} clean/refresh]
+      clean/refresh]
      ["/tdsl"
       {:no-doc true}
       (tdsl.show/routes)]

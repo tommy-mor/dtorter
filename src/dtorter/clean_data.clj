@@ -18,9 +18,8 @@
       r)))
 
 (def host (str "http://"
-               "sorter.isnt.online"
+               (or "sorter.isnt.online" "localhost")
                ":8080/api/swagger.json"))
-
 
 (comment (def m (martian-http/bootstrap-openapi host))
          (def resp (partial resp-m m))
@@ -117,6 +116,7 @@
   (def m (martian-http/bootstrap-openapi host))
   (def resp (partial resp-m m))
 
+  
   (def tommy (:xt/id (first (filter (comp (partial = "tommy") :user/name) (resp :user/list-all)))))
 
   (def token {:oauth-token "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"})
@@ -127,7 +127,6 @@
                     (map (partial ghissue->item tommy tagid) issues)))
   (def items (into {} (map (juxt :item/url identity))
                    (resp :tag/items {:id tagid})))
-
   (def issuekeys (set (keys issues)))
   (def itemkeys (set (keys items)))
 
@@ -159,8 +158,8 @@
   (def m (martian-http/bootstrap-openapi host))
   
   (def resp (partial resp-m m))
-  
   (def tommy (:xt/id (first (filter (comp (partial = "tommy") :user/name) (resp :user/list-all)))))
+  
   (if-let [tag (first (filter (comp #{"gh issues"} :tag/name) (resp :tag/list-all)))]
     (update-issues (:xt/id tag))
     (do
