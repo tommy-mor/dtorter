@@ -6,7 +6,9 @@
             [ring.util.response :as ring-resp]
             [clojure.string :as str]
             [dtorter.views.common :refer [html-interceptor]]
-            [reitit.core :as r]))
+            [reitit.core :as r]
+
+            [clj-jgit.porcelain :as g]))
 
 (defn display [dir]
   (def files (parse/parse-files dir))
@@ -97,11 +99,16 @@
 
 (defn rewrite [req]
   (def req req)
+  (def dir (-> req
+               :parameters
+               :path
+               :base))
   (def thoughts (-> req :body-params))
   (def files (parse/parse-files dir))
+  (-> req :body-params)
   (parse/rewrite files (-> req
                            :body-params))
-  (ring-resp/redirect "/"))
+  {:status 200 :body ""})
 
 (defn routes []
   [["/todo.concurrent"

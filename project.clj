@@ -43,6 +43,9 @@
                  [lambdaisland/deep-diff2 "2.3.127"]
                  [nrepl/nrepl "0.9.0"]
                  
+                 [clj-jgit "1.0.2" :exclusions [org.eclipse.jgit/org.eclipse.jgit.gpg.bc]]
+
+                 
                  
                  ]
   :plugins [
