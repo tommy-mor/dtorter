@@ -27,17 +27,17 @@
       [:div.topleft
        [:span "sorter"]
        [:a.currentpage {:href (c/rurl-for ctx :front-page)} "home"]
-       [:a.currentpage {:href (c/rurl-for ctx :tdsl-page {:base (if (= "tommy" (:user-name session))
-                                                                  "tdsl"
-                                                                  nil)})} "tdsl"]
-       [:a.currentpage {:href 3 #_(url-for :users-page)} "users"]]
+       (when (= "tommy" (:user-name session))
+         [:a.currentpage {:href (c/rurl-for ctx :tdsl-page {:base "tdsl"})} "tdsl"])
+       
+       (when false [:a.currentpage {:href 3 #_(url-for :users-page)} "users"])]
       (if-let [username (:user-name session)]
         [:div.topright
          [:a.currentpage {:href (c/rurl-for ctx :logoff)} "logoff"]
          [:span (:user-name session)]]
         [:div.topright
          [:a.currentpage {:href (c/rurl-for ctx :login)} "login"]
-         [:a.currentpage "make account"]
+         [:a.currentpage {:href (c/rurl-for ctx :register)} "make account"]
          [:span (prn-str session)]])
       [:div.mainbody
        inner]]]))

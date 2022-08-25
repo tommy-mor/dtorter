@@ -121,7 +121,7 @@
   [["/todo.concurrent"
     {:get {:handler todopage}
      :name :todo-page
-     :interceptors [html-interceptor]}]
+     :interceptors [html-interceptor (only-users #{"tommy"})]}]
    ["/b/:base"
     {:get {:handler page}
      :name :tdsl-page
@@ -131,7 +131,4 @@
     {:post {:handler rewrite}
      :name :tdsl-write
      :parameters {:path {:base string?}}
-     :interceptors [html-interceptor]}]
-   ["/refresh"
-    {:get {:handler refresh}
-     :interceptors [(only-users #{"tommy"})]}]])
+     :interceptors [html-interceptor (only-users #{"tommy"})]}]])
