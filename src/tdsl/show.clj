@@ -23,6 +23,26 @@
       (terminate
        (assoc % :response {:status 404})))})
 
+(defn todopage [req]
+  {:status 200
+   :html
+   [:html
+    [:head
+     [:link {:href "/css/site.css"
+             :rel "stylesheet"
+             :type "text/css"}]
+     [:script {:src "/js/shared.js"
+               :type "text/javascript"}]
+     [:script {:src "/js/tdsl.js"
+               :type "text/javascript"}]
+     [:script {:src "/js/tdsl-todo.js"
+               :type "text/javascript"}]
+     [:script (str "const dir = '" "tdsl" "';")]]
+    [:div#app]
+    [:script "frontdsl.todopage.run(" (json/generate-string (first
+                                                             (filter #(= (:name %) :todo/concurrent)
+                                                                           (display "tdsl")))) ")"]]})
+
 (defn page [req]
   (def req req)
   (let [dir (-> req
@@ -79,15 +99,20 @@
   (ring-resp/redirect "/"))
 
 (defn routes []
-  [["/b/:base" {:get {:handler page}
-                :name :tdsl-page
-                :parameters {:path {:base string?}}
-                :interceptors [html-interceptor (only-users #{"tommy"})]}]
+  [["/todo.concurrent"
+    {:get {:handler todopage}
+     :name :todo-page
+     :interceptors [html-interceptor]}]
+   ["/b/:base"
+    {:get {:handler page}
+     :name :tdsl-page
+     :parameters {:path {:base string?}}
+     :interceptors [html-interceptor (only-users #{"tommy"})]}]
    ["/b/:base/update"
     {:post {:handler rewrite}
      :name :tdsl-write
      :parameters {:path {:base string?}}
-     :interceptors [html-interceptor (only-users #{"tommy"})]}]
+     :interceptors [html-interceptor]}]
    ["/refresh"
     {:get {:handler refresh}
      :interceptors [(only-users #{"tommy"})]}]])

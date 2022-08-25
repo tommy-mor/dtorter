@@ -124,10 +124,21 @@
                     (reset! editbox-state {:name ""
                                            :body ""
                                            :position 0
-                                           :file ""}))]
+                                           :file ""}))
+         resizefn (fn []
+                    (let [box (js/document.getElementById "editbox")]
+                      (set! (.. box -style -height)
+                            (str (+ (.. box -scrollHeight) 8) "px"))))]
+     
      {:reagent-render
       (fn [e]
         [:div.w-full
+         [:pre {:style {:color (if @updated "green" "red")}}
+          @last-send]
+         [:pre
+          (if @pending "PENDING" "not pending")
+          "\n"
+          (if @updated "UPDATED" "not updated")]
          [:input.border-4.w-full {:value (-> @editbox-state :name)
                                   :class (find-color (-> @editbox-state :name))
                                   :style {:width "60%"}}]
@@ -146,19 +157,10 @@
                                                    (= (.. e -code)
                                                       "Enter"))
                                           (sendfn)
-                                          (submitfn)))}]
-         [:pre {:style {:color (if @updated "green" "red")}}
-          @last-send]
-         [:pre
-          (if @pending "PENDING" "not pending")
-          "\n"
-          (if @updated "UPDATED" "not updated") 
-          ]])
-      :component-did-update
-      (fn []
-        (let [box (js/document.getElementById "editbox")]
-          (set! (.. box -style -height)
-                (str (+ (.. box -scrollHeight) 8) "px"))))})))
+                                          (submitfn)))}]])
+      
+      :component-did-mount resizefn
+      :component-did-update resizefn})))
 
 (defn tdsl-app []
   (fn []

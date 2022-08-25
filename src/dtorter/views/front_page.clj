@@ -55,7 +55,7 @@
                               (will be :sorter.tags/todo merge tag eventually)
          "
     ]
-   [:b "goals"]
+   [:b ":goals"]
    (when (= "tommy" (:user/name (xt/pull (xt/db node) '[*] user)))
      [:pre ":goals/before-school
   GOAL: by #inst \"2022-08-29T07:00:00.000-00:00\"
