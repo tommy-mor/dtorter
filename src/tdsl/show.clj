@@ -37,7 +37,9 @@
                :type "text/javascript"}]
      [:script {:src "/js/tdsl-todo.js"
                :type "text/javascript"}]
-     [:script (str "const dir = '" "tdsl" "';")]]
+     [:script (str "const dir = '" "tdsl" "';")]
+     [:meta {:name "viewport" :content "width=device-width,initial-scale=1"}]
+     ]
     [:div#app]
     [:script "frontdsl.todopage.run(" (json/generate-string (first
                                                              (filter #(= (:name %) :todo/concurrent)
@@ -71,7 +73,8 @@
                        :type "text/javascript"}]
              [:script {:src "/js/tdsl.js"
                        :type "text/javascript"}]
-             [:script (str "const dir = '" dir "';")]]
+             [:script (str "const dir = '" dir "';")]
+             [:meta {:name "viewport" :content "width=device-width,initial-scale=1"}]]
             [:div#app]
             [:script "frontdsl.page.run(" (json/generate-string (display dir)) ")"]]}))
 
@@ -112,7 +115,7 @@
     {:post {:handler rewrite}
      :name :tdsl-write
      :parameters {:path {:base string?}}
-     :interceptors [html-interceptor]}]
+     :interceptors [html-interceptor (only-users #{"tommy"})]}]
    ["/refresh"
     {:get {:handler refresh}
      :interceptors [(only-users #{"tommy"})]}]])

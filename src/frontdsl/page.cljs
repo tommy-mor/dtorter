@@ -141,9 +141,9 @@
           (if @updated "UPDATED" "not updated")]
          [:input.border-4.w-full {:value (-> @editbox-state :name)
                                   :class (find-color (-> @editbox-state :name))
-                                  :style {:width "60%"}}]
+                                  :style {:width "100%"}}]
          [:textarea#editbox.border-4 {:value (-> @editbox-state :body)
-                                      :style {:width "60%"}
+                                      :style {:width "100%"}
                                       :on-change
                                       (fn [e]
                                         (swap! editbox-state
