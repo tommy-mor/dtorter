@@ -37,8 +37,6 @@
   
   (shell/sh "git" "fetch" "origin" "main" :dir (str "../tdsl"))
   (shell/sh "git" "merge" "-s" "recursive" "-X" "theirs" "origin/main" "-m" "merge" :dir (str "../tdsl"))
-
-  
   {:status 200
    :headers {"X-Frame-Options" "SAMEORIGIN"}
    :html
@@ -95,21 +93,6 @@
             [:div#app]
             [:script "frontdsl.page.run(" (json/generate-string (display dir)) ")"]]}))
 
-(defn refresh
-  [req]
-  (def req req)
-  (let [page  (-> req
-                  :headers
-                  (get "referer")
-                  (str/split #"/")
-                  last)
-        query-params (-> req
-                         :cookies
-                         (get "query")
-                         :value)]
-    (parse/update-files page)
-    (ring-resp/redirect (str (r/match->path (r/match-by-name (::r/router req) :tdsl-page {:base page})) "#" query-params))))
-
 (defn rewrite [req]
   (def req req)
   (def dir (-> req
@@ -119,7 +102,7 @@
   (def thoughts (-> req :body-params))
   (def files (parse/parse-files dir))
   (parse/rewrite files (-> req :body-params))
-;; we cant pull, because my ssh key is password protected.
+  ;; we cant pull, because my ssh key is password protected.
   ;; i don't want to fix that thus this hac
 
   (def repo (g/load-repo (str "../" dir)))
@@ -148,7 +131,7 @@
     {:post {:handler rewrite}
      :name :tdsl-write
      :parameters {:path {:base string?}}
-     :interceptors [html-interceptor (only-users #{"tommy"})]}]
+     :interceptors [html-interceptor]}]
    ["/refresh"
     {:get {:handler refresh}
      :interceptors [(only-users #{"tommy"})]}]])
