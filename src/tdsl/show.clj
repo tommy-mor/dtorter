@@ -8,7 +8,11 @@
             [dtorter.views.common :refer [html-interceptor]]
             [reitit.core :as r]
 
-            [clj-jgit.porcelain :as g]))
+            [clj-jgit.porcelain :as g]
+            [tick.core :as t]
+            [tick.alpha.interval :as t.i]
+            [clojure.java.shell :as shell]
+))
 
 (defn display [dir]
   (def files (parse/parse-files dir))
@@ -26,6 +30,15 @@
        (assoc % :response {:status 404})))})
 
 (defn todopage [req]
+  ;; https://stackoverflow.com/a/10113231
+  
+  (shell/sh "git" "add" "." :dir (str "../tdsl"))
+  (shell/sh "git" "commit" "-am\"refreshed during 5m window\"" :dir (str "../tdsl"))
+  
+  (shell/sh "git" "fetch" "origin" "main" :dir (str "../tdsl"))
+  (shell/sh "git" "merge" "-s" "recursive" "-X" "theirs" "origin/main" "-m" "merge" :dir (str "../tdsl"))
+
+  
   {:status 200
    :headers {"X-Frame-Options" "SAMEORIGIN"}
    :html
@@ -105,9 +118,20 @@
                :base))
   (def thoughts (-> req :body-params))
   (def files (parse/parse-files dir))
-  (-> req :body-params)
-  (parse/rewrite files (-> req
-                           :body-params))
+  (parse/rewrite files (-> req :body-params))
+;; we cant pull, because my ssh key is password protected.
+  ;; i don't want to fix that thus this hac
+
+  (def repo (g/load-repo (str "../" dir)))
+  (g/git-status repo)
+  
+  (if (t/> (t/duration (t.i/new-interval (t/instant (:date (:author (first (g/git-log repo :max-count 1)))))
+                                         (t/now)))
+           (t/new-duration 10 :minutes))
+    (shell/sh "git" "commit" "-a" "-m" "change from tdslweb" :dir (str "../tdsl"))
+    (shell/sh "git" "commit" "-a" "--amend" "--no-edit" :dir (str "../tdsl")))
+  
+  (shell/sh "git" "push" "-f" :dir (str "../tdsl"))
   {:status 200 :body ""})
 
 (defn routes []

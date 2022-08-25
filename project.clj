@@ -44,6 +44,7 @@
                  [nrepl/nrepl "0.9.0"]
                  
                  [clj-jgit "1.0.2" :exclusions [org.eclipse.jgit/org.eclipse.jgit.gpg.bc]]
+                 [tick "0.5.0"]
 
                  
                  
