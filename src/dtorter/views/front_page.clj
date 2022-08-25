@@ -46,18 +46,19 @@
                     [tid :tag/name _]]
                   user)
   [:div.frontpage
-   [:b "program"]
-   [:pre "
+   (when (= "tommy" (:user/name (xt/pull (xt/db node) '[*] user)))
+     [:div
+      [:b "program"]
+      [:pre "
              follow schedule (not made yet, will be set by school).
 
              then work through :concurrent/todo
              then pop/consult :sorter.tags/ghissues and :goals whenever I need new thing
                               (will be :sorter.tags/todo merge tag eventually)
          "
-    ]
-   [:b ":goals"]
-   (when (= "tommy" (:user/name (xt/pull (xt/db node) '[*] user)))
-     [:pre ":goals/before-school
+       ]
+      [:b ":goals"]
+      [:pre ":goals/before-school
   GOAL: by #inst \"2022-08-29T07:00:00.000-00:00\"
     https://github.com/tommy-mor/dtorter/milestone/1
      (combining tag which combines sorter todos and school todos (TDSL?))
@@ -69,7 +70,9 @@
       (due dates, completed or not things, LATE marking)
       calendar integration? planned/actual scheduling (daily and planning)
       (integration with this page (my homepage))"
-      ])
+       ]
+      [:iframe {:src "/tdsl/todo.concurrent"
+                :style "width: 100vw; height: 500px"}]])
    [:b "all tags"]
    
    [:ul.frontpage-tag-container

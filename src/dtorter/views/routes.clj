@@ -20,6 +20,8 @@
               :type "text/css"}]
       [:script {:src "/js/shared.js"
                 :type "text/javascript"}]
+      
+      [:meta {:name "viewport" :content "width=device-width,initial-scale=1"}]
       [:title (or (str title ", sorter") "sorter")]]
      [:div.topbar
       [:div.topleft

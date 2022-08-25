@@ -25,6 +25,7 @@
 
 (defn todopage [req]
   {:status 200
+   :headers {"X-Frame-Options" "SAMEORIGIN"}
    :html
    [:html
     [:head
@@ -43,7 +44,8 @@
     [:div#app]
     [:script "frontdsl.todopage.run(" (json/generate-string (first
                                                              (filter #(= (:name %) :todo/concurrent)
-                                                                           (display "tdsl")))) ")"]]})
+                                                                     (display "tdsl")))) ")"]]
+   })
 
 (defn page [req]
   (def req req)

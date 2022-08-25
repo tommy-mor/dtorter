@@ -3,6 +3,7 @@
                 :output-dir "./resources/public/js"
                 :asset-path "/js"
                 :module-loader true
+                :compiler-options {:infer-externs :auto}
                 :modules {:shared
                           {:entries []}
                           
