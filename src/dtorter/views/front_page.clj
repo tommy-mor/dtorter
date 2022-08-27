@@ -34,8 +34,7 @@
                                {:vote/_tag [*]}])
                     :in userid
                     :where
-                    [tid :owner userid]
-                    [tid :tag/name _]]
+                    [tid :type :tag]]
                   user))
   (xt/q (xt/db node)
         '[:find

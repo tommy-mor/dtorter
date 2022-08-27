@@ -8,7 +8,7 @@
 (defn layout [{:keys [request response] :as ctx} inner]
   (let [title (:title response)
         session (-> request :session)]
-    
+
     (def ctx ctx)
     [:html
      [:head
@@ -20,7 +20,7 @@
               :type "text/css"}]
       [:script {:src "/js/shared.js"
                 :type "text/javascript"}]
-      
+
       [:meta {:name "viewport" :content "width=device-width,initial-scale=1"}]
       [:title (or (str title ", sorter") "sorter")]]
      [:div.topbar
@@ -29,7 +29,7 @@
        [:a.currentpage {:href (c/rurl-for ctx :front-page)} "home"]
        (when (= "tommy" (:user-name session))
          [:a.currentpage {:href (c/rurl-for ctx :tdsl-page {:base "tdsl"})} "tdsl"])
-       
+
        (when false [:a.currentpage {:href 3 #_(url-for :users-page)} "users"])]
       (if-let [username (:user-name session)]
         [:div.topright
@@ -38,9 +38,9 @@
         [:div.topright
          [:a.currentpage {:href (c/rurl-for ctx :login)} "login"]
          [:a.currentpage {:href (c/rurl-for ctx :register)} "make account"]
-         [:span (prn-str session)]])
-      [:div.mainbody
-       inner]]]))
+         [:span (prn-str session)]])]
+     [:div.mainbody
+      inner]]))
 
 
 
@@ -73,5 +73,5 @@
     {:name :graph-page
      :parameters {:path {:id string?}}
      :get {:handler tag/graph-handler}}]
-   
+
    (login/login-routes)])

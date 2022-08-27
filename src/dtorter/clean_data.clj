@@ -19,7 +19,7 @@
 
 
 (def host (str "http://"
-               (or "sorter.isnt.online" "localhost")
+               (or "localhost" "sorter.isnt.online")
                ":8080/api/swagger.json"))
 
 (comment (def m (martian-http/bootstrap-openapi host))
