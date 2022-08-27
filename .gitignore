@@ -21,3 +21,6 @@ src/gen/
 *.port
 resources/public/css/*.css
 sorter-xtdb/
+.calva/
+.clj-kondo/
+.lsp/
