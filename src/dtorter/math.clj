@@ -9,19 +9,18 @@
 
 (m/set-current-implementation :vectorz)
 
-(def ^:dynamic *epsilon* 0.0000001)
-(def ^:dynamic *padding* 0.0)
+(def ^:dynamic *epsilon* 0.001)
+(def ^:dynamic *padding* 0.05)
 
 (defn stationary [arr]
   (def col (mr/sample-uniform (second (m/shape arr))))
   (def oldcol (m/assign! (m/clone col) 0.0))
-
-  (m/div! col (m/esum col))
   
+  (m/div! col (m/esum col))
   (while (not (m/equals col oldcol *epsilon*))
     (m/assign! oldcol col)
     (m/assign! col (m/inner-product arr col)))
-
+  
   col)
 
 ;; note, must be keywordless. this will confuse ppl
@@ -69,7 +68,6 @@
                                ratio
                                0.0))))
                        B)
-
       ;; normalize so each column sums to one
 
       (def colsums (vec (map m/esum (m/columns B))))
