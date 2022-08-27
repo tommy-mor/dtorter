@@ -54,8 +54,8 @@
   (def xid->item (into {} (map (juxt :xt/id identity) (-> @x-data))))
   (seq (doall (for [id (set/intersection (set (map :xt/id @x-data)) (set (map :xt/id @y-data)))]
                 (do
-                  {:x (:elo (xid->item id))
-                   :y (:elo (yid->item id))
+                  {:x (Math/log (:elo (xid->item id)))
+                   :y (Math/log (:elo (yid->item id)))
                    :name (:item/name (yid->item id))})))))
 
 (defn attribute-selector [selected-atom data-atom attributes]

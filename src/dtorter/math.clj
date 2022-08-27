@@ -112,11 +112,6 @@
          (select-keys coll)
          vals)))
 
-(defn sigmoid [y]
-  "https://stackoverflow.com/questions/10097891/inverse-logistic-function-reverse-sigmoid-function
-   takes ratio into [0,1] "
-  (/ 1 (inc (Math/exp (- y)))))
-
 (defn getpair [args]
   (def voteditems (:tag.filtered/items args))
   (def filteredvotes (:tag.filtered/votes args))
@@ -197,7 +192,7 @@
                          (->> (into (pm/priority-map)
                                     (for [item (filter #(voted-pairs (:xt/id %)) sorted)]
                                       {(:xt/id item) (Math/abs (- (:elo item)
-                                                               (itemid->elo (:xt/id leftitem))))}))
+                                                                  (itemid->elo (:xt/id leftitem))))}))
                               (drop 1)
                               (take (sample-size 12))
                               rand-nth
