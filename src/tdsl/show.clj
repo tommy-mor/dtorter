@@ -5,14 +5,13 @@
             [io.pedestal.http.route :refer [url-for]]
             [ring.util.response :as ring-resp]
             [clojure.string :as str]
-            [dtorter.views.common :refer [html-interceptor]]
+            [dtorter.views.common :refer [html-interceptor layout-interceptor]]
             [reitit.core :as r]
 
             [clj-jgit.porcelain :as g]
             [tick.core :as t]
             [tick.alpha.interval :as t.i]
-            [clojure.java.shell :as shell]
-))
+            [clojure.java.shell :as shell]))
 
 (defn display [dir]
   (def files (parse/parse-files dir))
@@ -28,6 +27,32 @@
       %
       (terminate
        (assoc % :response {:status 404})))})
+
+(def goals
+  [:div
+   [:b "program"]
+   [:pre "
+             follow schedule (not made yet, will be set by school).
+
+             then work through :concurrent/todo
+             then pop/consult :sorter.tags/ghissues and :goals whenever I need new thing
+                              (will be :sorter.tags/todo merge tag eventually)
+         "
+    ]
+   [:b ":goals"]
+   [:pre ":goals/before-school
+  GOAL: by #inst \"2022-08-29T07:00:00.000-00:00\"
+    https://github.com/tommy-mor/dtorter/milestone/1
+     (combining tag which combines sorter todos and school todos (TDSL?))
+
+    ability to use markwhen to plan
+
+    STRETCH:
+      time features
+      (due dates, completed or not things, LATE marking)
+      calendar integration? planned/actual scheduling (daily and planning)
+      (integration with this page (my homepage))"
+    ]])
 
 (defn todopage [req]
   ;; https://stackoverflow.com/a/10113231
@@ -54,11 +79,11 @@
      [:script (str "const dir = '" "tdsl" "';")]
      [:meta {:name "viewport" :content "width=device-width,initial-scale=1"}]
      ]
+    goals
     [:div#app]
     [:script "frontdsl.todopage.run(" (json/generate-string (first
                                                              (filter #(= (:name %) :todo/concurrent)
-                                                                     (display "tdsl")))) ")"]]
-   })
+                                                                     (display "tdsl")))) ")"]]})
 
 (defn page [req]
   (def req req)
@@ -121,12 +146,12 @@
   [["/todo.concurrent"
     {:get {:handler todopage}
      :name :todo-page
-     :interceptors [html-interceptor (only-users #{"tommy"})]}]
+     :interceptors [html-interceptor layout-interceptor (only-users #{"tommy"})]}]
    ["/b/:base"
     {:get {:handler page}
      :name :tdsl-page
      :parameters {:path {:base string?}}
-     :interceptors [html-interceptor (only-users #{"tommy"})]}]
+     :interceptors [html-interceptor layout-interceptor (only-users #{"tommy"})]}]
    ["/b/:base/update"
     {:post {:handler rewrite}
      :name :tdsl-write

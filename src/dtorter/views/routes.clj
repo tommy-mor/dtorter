@@ -5,57 +5,9 @@
             [dtorter.views.common :as c]
             [dtorter.views.tag :as tag]))
 
-(defn layout [{:keys [request response] :as ctx} inner]
-  (let [title (:title response)
-        session (-> request :session)]
-
-    (def ctx ctx)
-    [:html
-     [:head
-      [:meta {:charset "utf-8"}]
-      [:meta {:name "viewport"
-              :content "width=device-width, initial-scale=1.0"}]
-      [:link {:href "/css/site.css"
-              :rel "stylesheet"
-              :type "text/css"}]
-      [:script {:src "/js/shared.js"
-                :type "text/javascript"}]
-
-      [:meta {:name "viewport" :content "width=device-width,initial-scale=1"}]
-      [:title (or (str title ", sorter") "sorter")]]
-     [:div.topbar
-      [:div.topleft
-       [:span "sorter"]
-       [:a.currentpage {:href (c/rurl-for ctx :front-page)} "home"]
-       (when (= "tommy" (:user-name session))
-         [:a.currentpage {:href (c/rurl-for ctx :tdsl-page {:base "tdsl"})} "tdsl"])
-
-       (when false [:a.currentpage {:href 3 #_(url-for :users-page)} "users"])]
-      (if-let [username (:user-name session)]
-        [:div.topright
-         [:a.currentpage {:href (c/rurl-for ctx :logoff)} "logoff"]
-         [:span (:user-name session)]]
-        [:div.topright
-         [:a.currentpage {:href (c/rurl-for ctx :login)} "login"]
-         [:a.currentpage {:href (c/rurl-for ctx :register)} "make account"]
-         [:span (prn-str session)]])]
-     [:div.mainbody
-      inner]]))
-
-
-
-(def layout-interceptor
-  {:leave (fn [{:keys [response]
-                :as ctx}]
-            (if (contains? response :html)
-              (assoc-in ctx [:response :html] (layout ctx (:html response)))
-              ctx))
-   :enter (fn [ctx]
-            (assoc-in ctx [:request :href-for] (partial c/rurl-for ctx)))})
-
 (defn routes []
   [""
-   {:interceptors [c/html-interceptor layout-interceptor]}
+   {:interceptors [c/html-interceptor c/layout-interceptor]}
    ["/"
     {:name :front-page
      :get {:handler (fn [req] {:status 200
