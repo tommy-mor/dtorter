@@ -11,6 +11,7 @@
    [clojure.set :as set]))
 
 (go (def m (<! (martian-http/bootstrap-openapi (str js/window.location.origin "/api/swagger.json")))))
+
 (def height 850)
 (def width 850)
 
@@ -53,8 +54,8 @@
   (def xid->item (into {} (map (juxt :xt/id identity) (-> @x-data))))
   (seq (doall (for [id (set/intersection (set (map :xt/id @x-data)) (set (map :xt/id @y-data)))]
                 (do
-                  {:x (:elo (Math/log (xid->item id)))
-                   :y (:elo (Math/log (yid->item id)))
+                  {:x (:elo (xid->item id))
+                   :y (:elo (yid->item id))
                    :name (:item/name (yid->item id))})))))
 
 (defn attribute-selector [selected-atom data-atom attributes]

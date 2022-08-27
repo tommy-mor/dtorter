@@ -6,6 +6,7 @@
             
             [inside-out.forms :as forms])
   (:require-macros [inside-out.reagent :refer [with-form]]))
+
 (defn addpanel []
   (with-form [item {:name ?name
                     :url ?url
