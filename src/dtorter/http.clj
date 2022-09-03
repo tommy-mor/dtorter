@@ -142,8 +142,8 @@
       server/start
       (as-> $ (reset! server $))))
 
-(defn stop []
-  (server/stop @server))
+;; (defn stop []
+;;   (server/stop @server))
 
 (defn reset []
   (when @server
@@ -155,9 +155,6 @@
 (comment (reset)
          (stop))
 
-
-
-
 (comment (defn sorter
            ([kw] 
             `(sorter ~kw [1 2 3 4]))
@@ -165,7 +162,3 @@
             `(sorter ~kw)))
 
          (dtorter.http/sorter :books))
-
-
-
-

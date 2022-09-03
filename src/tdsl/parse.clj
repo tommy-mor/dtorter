@@ -3,7 +3,10 @@
             [babashka.fs :as fs]
             [clojure.java.io :as io]
             [clojure.java.shell :as shell]
-            [clojure.set :refer [index]]))
+            [clojure.set :refer [index]]
+            [medley.core :refer [map-vals]]
+            [lambdaisland.deep-diff2 :as ddiff]))
+
 
 (defn parse-block [fname st i]
   (def st st)
@@ -27,6 +30,86 @@
 
 (comment
   (def things (parse-files "../programming/tdsl")))
+
+(defn find-todos [things]
+  (let [todos (->> things
+                   (filter #(-> %
+                                :name
+                                name
+                                (str/includes? "todo")))
+                   (map (fn [item]
+                          (map (fn [i t]
+                                 (dissoc (assoc item
+                                                :task t
+                                                :task-id i)
+                                         :body))
+                               (range)
+                               (str/split (:body item) #"\n\n"))))
+                   flatten)]
+    (def todos todos)))
+
+(def nss (->> names
+              (map namespace)
+              (filter some?)
+              (map #(str/split % #"\."))))
+
+(defn kw-pop [kw]
+  (when kw
+    (def kw kw)
+    (if (namespace kw)
+      (let [nss (str/split (namespace kw)
+                           #"\.")]
+        [(first nss) (if (empty? (rest nss))
+                       (keyword (name kw))
+                       (keyword (str/join "." (rest nss)) (name kw)))])
+      [(name kw) nil])))
+
+(assert (= ["test" :swag/thing] (kw-pop :test.swag/thing)))
+(assert (= ["swag" :thing] (kw-pop (second (kw-pop :test.swag/thing)))))
+(assert (= ["epic" nil] (kw-pop :epic)))
+
+
+
+
+(def collapse-li)
+(defn collapse-li [li]
+  (def li li)
+  (if (= nil (first (distinct (map :name li))))
+    li
+    (if (empty? li)
+      li
+      (map-vals
+       (fn [vals] (collapse-li
+                   (map #(assoc % :name (second (kw-pop (:name %)))) vals)))
+       (group-by (comp first kw-pop :name) li)))))
+
+(def construct)
+(defn construct [m ns]
+  (flatten (for [[k v] m]
+             (cond
+               (map? v) (construct v (conj ns k))
+               (seq? v) (map #(assoc % :name (if (empty? ns)
+                                               (keyword k)
+                                               (keyword (str/join "." ns) k)))
+                             v)
+               
+               :else :woops)
+             )))
+
+
+
+
+(comment (defn p [lom]
+           (sort-by (juxt :file :position)
+                    lom))
+
+         (ddiff/pretty-print
+          (ddiff/diff (p todos)
+                      (p (construct
+                          (collapse-li (p todos))
+                          [])))))
+
+
 
 (defn rewrite [thoughts new]
   

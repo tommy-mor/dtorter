@@ -46,8 +46,8 @@
                  [clj-jgit "1.0.2" :exclusions [org.eclipse.jgit/org.eclipse.jgit.gpg.bc]]
                  [tick "0.5.0"]
 
-                 
-                 
+
+                 [medley "1.4.0"]
                  ]
   :plugins [
             [cider/cider-nrepl "0.28.3"]]
