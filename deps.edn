@@ -11,6 +11,7 @@
         com.github.oliyh/martian-re-frame {:mvn/version "0.1.21"}
         com.github.oliyh/martian-cljs-http {:mvn/version "0.1.21"}
         com.cognitect/transit-cljs {:mvn/version "0.8.269"}
-        tick/tick {:mvn/version "0.5.0"}}
+        tick/tick {:mvn/version "0.5.0"}
+        alandipert/storage-atom {:mvn/version "2.0.1"}}
  
  :paths ["src" "src/gen"]}
