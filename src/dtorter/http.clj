@@ -142,8 +142,8 @@
       server/start
       (as-> $ (reset! server $))))
 
-;; (defn stop []
-;;   (server/stop @server))
+(defn stop []
+  (server/stop @server))
 
 (defn reset []
   (when @server

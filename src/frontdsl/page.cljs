@@ -72,6 +72,7 @@
                                     :style {:color "blue"
                                             :float "right"
                                             :cursor "pointer"}
+                                    
                                     :on-click #(do
                                                  (.stopPropagation %)
                                                  (reset! editbox-state note)

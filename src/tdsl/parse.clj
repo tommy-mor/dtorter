@@ -32,26 +32,20 @@
   (def things (parse-files "../programming/tdsl")))
 
 (defn find-todos [things]
-  (let [todos (->> things
-                   (filter #(-> %
-                                :name
-                                name
-                                (str/includes? "todo")))
-                   (map (fn [item]
-                          (map (fn [i t]
-                                 (dissoc (assoc item
-                                                :task t
-                                                :task-id i)
-                                         :body))
-                               (range)
-                               (str/split (:body item) #"\n\n"))))
-                   flatten)]
-    (def todos todos)))
-
-(def nss (->> names
-              (map namespace)
-              (filter some?)
-              (map #(str/split % #"\."))))
+  (->> things
+       (filter #(-> %
+                    :name
+                    name
+                    (str/includes? "todo")))
+       (map (fn [item]
+              (map (fn [i t]
+                     (dissoc (assoc item
+                                    :task t
+                                    :task-id i)
+                             :body))
+                   (range)
+                   (str/split (:body item) #"\n\n"))))
+       flatten))
 
 (defn kw-pop [kw]
   (when kw

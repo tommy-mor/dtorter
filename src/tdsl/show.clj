@@ -67,11 +67,6 @@
    :html
    [:html
     [:head
-     [:link {:href "/css/site.css"
-             :rel "stylesheet"
-             :type "text/css"}]
-     [:script {:src "/js/shared.js"
-               :type "text/javascript"}]
      [:script {:src "/js/tdsl.js"
                :type "text/javascript"}]
      [:script {:src "/js/tdsl-todo.js"
@@ -109,11 +104,11 @@
              [:link {:href "/css/site.css"
                      :rel "stylesheet"
                      :type "text/css"}]
+             [:script (str "const dir = '" dir "';")]
              [:script {:src "/js/shared.js"
                        :type "text/javascript"}]
              [:script {:src "/js/tdsl.js"
                        :type "text/javascript"}]
-             [:script (str "const dir = '" dir "';")]
              [:meta {:name "viewport" :content "width=device-width,initial-scale=1"}]]
             [:div#app]
             [:script "frontdsl.page.run(" (json/generate-string (display dir)) ")"]]}))
@@ -142,18 +137,34 @@
   (shell/sh "git" "push" "-f" :dir (str "../tdsl"))
   {:status 200 :body ""})
 
+(defn get-todos [req]
+  {:status 200
+   :body (-> (parse/parse-files "tdsl")
+             parse/find-todos
+             parse/collapse-li
+             )})
+
 (defn routes []
   [["/todo.concurrent"
     {:get {:handler todopage}
      :name :todo-page
      :interceptors [html-interceptor layout-interceptor (only-users #{"tommy"})]}]
-   ["/b/:base"
-    {:get {:handler page}
-     :name :tdsl-page
-     :parameters {:path {:base string?}}
-     :interceptors [html-interceptor layout-interceptor (only-users #{"tommy"})]}]
-   ["/b/:base/update"
-    {:post {:handler rewrite}
-     :name :tdsl-write
-     :parameters {:path {:base string?}}
-     :interceptors [html-interceptor (only-users #{"tommy"})]}]])
+   ["/b"
+    {:parameters {:path {:base string?}}
+     :interceptors [html-interceptor (only-users #{"tommy"})]}
+    
+    ["/:base"
+     {:get {:handler page}
+      :name :tdsl-page
+      :interceptors [layout-interceptor]}]
+    
+    ["/:base/update"
+     {:post {:handler rewrite}
+      :name :tdsl-write}]
+    
+    ["/:base/todo"
+     {:post {:handler get-todos}
+      :get {:handler get-todos}
+      
+      
+      :name :tdsl-todo}]]])
