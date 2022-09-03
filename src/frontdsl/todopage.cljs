@@ -26,7 +26,7 @@
 (defn todo [m]
   [:pre {:key (str (:name m)
                    (:file m))}
-   (pr-str m)])
+   (:task m)])
 
 (defn todo-nest [title path m]
   (def path path)
@@ -41,14 +41,16 @@
        [:div {:style {:display "flex"}}
         [:div {:style {:padding-right "10px"
                        :cursor "pointer"}
-               :on-click #(reset! collapsed (into {}
-                                                  (cond
-                                                    (map? m)
-                                                    (for [[k v] m]
-                                                          [k {}])
-                                                    
-                                                    (seq? m)
-                                                    [[:not-empty :not-empty]])) )}
+               :on-click #(reset! collapsed (if (not (empty? @collapsed))
+                                              {}
+                                              (into {}
+                                                    (cond
+                                                      (map? m)
+                                                      (for [[k v] m]
+                                                        [k {}])
+                                                      
+                                                      (seq? m)
+                                                      [[:not-empty :not-empty]]))) )}
          (if (empty? @collapsed)
            "[+]"
            "[-]")]
