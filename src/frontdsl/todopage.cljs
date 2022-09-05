@@ -24,9 +24,9 @@
 
 (count-tree @todos)
 (defn todo [m]
-  [:pre {:key (str (:name m)
-                   (:file m))}
-   (:task m)])
+  [:div {:style {:background-color "aliceblue"
+                 :margin "10px"}}
+   [:pre (:task m)]])
 
 (defn todo-nest [title path m]
   (def path path)
