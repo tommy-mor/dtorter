@@ -30,28 +30,22 @@
 
 (def goals
   [:div
+   [:b "links"]
+   [:br]
+   [:a {:href "https://course.ccs.neu.edu/cs3650f22/schedule.html"} "systems"]
+   [:br]
+   [:a {:href "https://piazza.com/class/l7jbp35d4i9nr"} "piazza"]
+   [:h1 [:a {:href "https://linear.app"} "linear"]]
+   [:br]
+   
    [:b "program"]
    [:pre "
-             follow schedule (not made yet, will be set by school).
+             follow gcal/habits.
+             fill out food in gsheet.
 
              then work through :concurrent/todo
-             then pop/consult :sorter.tags/ghissues and :goals whenever I need new thing
-                              (will be :sorter.tags/todo merge tag eventually)
+             use linear.app for all school and personal projects. use its api to show my current todos on /tdsl/todo.concurrent
          "
-    ]
-   [:b ":goals"]
-   [:pre ":goals/before-school
-  GOAL: by #inst \"2022-08-29T07:00:00.000-00:00\"
-    https://github.com/tommy-mor/dtorter/milestone/1
-     (combining tag which combines sorter todos and school todos (TDSL?))
-
-    ability to use markwhen to plan
-
-    STRETCH:
-      time features
-      (due dates, completed or not things, LATE marking)
-      calendar integration? planned/actual scheduling (daily and planning)
-      (integration with this page (my homepage))"
     ]])
 
 (defn todopage [req]
@@ -59,7 +53,6 @@
   
   (shell/sh "git" "add" "." :dir (str "../tdsl"))
   (shell/sh "git" "commit" "-am\"refreshed during 5m window\"" :dir (str "../tdsl"))
-  
   (shell/sh "git" "fetch" "origin" "main" :dir (str "../tdsl"))
   (shell/sh "git" "merge" "-s" "recursive" "-X" "theirs" "origin/main" "-m" "merge" :dir (str "../tdsl"))
   {:status 200
@@ -135,7 +128,7 @@
     (shell/sh "git" "commit" "-a" "--amend" "--no-edit" :dir (str "../tdsl")))
   
   (shell/sh "git" "push" "-f" :dir (str "../tdsl"))
-  {:status 200 :body ""})
+  {:status 200 :body (parse/parse-files dir)})
 
 (defn get-todos [req]
   {:status 200

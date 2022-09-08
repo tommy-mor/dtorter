@@ -67,16 +67,30 @@
         [:div
          [:div.align-top {:on-click #(swap! expanded not)
                           :class (find-color name)}
-          [:pre (str name) (when show
-                             [:div {:href "#"
-                                    :style {:color "blue"
-                                            :float "right"
-                                            :cursor "pointer"}
-                                    
-                                    :on-click #(do
-                                                 (.stopPropagation %)
-                                                 (reset! editbox-state note)
-                                                 false)} "e"])]]
+          [:pre (str name)
+           (when show
+             [:div {:href "#"
+                    :style {:color "blue"
+                            :float "right"
+                            :cursor "pointer"
+                            :margin-left "10px"}
+                    
+                    :on-click #(do
+                                 (.stopPropagation %)
+                                 (reset! editbox-state note)
+                                 false)} "e"])
+           (when show
+             [:div {:href "#"
+                    :style {:color "blue"
+                            :float "right"
+                            :cursor "pointer"
+                            :margin-right "10px"}
+                    
+                    :on-click (fn [e]
+                                (.stopPropagation e)
+                                (http/post (str "/tdsl/b/" js/dir "/update")
+                                           {:edn-params [(update note :body #(str "ARCHIVED \n" %))]})
+                                false)} "A"])]]
          (when show
            [:div [:pre (str/trim body)]])]))))
 
@@ -90,8 +104,8 @@
 (def editbox
   (r/create-class
    (let [httpfn (fn []
-                  (http/post (str "/tdsl/b/" js/dir "/update")
-                             {:edn-params [(update @editbox-state :name keyword)]}))
+                  (reset! todos (<! (:body (http/post (str "/tdsl/b/" js/dir "/update")
+                                                      {:edn-params [(update @editbox-state :name keyword)]})))))
          sendfn (fn sendfn []
                   (reset! updated false)
                   (if (and (not @pending)
@@ -167,6 +181,8 @@
   (fn []
     (let [q (query-from-match)]
       [:div.max-w-full.max-h-full.overscroll-contain
+       [:pre "IMPORTANT = will use in next week \n"]
+       [:pre "ARCHIVED = will not use in next 6 months"]
        [filter-input]
        [:br]
        [filter-input-body]
@@ -186,17 +202,7 @@
                                      true))
                           (filter #(not= (select-keys % [:file :position])
                                          (select-keys @editbox-state [:file :position]))))]
-                 [expandable-kw thought]))]
-       [:a.bg-blue-100.text-black.py-1.px-1
-        {:href "/tdsl/refresh"
-         :on-click #(set! js/document.cookie (str"query=" (encoded-string-from-match) "; path=/"))}
-        "refresh from git"]
-       [:div.bg-blue-100.text-black.py-1.px-1
-        {:on-click
-         (fn [] (http/post (str "/tdsl/b/" js/dir "/update")
-                           {:edn-params @todos}))}
-        
-        "send things"]])))
+                 [expandable-kw thought]))]])))
 
 (def routes
   [["/"
