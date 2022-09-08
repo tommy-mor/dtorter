@@ -123,7 +123,7 @@
    [collapsible-cage  false "backlog/else" "win"
     (doall
      (for [todo @todos
-           :when (not (#{"unstarted" "sarted"} (:type (:state todo))))]
+           :when (not (#{"unstarted" "sarted" "completed"} (:type (:state todo))))]
        [todo-row todo]))]
    
    [page/editbox]])
