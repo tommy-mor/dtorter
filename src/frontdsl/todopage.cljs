@@ -84,37 +84,27 @@
 (def linear-key "lin_api_LG69pvw2e961XWIg89XhTmlix2GCGd1BAU3o3a8C")
 (def todos (r/atom nil))
 
-(go (reset! todos (-> (<! (http/post "https://api.linear.app/graphql"
-                                  {:json-params {:query "{ issues { nodes { id title dueDate project {name color}  state {type name} } }}"}
-                                   :oauth-token linear-key
-                                   :with-credentials? false}))
-                      :body
-                      :data
-                      :issues
-                      :nodes)))
-
 (defn todo-row [todo]
   (def todo todo)
   [:a {:style {:background-color (:color (:project todo))
-                          :display "flex"
-                          :justify-content "space-between"
-                          :border "1px"
-                          :border-style "solid"
-                          :border-color "lightgrey"}
+               :display "flex"
+               :justify-content "space-between"
+               :border "1px"
+               :border-style "solid"
+               :border-color "lightgrey"}
        :href "https://linear.app"}
    [:p.title (:title todo)]
    [:p.title (:dueDate todo)]
    ])
 
-(distinct (map :state @todos))
 (defn tdsl-app [_]
   [:div {:style {:padding-top "30px"}}
    (comment [todo-nest "todos" ["todos"] @todos])
    [:div {:style {:font-size "xx-large"}} [collapsible-cage  true "started" "win"
-                                                        (doall
-                                                         (for [todo @todos
-                                                               :when (= (:type (:state todo)) "started" )]
-                                                           [todo-row todo]))]]
+                                           (doall
+                                            (for [todo @todos
+                                                  :when (= (:type (:state todo)) "started" )]
+                                              [todo-row todo]))]]
    [collapsible-cage  true "unstarted" "win"
     (doall
      (for [todo @todos
@@ -129,8 +119,14 @@
    [page/editbox]])
 
 (defn ^:export run [inp]
-  (def todo-url (str "/tdsl/b/" js/dir "/todo"))
-  (go (reset! todos (:body (<! (http/get todo-url {:accept "application/edn"})))))
+  (go (reset! todos (-> (<! (http/post "https://api.linear.app/graphql"
+                                       {:json-params {:query "{ issues { nodes { id title dueDate project {name color}  state {type name} } }}"}
+                                        :oauth-token linear-key
+                                        :with-credentials? false}))
+                        :body
+                        :data
+                        :issues
+                        :nodes)))
   (reset! page/editbox-state (js->clj inp :keywordize-keys true))
   (rdom/render [tdsl-app] (js/document.getElementById "app")))
 
