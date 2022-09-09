@@ -40,12 +40,11 @@
    
    [:b "program"]
    [:pre "
-             follow gcal/habits.
-             fill out food in gsheet.
+     follow gcal/habits.
+     fill out food in gsheet.
 
-             then work through :concurrent/todo
-             use linear.app for all school and personal projects. use its api to show my current todos on /tdsl/todo.concurrent
-         "
+     then work through :concurrent/todo
+     use linear.app for all school and person"
     ]])
 
 (defn todopage [req]

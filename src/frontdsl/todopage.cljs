@@ -7,7 +7,10 @@
             [frontdsl.page :as page]
             [cljs.core.async :refer [<!]]
             [cljs-http.client :as http]
-            [alandipert.storage-atom :refer [local-storage]]))
+            [alandipert.storage-atom :refer [local-storage]]
+            [tick.core :as t]
+            [clojure.contrib.humanize :as humanize]))
+
 
 (defn collapsible-cage [open title cls & children]
   (let [collapsed (r/atom (not open))]
@@ -24,63 +27,6 @@
          nil
          children)])))
 
-(def todos (r/atom {}))
-(def collapsed (local-storage (r/atom {}) :collapsed))
-
-(def count-tree)
-(defn count-tree [todos]
-  (cond
-    (seq? todos) (count todos)
-
-    (map? todos) (reduce + (for [[k v] todos]
-                             (count-tree v)))))
-
-
-(count-tree @todos)
-(defn todo [m]
-  [:div {:style {:background-color "aliceblue"
-                 :margin "10px"}}
-   [:pre (:task m)]])
-
-(defn todo-nest [title path m]
-  (def path path)
-  (def title title)
-  
-  (if (nil? (get-in @collapsed path))
-    (swap! collapsed assoc-in path {}))
-  
-  (let [collapsed (r/cursor collapsed path)]
-    (fn [title path m]
-      [:div {:key title}
-       [:div {:style {:display "flex"}}
-        [:div {:style {:padding-right "10px"
-                       :cursor "pointer"}
-               :on-click #(reset! collapsed (if (not (empty? @collapsed))
-                                              {}
-                                              (into {}
-                                                    (cond
-                                                      (map? m)
-                                                      (for [[k v] m]
-                                                        [k {}])
-                                                      
-                                                      (seq? m)
-                                                      [[:not-empty :not-empty]]))) )}
-         (if (empty? @collapsed)
-           "[+]"
-           "[-]")]
-        
-        [:pre (str title " (" (count-tree m) ")")]]
-       (when (not (empty? @collapsed))
-         [:<>
-          [:div {:style {:margin-left "30px"}}
-           (cond
-             (map? m)
-             (doall (for [[k v] m]
-                      [todo-nest k (conj path k) v]))
-             
-             (seq? m)
-             (map todo m))]])])))
-
 (def linear-key "lin_api_LG69pvw2e961XWIg89XhTmlix2GCGd1BAU3o3a8C")
 (def todos (r/atom nil))
 
@@ -94,8 +40,11 @@
                :border-color "lightgrey"}
        :href "https://linear.app"}
    [:p.title (:title todo)]
-   [:p.title (:dueDate todo)]
-   ])
+   [:p.title {:style {:margin-left "30px"}}
+    (when (:dueDate todo)
+      (humanize/duration (* 1000 60 (t/minutes
+                                     (t/between (t/instant) (t/at (t/date (:dueDate todo)) "23:59"))))
+                         {:number-format str}))]])
 
 (defn tdsl-app [_]
   [:div {:style {:padding-top "30px"}}
