@@ -45,7 +45,6 @@
       (humanize/duration (* 1000 60 (t/minutes
                                      (t/between (t/instant) (t/at (t/date (:dueDate todo)) "23:59"))))
                          {:number-format str}))]])
-
 (defn tdsl-app [_]
   [:div {:style {:padding-top "30px"}}
    (comment [todo-nest "todos" ["todos"] @todos])
@@ -62,7 +61,7 @@
    [collapsible-cage  false "backlog/else" "win"
     (doall
      (for [todo @todos
-           :when (not (#{"unstarted" "sarted" "completed"} (:type (:state todo))))]
+           :when (not (#{"unstarted" "sarted" "completed" "canceled"} (:type (:state todo))))]
        [todo-row todo]))]
    
    [page/editbox]])
