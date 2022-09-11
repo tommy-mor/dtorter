@@ -41,6 +41,8 @@
               :type "text/css"}]
       [:script {:src "/js/shared.js"
                 :type "text/javascript"}]
+      [:script {:type "text/javascript"}
+       (str "var userid = '" (-> ctx :request :session :user-id) "';")]
 
       [:meta {:name "viewport" :content "width=device-width,initial-scale=1"}]
       [:title (or (str title ", sorter") "sorter")]]

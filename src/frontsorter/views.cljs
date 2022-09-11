@@ -4,7 +4,8 @@
             [frontsorter.common :as c]
             [frontsorter.attributes :as attrs]
             
-            [inside-out.forms :as forms])
+            [inside-out.forms :as forms]
+            [frontsorter.tagform.create :as tagform])
   (:require-macros [inside-out.reagent :refer [with-form]]))
 
 (defn addpanel []
@@ -38,16 +39,27 @@
 
 
 
+(defn edit-tag-form [close state]
+  (dispatch-sync [:edit-tag state])
+  (reset! close false))
+
+(defn tag-edit [close]
+  [:div (comment {:on-click #(reset! close false)})
+   [tagform/new-tag-form
+    @(subscribe [:tag-edit-info])
+    (partial edit-tag-form close)]])
+
 (defn tag-info []
   (let [{:keys [name description
                 numusers numitems numvotes
-                creator]} @(subscribe [:tag])
+                creator] :as tag} @(subscribe [:tag])
         {:keys [edit_tag]} @(subscribe [:show])]
-    [c/editable-link
+    (def tag tag)
+    [c/editable
      
      "TAG"
-     edit_tag
-     (str "/t/" js/tagid "/edit")
+     (= js/userid (:xt/id (:creator tag)))
+     tag-edit
      [:div {:style {:padding-left "10px"}}
       
       (if (= name "gh issues")
@@ -62,7 +74,7 @@
       [:h1 name]
       [:i description]
       [:br]
-      "created by user " [:a {:href (:url creator)} (:name creator)]
+      "created by user " [:a {:href (:url creator)} (:user/name creator)]
       [:br]
       [:b numitems] " items "
       [:b numvotes] " votes by " [:b numusers] " users"

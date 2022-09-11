@@ -36,15 +36,12 @@
                     :where
                     [tid :type :tag]]
                   user))
-  (xt/q (xt/db node)
-        '[:find
-                    (pull uid [*])
-                    :in uid
-                    :where
-                    [tid :owner userid]
-                    [tid :tag/name _]]
-                  user)
   [:div.frontpage
+   [:script {:src "/js/create-tag.js" :type "text/javascript"}]
+   [:div#app]
+   [:script {:type "text/javascript"}
+    "frontsorter.tagform.create.init_BANG_()"]
+   
    [:b "all tags"]
    
    [:ul.frontpage-tag-container

@@ -1,7 +1,6 @@
 (ns frontsorter.subs
   (:require [re-frame.core :refer [reg-sub subscribe]]))
 
-
 (reg-sub :all (fn [x] x))
 ;; show 
 ; second arg is a function that takes db
@@ -132,5 +131,8 @@
                   (not (:pair db))) :itemview
              true (js/console.log "bad state"))))
 
-@(subscribe [:current-user])
+(reg-sub :tag-edit-info
+         #(select-keys % [:tag/name :tag/description :owner :xt/id]))
+
+
 
