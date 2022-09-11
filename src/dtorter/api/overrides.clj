@@ -56,8 +56,35 @@
                        {:status 201 :body {:xt/id uuid}})
                      {:status 400 :body "username taken"}))}})})
 
+(def vote-upsert
+  {:enter
+   (fn vote-upsert [ctx]
+     
+     (def ctx ctx)
+     (def req (ctx :request))
+     (let [uuid (or (ffirst (xt/q (xt/db (:node req)) '{:find [uuid]
+                                                        :in [tagid attribute owner id id2]
+                                                        :where
+                                                        [[e :vote/tag tagid]
+                                                         [e :vote/attribute attribute]
+                                                         [e :owner owner]
+                                                         (or (and [e :vote/left-item id]
+                                                                  [e :vote/right-item id2])
+                                                             (and [e :vote/left-item id2]
+                                                                  [e :vote/right-item id]))
+                                                         [e :xt/id uuid]]}
+                                  (-> req :body-params :vote/tag)
+                                  (-> req :body-params :vote/attribute)
+                                  (-> req :body-params :owner)
+                                  (-> req :body-params :vote/left-item)
+                                  (-> req :body-params :vote/right-item)))
+                    (str (java.util.UUID/randomUUID)))]
+       (assoc-in ctx [:request :body-params :xt/id] uuid)))})
+
 (def vote
-  {:all #(dissoc % :get)})
+  {:all #(-> %
+             (dissoc :get)
+             (assoc-in [:post :interceptors] [vote-upsert]))})
 
 (def item
   {:all #(dissoc % :get)})

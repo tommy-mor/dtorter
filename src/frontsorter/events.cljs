@@ -42,9 +42,7 @@
   " things that are part of ...appDB fragment, but not every mutation.
    these should be filled in always so state knows how to refresh itself.
   "
-  (def tdb db)
-  (-> tdb
-      :interface.filter/user)
+  ;; TODO this must satisfy ::sp/tag-query
   (let [user (-> db :interface.filter/user)]
     (cond-> {:attribute (-> db :interface.filter/attribute)
              :id js/tagid}
@@ -197,18 +195,16 @@
 
 
 ;; for item page
-(comment
-  (reg-event-db
-   :voteonpair
-   interceptor-chain
-   (fn [db [_ vote leftitem rightitem]]
-     (js/console.log "strst")
-     (-> db
-         (assoc :pair {:left leftitem
-                       :right rightitem}
-                :percent (second
-                          (frontsorter.common/calcmag vote (:id leftitem))))
-         (dissoc :item)))))
+(reg-event-db
+ :voteonpair
+ interceptor-chain
+ (fn [db [_ vote leftitem rightitem]]
+   (-> db
+       (assoc :pair {:left leftitem
+                     :right rightitem}
+              :percent (second
+                        (frontsorter.common/calcmag vote (:id leftitem))))
+       (dissoc :item))))
 
 (reg-event-db
  :cancelvote

@@ -30,12 +30,20 @@
 
 (def goals
   [:div
-   [:b "links"]
-   [:br]
-   [:a {:href "https://course.ccs.neu.edu/cs3650f22/schedule.html"} "systems"]
-   [:br]
-   [:a {:href "https://piazza.com/class/l7jbp35d4i9nr"} "piazza"]
-   [:h1 [:a {:href "https://linear.app"} "linear"]]
+   [:div
+    {:style "display:flex; justify-content: space-around"}
+    [:div 
+     [:a {:href "https://course.ccs.neu.edu/cs3650f22/schedule.html"} "systems"]
+     [:br]
+     [:a {:href "https://piazza.com/class/l7jbp35d4i9nr"} "piazza"]]
+    [:div
+     [:a {:href "https://khoury.northeastern.edu/~derakhshan/CS4810-F22/course-info.html"} "algo"]
+     [:br]
+     [:a {:href  "https://piazza.com/class/l5x2fyu9chz5i7"} "piazza"]]
+    [:div
+     [:a {:href "https://3700.network/"} "networks"]
+     [:br]
+     [:a {:href "https://piazza.com/class/l7kwgqgh3pd6vc"} "piazza"]]]
    [:br]
    
    [:b "program"]

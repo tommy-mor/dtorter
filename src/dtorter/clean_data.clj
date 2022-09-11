@@ -7,7 +7,8 @@
             [tentacles.issues :as ti]
             [clojure.data :as data]
             [lambdaisland.deep-diff2 :as ddiff]
-            [ring.util.response :as ring-resp]))
+            [ring.util.response :as ring-resp]
+            [xtdb.api :as xt]))
 
 (defn resp-m [m a & [b]]
   (let [r (-> (martian/response-for m a b)
@@ -36,10 +37,12 @@
          (def title->tag (into {} (map (juxt :title identity) d/tags)))
 
          (def users (resp :user/list-all))
-
-         (comment (def tommy (resp :user/new
-                                   {:user/name "tommy"
-                                    :user/password "tommy1"}))
+         
+         (comment (def tommy (or (:xt/id (ffirst (xt/q (xt/db dtorter.http/node) '{:find [(pull u [*])]
+                                                                                   :where [ [u :user/name "tommy"]]})))
+                                 (resp :user/new
+                                       {:user/name "tommy"
+                                        :user/password "tommy1"})))
                   (def blobbed (resp :user/new
                                      {:user/name "blobbed"
                                       :user/password "blobbed1"}))

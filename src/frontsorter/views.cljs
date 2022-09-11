@@ -115,17 +115,13 @@
             (def item-i item-i)
             [item item-i])))]]]))
 
-(defn mini-slider [perc]
-  [:div.mini-slider
-   [:div.mini-slider-box {:style {:margin-left (str (- perc 5) "%")}}]])
-
 (defn voterow [i]
   (def i i)
   [:tr.vote 
    {:key (:xt/id i)}
    [:td (-> i :vote/left-item :item/name)]
    [:td
-    [mini-slider (:vote/magnitude i)]]
+    [c/mini-slider (:vote/magnitude i)]]
    [:td (-> i :vote/right-item :item/name)]
    (if (= (:owner i) js/userid)
      [:td [c/smallbutton "x" #(dispatch [:delete-vote i])]])])

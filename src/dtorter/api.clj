@@ -35,7 +35,8 @@
                       :parameters {:body spec}
                       :handler (fn [req]
                                  (let [{:keys [node body-params]} req
-                                       uuid (str (java.util.UUID/randomUUID))]
+                                       uuid (or (:xt/id body-params)
+                                                (str (java.util.UUID/randomUUID)))]
                                    (xt/submit-tx node [[::xt/put (assoc body-params
                                                                         :xt/id uuid
                                                                         :type (keyword swagger-tag))]])
@@ -80,5 +81,5 @@
   [
    (crud-methods "tag" ::sp/tag overrides/tag)
    (crud-methods "item" ::sp/item overrides/item) 
-   (crud-methods "vote" ::sp/vote dtorter.api.overrides/vote)
+   (crud-methods "vote" ::sp/vote overrides/vote)
    (crud-methods "user" ::sp/user dtorter.api.overrides/user)])

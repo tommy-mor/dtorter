@@ -10,7 +10,6 @@
 
 (defn vote [ctx node {{:keys [tagid left_item right_item attribute magnitude] :as args} :vote_info}]
   (comment "TODO add checks here, using spec")
-  
   (when (some nil? [tagid left_item right_item attribute magnitude])
     (throw (ex-info "missing arguments" args)))
   

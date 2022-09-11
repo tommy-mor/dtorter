@@ -12,6 +12,9 @@
                   :xtdb/document-store (lmdb-at "sorter-xtdb/ds")
                   :xtdb/tx-log (lmdb-at "sorter-xtdb/log")})
                 (xt/start-node {})))
+(comment
+  (:xt/id (ffirst (xt/q (xt/db dtorter.http/node) '{:find [(pull u [*])]
+                                                          :where [ [u :user/name "tommy"]]}))))
 
 
 (defn start []

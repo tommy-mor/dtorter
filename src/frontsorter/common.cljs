@@ -137,11 +137,15 @@
 (defn calcmag [vote leftid]
   (if (not vote)
     [50 50]
-    (let [mag (if (= (:item_a vote) leftid)
-                (- 100 (:magnitude vote))
-                (:magnitude vote))
+    (let [mag (if (= (-> vote :vote/left-item :xt/id) leftid)
+                (- 100 (:vote/magnitude vote))
+                (:vote/magnitude vote))
           mag2 (- 100 mag)]
       [mag mag2])))
+
+(defn mini-slider [perc]
+  [:div.mini-slider
+   [:div.mini-slider-box {:style {:margin-left (str (- perc 10) "%")}}]])
 
 
 (defn button [text event & {:keys [class] :or {class "button"}}]

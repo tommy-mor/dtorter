@@ -104,9 +104,11 @@
 ;; the query that describes a tag view..
 (s/def :tag.query/attribute string?)
 (s/def :tag.query/user string?)
+(s/def :tag.query/itemid string?)
 (s/def ::tag-query
   (s/keys :req-un [:tag.query/attribute]
-          :opt-un [:tag.query/user]))
+          :opt-un [:tag.query/user
+                   :tag.query/itemid]))
 ;; transient state of webapp
 
 ;; TODO add format map to this system (unless its useless cause we want to handle on server)

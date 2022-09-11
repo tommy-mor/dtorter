@@ -42,32 +42,29 @@
    [c/itemview :item]])
 
 (defn votepanel [rowitem]
-  (def t rowitem)
-  t
   (let [vote @(subscribe [:vote-on rowitem])
         [mag mag2] (c/calcmag vote (:xt/id rowitem))
         ignoreitem (or @(subscribe [:item :item])
                        @(subscribe [:item :left]))
         editfn #(dispatch [:voteonpair vote ignoreitem rowitem])
         delfn #(dispatch [:delete-vote vote])]
-    (if vote
-      [:div.vote
-       [:td [:<> "" [:b mag] " vs " [:b mag2] "  " (:xt/name ignoreitem)]]
-       [:td 
-        [c/smallbutton "edit " editfn]]
-       [:td]
-       [:td 
-        [c/smallbutton " delete" delfn]]]
-      (if (= (:xt/id rowitem) js/itemid)
-        [:td "--"]
+    (if (= (:xt/id rowitem) js/itemid)
+      [:td "--"]
+      (if vote
+        [:tr.vote
+         [c/mini-slider mag2]
+         (comment [:td [:<> "" [:b mag] " vs " [:b mag2] "  " (:item/name ignoreitem)]])
+         [:td (:item/name ignoreitem)]
+         [:td 
+          [c/smallbutton "edit " editfn]]
+         [:td]
+         [:td 
+          [c/smallbutton " delete" delfn]]]
         [:td [c/smallbutton "vote" editfn]]))))
 
 
 (defn rowitem [rowitem]
   (let [show @(subscribe [:show])]
-    (def rowitem rowitem)
-    (:xt/id rowitem)
-    
     [:tr 
      [:td (.toFixed (:elo rowitem) 2)]
      ;; customize by type (display url for links?)
@@ -83,7 +80,6 @@
                 id (:xt/id rowitem)
                 right @(subscribe [:item :right])]
             (def right right)
-            right
             (cond
               (and right
                    (= id (:xt/id right))) [:b name]

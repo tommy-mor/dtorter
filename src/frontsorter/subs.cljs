@@ -104,7 +104,24 @@
 (reg-sub :vote-on
          :<- [:votes]
          (fn [votes [_ item]]
-           (get votes (keyword (:id item)))))
+           (def votes votes)
+           (let [vs (filter (comp (fn [x] (x (:xt/id item)))
+                                  set
+                                  (juxt (comp :xt/id :vote/left-item)
+                                        (comp :xt/id :vote/right-item)))
+                            votes)]
+             (first vs))))
+
+(comment (def pom (first (filter #(= "Pomegranate" (:item/name %)) @(subscribe [:sorted]))))
+         (def ban (first (filter #(= "Banana" (:item/name %)) @(subscribe [:sorted]))))
+         (def plum (first (filter #(= "Plum" (:item/name %)) @(subscribe [:sorted]))))
+
+         (def plum-vote @(subscribe [:vote-on plum]))
+         (def pom-vote @(subscribe [:vote-on pom]))
+
+         (tap> [plum-vote pom-vote]))
+
+
 
 (reg-sub :item-stage
          (fn [db _]

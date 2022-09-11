@@ -110,8 +110,9 @@
   (def t req)
   (def req req)
   (let [{:keys [node path-params query-params]} req
-        tagid (:id path-params)
-        itemid (or (:itemid path-params) false)
+        params (merge path-params query-params)
+        tagid (:id params)
+        itemid (or (:itemid params) false)
         ;; todo move {:vote/_tag [*]} into first pull expression.. 
         db (xt/db node)
         query (first (xt/q db '[:find
@@ -124,16 +125,12 @@
                                 [tid :owner owner]
                                 [tid :tag/name _]]
                            tagid))
-        query-params (assoc query-params
-                            :attribute (or (:attribute query-params)
-                                           (biggest-attribute node tagid)
-                                           :interface.filter/no-attribute))
+        params (assoc params
+                      :attribute (or (:attribute params)
+                                     (biggest-attribute node tagid)
+                                     :interface.filter/no-attribute))
         logged-in-user (-> req :session :user-id)]
-    (def query-params query-params)
-    
-    (comment (sc.api/spy (+ 3 3))
-             (sc.api/defsc 17))
-    (tag-info-calc db query logged-in-user query-params itemid)))
+    (tag-info-calc db query logged-in-user params itemid)))
 
 (defn unsorted-calc [items votes voted-ids]
   (def voted-ids)
