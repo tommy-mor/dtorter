@@ -202,7 +202,7 @@
    (-> db
        (assoc :pair {:left leftitem
                      :right rightitem}
-              :percent (second
+              :percent (first
                         (frontsorter.common/calcmag vote (:id leftitem))))
        (dissoc :item))))
 
