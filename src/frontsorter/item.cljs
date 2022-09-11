@@ -52,9 +52,8 @@
       [:td "--"]
       (if vote
         [:tr.vote
-         [c/mini-slider mag2]
+         [c/mini-slider mag]
          (comment [:td [:<> "" [:b mag] " vs " [:b mag2] "  " (:item/name ignoreitem)]])
-         [:td (:item/name ignoreitem)]
          [:td 
           [c/smallbutton "edit " editfn]]
          [:td]
@@ -71,8 +70,9 @@
      
      [:td (:item/votecount rowitem)]
      [:td [:b (if (= js/itemid (:xt/id rowitem))
-                "x"
+                (:item/name rowitem)
                 " ")]]
+     [votepanel rowitem]
      [:td (let [url (str "/t/" js/tagid "/i/" (:xt/id rowitem))
                 name [:div
                       {:onClick (fn [] (set! js/window.location.href url))}
@@ -83,14 +83,8 @@
             (cond
               (and right
                    (= id (:xt/id right))) [:b name]
-              (= id js/itemid) [:b name]
-              true name))]
-     
-     [:td [:b (if (= (:xt/id @(subscribe [:item :right])) (:xt/id rowitem))
-                "x"
-                " ")]]
-     
-     [votepanel rowitem]]))
+              (= id js/itemid) "--"
+              true name))]]))
 
 (defn ranklist []
   ;; (js/console.log "rank")
