@@ -50,15 +50,16 @@
     (partial edit-tag-form close)]])
 
 (defn tag-info []
-  (let [{:keys [name description
-                numusers numitems numvotes
-                creator] :as tag} @(subscribe [:tag])
-        {:keys [edit_tag]} @(subscribe [:show])]
+  (let [{:tag/keys [name description
+                    itemcount usercount votecount]
+         :interface/keys [owner]
+         :as tag} @(subscribe [:tag])
+        user-id @(subscribe [:session/user-id])]
     (def tag tag)
     [c/editable
      
      "TAG"
-     (= js/userid (:xt/id (:creator tag)))
+     (= user-id (:xt/id owner))
      tag-edit
      [:div {:style {:padding-left "10px"}}
       
@@ -67,17 +68,17 @@
                      :float "right"}
              :href (str "/githubrefresh/" js/tagid) }
          " REFRESH "])
-      [:a {:style {:background "green"
-                   :float "right"}
-           :href (str "/t/" js/tagid "/graph") }
-       " graph "]
+      (comment [:a {:style {:background "green"
+                            :float "right"}
+                    :href (str "/t/" "/graph") }
+                " graph "])
       [:h1 name]
       [:i description]
       [:br]
-      "created by user " [:a {:href (:url creator)} (:user/name creator)]
+      "created by user " [:a (:user/name owner)]
       [:br]
-      [:b numitems] " items "
-      [:b numvotes] " votes by " [:b numusers] " users"
+      [:b itemcount] " items "
+      [:b votecount] " votes by " [:b usercount] " users"
       
       
       ;; TODO make this use correct plurality/inflection
@@ -158,7 +159,7 @@
         [:pre error]))]))
 
 (defn tag-page []
-  (let [show @(subscribe [:show])]
+  (let [show {}]
     [:div
      
 

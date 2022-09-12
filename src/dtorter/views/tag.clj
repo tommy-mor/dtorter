@@ -12,11 +12,6 @@
             [cognitect.transit :as transit])
   (:import [java.io ByteArrayOutputStream]))
 
-(def show-all {:vote_panel true
-               :vote_edit true
-               :edit_tag true
-               :add_items true})
-
 ;; TODO get rid of show map, should be calculated on clientside.
 ;; PROBLEM: we need to chose default attr before running q.
 ;; (defn conform-throwing [spec x]

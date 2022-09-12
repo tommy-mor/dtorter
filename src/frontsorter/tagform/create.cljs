@@ -8,6 +8,7 @@
   (:require-macros
    [cljs.core.async.macros :refer [go]]))
 
+
 (defn sync-state [atom]
   #(reset! atom (-> % .-target .-value)))
 

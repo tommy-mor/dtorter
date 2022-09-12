@@ -1,17 +1,19 @@
 (ns frontsorter.subs
   (:require [re-frame.core :refer [reg-sub subscribe]]))
 
+(reg-sub :page/tags :page/tags)
 (reg-sub :all (fn [x] x))
-;; show 
-; second arg is a function that takes db
-(reg-sub :show (constantly {:thing "epic"}))
-;; tag info subs
-;; pair subs
+(reg-sub :session/user-id :session/user-id)
 
-(reg-sub :left (comp :left :pair))
+(reg-sub :tag :page/tag)
+(reg-sub :tag-loaded? (fn [db] (not (nil? (:page/tag db)))))
 
-(reg-sub :right (comp :left :pair))
-(reg-sub :percent :percent)
+(reg-sub :left :<- [:tag] (comp :left :pair))
+
+(reg-sub :right :<- [:tag] (comp :left :pair))
+
+(reg-sub :percent :<- [:tag] :percent)
+
 (reg-sub :pair
          (fn [query-v _]
            [(subscribe [:left]) (subscribe [:right]) (subscribe [:percent])])
@@ -21,24 +23,6 @@
            {:left left
             :right right
             :percent percent}))
-
-(reg-sub :name :tag/name)
-(reg-sub :description :tag/description)
-(reg-sub :owner :interface/owner)
-(reg-sub :usercount :tag/usercount)
-(reg-sub :votecount :tag/votecount)
-(reg-sub :itemcount :tag/itemcount)
-(reg-sub :tag
-         :<- [:name]
-         :<- [:description]
-         :<- [:owner]
-         :<- [:votecount]
-         :<- [:usercount]
-         :<- [:itemcount]
-         (fn [[name desc owner votecount usercount itemcount] _]
-           {:name name :description desc :creator owner
-            :numvotes votecount :numusers usercount
-            :numitems itemcount}))
 
 ; this is slightly wrong, because css is a little closer to view
 ; than computed subscriptions like to be (closer to data)
@@ -75,21 +59,18 @@
 
 ;; ranklist subs
 
-(reg-sub :sorted :tag.filtered/sorted)
+(reg-sub :sorted :<- [:tag] :tag.filtered/sorted)
 (reg-sub :sorted-count :<- [:sorted] count)
 (reg-sub :sorted-not-empty :<- [:sorted-count] (complement zero?)) 
 
-(reg-sub :users :interface/users)
-(reg-sub :current-user :interface.filter/user)
+(reg-sub :users :<- [:tag] :interface/users)
+(reg-sub :current-user :<- [:tag] :interface.filter/user)
 
-(reg-sub :unsorted :tag.filtered/unvoted-items)
+(reg-sub :unsorted :<- [:tag] :tag.filtered/unvoted-items)
 (reg-sub :unsorted-count :<- [:unsorted] count)
 (reg-sub :unsorted-not-empty :<- [:unsorted-count] (complement zero?))
 
-(-> @(subscribe [:all])
-    :tag.session/votes)
-
-(reg-sub :votes :tag.session/votes)
+(reg-sub :votes :<- [:tag] :tag.session/votes)
 (reg-sub :votes-count :<- [:votes] count)
 (reg-sub :votes-not-empty :<- [:votes-count] (complement zero?))
 

@@ -42,8 +42,6 @@
     
     [[""
       {:no-doc true} (views/routes)]
-     ["/githubrefresh/:tagid"
-      clean/refresh]
      ["/tdsl"
       {:no-doc true}
       (tdsl.show/routes)]

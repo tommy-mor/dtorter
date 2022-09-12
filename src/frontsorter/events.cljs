@@ -7,11 +7,17 @@
    [cljs.reader :refer [read-string]]
    [martian.re-frame :as martian]
    [lambdaisland.uri :as uri]
-   [cognitect.transit :as transit]))
+   [cognitect.transit :as transit]
+   [frontsorter.router :as router]))
+
+;; {{two problems}}
+;; the order of the events is such that ::current-route is empty for first
+;; :refresh-state
+
+;; its not sending the martian request because it needs attribute argument
 
 ;; spec checking from
 ;; https://github.com/day8/re-frame/blob/master/examples/todomvc/src/todomvc/events.cljs#L49
-;; TODO check spec differently for tag page
 (defn check-and-throw
   "Throws an exception if `db` doesn't match the Spec `a-spec`."
   [a-spec db]
@@ -21,34 +27,41 @@
 (def check-spec-interceptor (after (partial check-and-throw ::sp/db)))
 
 ;; maybe add (path [:tagpage]) to this?
-(def interceptor-chain [check-spec-interceptor {:id :def
-                                                :before (fn [db]
-                                                          (def ctx db)
-                                                          (def db (-> db
-                                                                      :coeffects :db))
-                                                          db)
-                                                :after nil}])
-
-;; re-graph stuff
-;; fill db with default db
+(def interceptor-chain [check-spec-interceptor
+                        {:id :def
+                         :before
+                         (fn [ctx]
+                           (def db (-> ctx :coeffects :db))
+                           ctx)
+                         :after nil}])
 (reg-event-fx
- :init-db
+ :init-db-str
  interceptor-chain
- ;; TODO add spec checking here
- (fn [{:keys [db]} [_ mergee]]
-   {:db (let [db (transit/read (transit/reader :json) js/init)]
-          (merge db mergee))}))
+ (fn [{:keys [db]} [_ initstr]]
+   {:db (merge (transit/read (transit/reader :json) initstr)
+               {:current-route nil})}))
+
+(reg-event-fx
+ :chose-tag
+ interceptor-chain
+ (fn [{:keys [db]} [_ tag]]
+   {:dispatch db}))
+
+(defn refresh-args-match
+  [match]
+  (apply merge (vals (:parameters match))))
 
 (defn appdb-args [db]
   " things that are part of ...appDB fragment, but not every mutation.
-   these should be filled in always so state knows how to refresh itself.
-  "
+   these should be filled in always so state knows how to refresh itself. "
   ;; TODO this must satisfy ::sp/tag-query
-  (let [user (-> db :interface.filter/user)]
-    (cond-> {:attribute (-> db :interface.filter/attribute)
-             :id js/tagid}
-      js/itemid (assoc :itemid js/itemid)
-      (not (= user :interface.filter/all-users)) (assoc :user user))))
+  (comment (let [user (-> db :interface.filter/user)]
+             (cond-> {:attribute (-> db :interface.filter/attribute)
+                      :id js/tagid}
+               js/itemid (assoc :itemid js/itemid)
+               (not (= user :interface.filter/all-users)) (assoc :user user))))
+  (merge {:attribute "TODO attribute"}
+         (refresh-args-match (:current-route db))))
 
 ;; TODO make this only clear the correct error
 (reg-event-db :clear-errors interceptor-chain #(assoc % :errors []))
@@ -59,8 +72,8 @@
  (fn [db [_ {:keys [body errors] :as payload}]]
    ;; TODO add errors to error element
    (def payload payload)
-   (assoc (merge db body {:percent 50})
-          :errors [])
+   
+   (merge db {:page/tag (assoc body :percent 50)})
    ;; PROBLEM: t has pair
    ))
 
@@ -76,6 +89,7 @@
  interceptor-chain
  
  (fn [_ [_ error]]
+   (js/console.log error)
    ;; TODO add errors to error element
    {:dispatch [:error (ex-message error)]}
    
@@ -119,13 +133,15 @@
 ;; TODO implement the piggyback as martian/re-frame middleware AND pedestal middleware :smiling_imp:
 
 (reg-event-fx
- :refresh-state interceptor-chain
- (fn [{:keys [db]} _]
-   {:dispatch [::martian/request
-               :tag/sorted          
-               (appdb-args db)
-               [::refresh-db]
-               [::http-failure]]}))
+ :refresh-state
+ interceptor-chain
+ (fn [{:keys [db]} [_ match]]
+   (let [db (merge db {:current-route (or match (:current-route db))})]
+     {:dispatch [::martian/request
+                 :tag/sorted          
+                 (appdb-args db)
+                 [::refresh-db]
+                 [::http-failure]]})))
 
 (reg-event-fx
  :vote

@@ -84,22 +84,26 @@
 
 ;; todo maybe have different specs (mostly same)
 ;; that are for the api call, and one for the frontend database
-(s/def ::db (s/keys :req [:tag/name :tag/description
-                          :tag/votecount :tag/usercount
-                          :tag/votes :tag/items
+(s/def :page/tag (s/keys :req [:tag/name :tag/description
+                               :tag/votecount :tag/usercount
+                               :tag/votes :tag/items
 
-                          :tag.filtered/votes
-                          :tag.filtered/items
-                          :tag.filtered/unvoted-items
-                          :tag.filtered/sorted
+                               :tag.filtered/votes
+                               :tag.filtered/items
+                               :tag.filtered/unvoted-items
+                               :tag.filtered/sorted
 
-                          :tag/item-vote-counts
-                          :interface/attributes
-                          :interface/owner
-                          :interface/users
-                          :interface.filter/attribute
-                          :interface.filter/user]
-                    :req-un [::owner]))
+                               :tag/item-vote-counts
+                               :interface/attributes
+                               :interface/owner
+                               :interface/users
+                               :interface.filter/attribute
+                               :interface.filter/user]
+                         :req-un [::owner]))
+
+(s/def :page/tags (s/coll-of ::tag))
+
+(s/def ::db (s/keys :opt [:page/tags :page/tag]))
 
 ;; the query that describes a tag view..
 (s/def :tag.query/attribute string?)

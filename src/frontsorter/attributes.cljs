@@ -7,10 +7,17 @@
    [frontsorter.common :as c]
    [frontsorter.events :as events]))
 
-(reg-sub :current-attribute (some-fn :interface.filter/attribute
-                                     (constantly ::empty)))
+(reg-sub :current-attribute
+         :<- [:tag]
+         (some-fn :interface.filter/attribute
+                  (constantly ::empty)))
 
-(reg-sub :raw-attributes :interface/attributes)
+(reg-sub :raw-attributes
+         :<- [:tag]
+         :interface/attributes)
+(comment @(subscribe [:current-attribute])
+         @(subscribe [:raw-attributes]))
+
 (reg-sub :attributes
          :<- [:current-attribute]
          :<- [:raw-attributes]

@@ -9,19 +9,18 @@
             [dtorter.views.tag :as tag]
             [dtorter.views.common :as common]
 
-            [tdsl.show]))
+            [tdsl.show]
+            [clojure.string :as str]
+            [cognitect.transit :as transit])
+  (:import [java.io ByteArrayOutputStream]))
 
-(defn render-tag [{:keys [href-for]} [tag]]
-  (def href-for href-for)
-  (def tag tag)
-  (def votecount (count (-> tag :vote/_tag)))
-  (def itemcount (count (-> tag :item/_tags)))
-  (def size (Math/sqrt (* 3 (+ votecount itemcount))))
-  [:div.tag-small
-   {:style (str "font-size: " (max size 12) "px")}
-   [:a {:href (href-for :tag-page {:id (:xt/id tag)})}
-    (:tag/name tag)]])
-
+(defn encode-transit-string [data]
+  (let [out (ByteArrayOutputStream. 4096)
+        writer (transit/writer out :json)]
+    (transit/write writer data)
+    (str/escape (.toString out)
+                {\" "\\\"" 
+                 \\ "\\\\"})))
 
 (defn page [request]
   (def request request)
@@ -36,17 +35,21 @@
                     :where
                     [tid :type :tag]]
                   user))
+
+  (def initial-state {:page/tags (for [tag tags
+                                       :let [tag (first tag)]]
+                                   (assoc tag
+                                          :item/_tags (count (:item/_tags tag))
+                                          :vote/_tag (count (:item/_tag tag))))
+                      :session/user-id user})
+  
   [:div.frontpage
-   [:script {:src "/js/create-tag.js" :type "text/javascript"}]
+   [:script {:src "/js/frontpage.js" :type "text/javascript"}]
    [:div#app]
    [:script {:type "text/javascript"}
-    "frontsorter.tagform.create.init_BANG_()"]
-   
-   [:b "all tags"]
-   
-   [:ul.frontpage-tag-container
-    (for [tag tags]
-      (render-tag request tag))]])
+    (str "frontsorter.page.init_BANG_('"
+         (encode-transit-string initial-state)
+         "')")]])
 
 ;; TODO put these into arguments to init/bang, not here
 

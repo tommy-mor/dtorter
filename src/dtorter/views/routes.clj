@@ -5,25 +5,27 @@
             [dtorter.views.common :as c]
             [dtorter.views.tag :as tag]))
 
+(def spa-handler {:name :front-page
+                  :get {:handler (fn [req] {:status 200
+                                            :title "frontpage"
+                                            :html (fp/page req)})}})
 (defn routes []
   [""
    {:interceptors [c/html-interceptor c/layout-interceptor]}
-   ["/"
-    {:name :front-page
-     :get {:handler (fn [req] {:status 200
-                               :title "frontpage"
-                               :html (fp/page req)})}}]
-   ["/t/:id/i/:itemid"
-    {:name :item-page
-     :parameters {:path {:id string? :itemid string?}}
-     :get {:handler tag/item-handler}}]
-   ["/t/:id"
-    {:name :tag-page
-     :parameters {:path {:id string?}}
-     :get {:handler tag/tag-handler}}]
-   ["/t/:id/graph"
-    {:name :graph-page
-     :parameters {:path {:id string?}}
-     :get {:handler tag/graph-handler}}]
+   ;;TODO make this same exact router as cljs one
+   ["/" spa-handler]
+   ["/t/*" (assoc spa-handler :name :tag-page)]
+   (login/login-routes)
 
-   (login/login-routes)])
+   (comment ["/t/:id/i/:itemid"
+             {:name :item-page
+              :parameters {:path {:id string? :itemid string?}}
+              :get {:handler tag/item-handler}}]
+            ["/t/:id"
+             {:name :tag-page
+              :parameters {:path {:id string?}}
+              :get {:handler tag/tag-handler}}]
+            ["/t/:id/graph"
+             {:name :graph-page
+              :parameters {:path {:id string?}}
+              :get {:handler tag/graph-handler}}])])
