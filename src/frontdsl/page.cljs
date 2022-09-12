@@ -104,8 +104,8 @@
 (def editbox
   (r/create-class
    (let [httpfn (fn []
-                  (reset! todos (<! (:body (http/post (str "/tdsl/b/" js/dir "/update")
-                                                      {:edn-params [(update @editbox-state :name keyword)]})))))
+                  (http/post (str "/tdsl/b/" js/dir "/update")
+                             {:edn-params [(update @editbox-state :name keyword)]}))
          sendfn (fn sendfn []
                   (reset! updated false)
                   (if (and (not @pending)
