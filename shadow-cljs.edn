@@ -21,6 +21,9 @@
                           
                           :graph
                           {:entries [frontsorter.graph] :depends-on #{:shared}}
+                          
+                          :frontpage
+                          {:entries [frontsorter.page] :depends-on #{:shared}}
 
                           :tdsl
                           {:entries [frontdsl.page] :depends-on #{:shared}}

@@ -1,8 +1,8 @@
 {:tasks {build-frontend (do
                           (shell "npm i")
-                          (shell "./node_modules/.bin/shadow-cljs compile app --pseudo-names")
+                          #_(shell "./node_modules/.bin/shadow-cljs compile app --pseudo-names")
                           (shell "bb build-css")
-                          #_(shell "./node_modules/.bin/shadow-cljs release app"))
+                          (shell "./node_modules/.bin/shadow-cljs release app"))
          build-css (shell "./node_modules/.bin/postcss 
                                 -o ./resources/public/css/site.css
                                 ./resources/private/css/site.css")
