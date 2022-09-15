@@ -26,26 +26,59 @@
 
 (def check-spec-interceptor (after (partial check-and-throw ::sp/db)))
 
+
+(def router-sync-interceptor
+  {:id :router-sync
+   :before identity
+   :after
+   (fn [ctx]
+     "if the current database suggests a different route than we have, update the route (skipping the controller)"
+
+     (def ctx ctx)
+     (def current-query (-> ctx
+                            :effects :db
+                            :current-route
+                            :query-params))
+     (def desired-query
+       (let [attribute-filter (-> ctx :effects :db :page/tag :interface.filter/attribute)
+             user-filter (-> ctx :effects :db :page/tag :interface.filter/user)]
+         (cond-> {}
+           (and attribute-filter (not= attribute-filter :interface.filter/no-attribute))
+           (assoc :attribute attribute-filter)
+           
+           (and user-filter (not= user-filter :interface.filter/all-users))
+           (assoc :user user-filter))))
+     
+     
+     (if (and current-query desired-query
+              (not= current-query desired-query))
+       (-> ctx
+           (assoc-in [:effects ::router/navigate-secret!]
+                     [:nav
+                      (-> ctx :effects :db :current-route :data :name)
+                      (-> ctx :effects :db :current-route :path-params)
+                      desired-query])
+           (update-in [:effects :db :page/tag] dissoc :interface.filter/attribute)
+           (update-in [:effects :db :page/tag] dissoc :interface.filter/user))
+       ctx))})
+
 ;; maybe add (path [:tagpage]) to this?
-(def interceptor-chain [check-spec-interceptor
+(def interceptor-chain [router-sync-interceptor
+                        check-spec-interceptor
                         {:id :def
                          :before
                          (fn [ctx]
                            (def db (-> ctx :coeffects :db))
                            ctx)
                          :after nil}])
+
+
 (reg-event-fx
  :init-db-str
  interceptor-chain
  (fn [{:keys [db]} [_ initstr]]
    {:db (merge (transit/read (transit/reader :json) initstr)
                {:current-route nil})}))
-
-(reg-event-fx
- :chose-tag
- interceptor-chain
- (fn [{:keys [db]} [_ tag]]
-   {:dispatch db}))
 
 (defn refresh-args-match
   [match]
@@ -54,28 +87,20 @@
 (defn appdb-args [db]
   " things that are part of ...appDB fragment, but not every mutation.
    these should be filled in always so state knows how to refresh itself. "
-  ;; TODO this must satisfy ::sp/tag-query
-  (comment (let [user (-> db :interface.filter/user)]
-             (cond-> {:attribute (-> db :interface.filter/attribute)
-                      :id js/tagid}
-               js/itemid (assoc :itemid js/itemid)
-               (not (= user :interface.filter/all-users)) (assoc :user user))))
-  (merge {:attribute "TODO attribute"}
-         (refresh-args-match (:current-route db))))
+  (refresh-args-match (:current-route db)))
 
 ;; TODO make this only clear the correct error
 (reg-event-db :clear-errors interceptor-chain #(assoc % :errors []))
+
 ;; TODO add current-attribute to special part of spec
-(reg-event-db
+(reg-event-fx
  ::refresh-db
  interceptor-chain
- (fn [db [_ {:keys [body errors] :as payload}]]
+ (fn [{:keys [db]} [_ {:keys [body errors] :as payload}]]
    ;; TODO add errors to error element
    (def payload payload)
    
-   (merge db {:page/tag (assoc body :percent 50)})
-   ;; PROBLEM: t has pair
-   ))
+   {:db (merge db {:page/tag (assoc body :percent 50)})}))
 
 (reg-event-db
  :error
@@ -136,7 +161,7 @@
  :refresh-state
  interceptor-chain
  (fn [{:keys [db]} [_ match]]
-   (let [db (merge db {:current-route (or match (:current-route db))})]
+   (let [db (cond-> db match (assoc :current-route match))]
      {:dispatch [::martian/request
                  :tag/sorted          
                  (appdb-args db)

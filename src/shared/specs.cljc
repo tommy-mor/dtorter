@@ -96,9 +96,9 @@
                                :tag/item-vote-counts
                                :interface/attributes
                                :interface/owner
-                               :interface/users
-                               :interface.filter/attribute
-                               :interface.filter/user]
+                               :interface/users]
+                         :opt [:interface.filter/user ; because they stored in the url
+                               :interface.filter/attribute]
                          :req-un [::owner]))
 
 (s/def :page/tags (s/coll-of ::tag))
@@ -110,8 +110,8 @@
 (s/def :tag.query/user string?)
 (s/def :tag.query/itemid string?)
 (s/def ::tag-query
-  (s/keys :req-un [:tag.query/attribute]
-          :opt-un [:tag.query/user
+  (s/keys :opt-un [:tag.query/attribute
+                   :tag.query/user
                    :tag.query/itemid]))
 ;; transient state of webapp
 

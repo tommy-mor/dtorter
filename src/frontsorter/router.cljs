@@ -10,7 +10,17 @@
    [reitit.frontend.easy :as rfe]))
 
 ;; https://gist.github.com/vharmain/a8bbfa5bc601feba0f421959228139a1
-
+(def routes
+  ["/"
+   [""
+    {:name ::home}]
+   ["t/:id"
+    {:name ::tag-view
+     :path-params {:id string?}
+     :controllers [{:identity identity
+                    :start (fn [match]
+                             (re-frame/dispatch [:refresh-state match]))}]}]])
+(def router (rf/router routes))
 ;; Events
 
 (re-frame/reg-event-fx
@@ -21,6 +31,7 @@
 (re-frame/reg-event-db
  ::navigated
  (fn [db [_ new-match]]
+   (js/console.log "navgiated query-params" (-> new-match :query-params))
    (assoc db :current-route new-match)))
 
 
@@ -32,8 +43,9 @@
 
 (re-frame/reg-fx
  ::navigate!
- (fn [[_ k params query]] (rfe/push-state k params query)))
-
+ (fn [[_ k params query]]
+   (js/console.log "navigate fx" k params query)
+   (rfe/push-state k params query)))
 
 (defn href
   "Return relative url for given route. Url can be used in HTML links."
@@ -44,21 +56,16 @@
   ([k params query]
    (rfe/href k params query)))
 
+
+(re-frame/reg-fx
+ ::navigate-secret!
+ (fn [[_ k params query]]
+   (let [url (href k params query)]
+     (.replaceState js/window.history nil "" url)
+     (re-frame/dispatch [::navigated (rf/match-by-path router url)]))))
+
 (defn front-page [] [:div "home page"])
 (defn tag-page [] [:div "tag-page"])
-
-(def routes
-  ["/"
-   [""
-    {:name ::home}]
-   ["t/:id"
-    {:name ::tag-view
-     :path-params {:id string?}
-     :controllers [{:identity identity
-                    :start (fn [match]
-                             (re-frame/dispatch [:refresh-state match]))}]}]])
-
-(def router (rf/router routes))
 
 (defn on-navigate [new-match]
   (let [old-match (re-frame/subscribe [::current-route])]
