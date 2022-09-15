@@ -153,7 +153,7 @@
                  :vote/new
                  {:vote/left-item (-> db :page/tag :pair :left :xt/id)
                   :vote/right-item (-> db :page/tag :pair :right :xt/id)
-                  :vote/attribute (-> db :page/tag :interface.filter/attribute)
+                  :vote/attribute (-> db :current-route :query-params :attribute)
                   :vote/tag (-> db :page/tag :xt/id)
                   :vote/magnitude (:percent db)
                   :owner (-> db :session/user-id)}

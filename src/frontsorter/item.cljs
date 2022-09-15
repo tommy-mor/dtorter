@@ -19,15 +19,6 @@
  ::vote-on-pair
  frontsorter.events/interceptor-chain
  (fn [db [_ vote leftitem rightitem]]
-   (js/console.log "left" leftitem)
-   (js/console.log "right" rightitem)
-   (js/console.log "vote" vote)
-   (def leftitem leftitem)
-   (def rightitem rightitem)
-   (def a db)
-   (-> a :page/tag
-       :pair)
-   (-> a :page/tag :pair)
    (-> db
        (assoc-in [:page/tag :pair] {:left leftitem
                                     :right rightitem})
@@ -37,19 +28,6 @@
 ;; only called from js
 ;; TODO move these
 ;; views --
-
-#_ (defn item-edit [show]
-  (let [callback #(reset! show false)]
-    [:> foo/ItemCreator {:inputList (c/fields-from-format @(subscribe [:format]))
-                         :editItem @(subscribe [:item :item])
-                         :editCallback callback}]))
-
-(defn itemv []
-  [c/editable
-   nil ;; title
-   (:edit_item @(subscribe [:show]))
-   [:h1 "edit item here"]
-   [c/itemview :item]])
 
 (defn votepanel [rowitem]
   (let [itemid (:xt/id @(subscribe [::item]))
@@ -109,24 +87,7 @@
                [rowitem (-> n
                             (assoc :key (:xt/id n)))]))]]))
 
-(defn home-page []
-  #_ (fn []
-       [:div
-        [back @tag]
-        (if @score
-          [c/pairvoter score (:format (:settings @tag)) sendvote :startopen true :cancelfn #(reset! score nil)]
-          [itemv])
-        [c/collapsible-cage true
-         "MATCHUPS"
-         [ranklist]]])
-  [:div
-   (case @(subscribe [:item-stage])
-     :itemview [itemv]
-     :voting [c/pairvoter :cancelevent [:cancelvote]])
-   [c/collapsible-cage true "ATTRIBUTES" ""
-    [attrs/attributes-panel]]
-   [c/collapsible-cage true "MATCHUPS" "itemranking"
-    [ranklist]]])
+
 
 
 
