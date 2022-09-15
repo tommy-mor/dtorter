@@ -5,11 +5,12 @@
                           subscribe dispatch dispatch-sync]]
    [reagent.core :refer [atom]]
    [frontsorter.common :as c]
-   [frontsorter.events :as events]))
+   [frontsorter.events :as events]
+   [frontsorter.router :as router]))
 
 (reg-sub :current-attribute
-         :<- [:tag]
-         (some-fn :interface.filter/attribute
+         :<- [:current-route]
+         (some-fn (comp :attribute :query-params)
                   (constantly ::empty)))
 
 (reg-sub :raw-attributes
@@ -34,8 +35,12 @@
 (reg-event-fx :attribute-selected
               events/interceptor-chain
               (fn [{:keys [db]} [_ attribute]]
-                {:db (assoc db :interface.filter/attribute attribute)
-                 :dispatch [:refresh-state]}))
+                {:dispatch [::router/navigate
+                            ::router/tag-view
+                            (-> db :current-route :path-params)
+                            (merge
+                             (-> db :current-route :query-params)
+                             {:attribute attribute})]}))
 
 (defn attributes-panel []
   (let [editing (atom false)

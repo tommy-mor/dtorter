@@ -4,6 +4,7 @@
 (reg-sub :page/tags :page/tags)
 (reg-sub :all (fn [x] x))
 (reg-sub :session/user-id :session/user-id)
+(reg-sub :current-route :current-route)
 
 (reg-sub :tag :page/tag)
 (reg-sub :tag-loaded? (fn [db] (not (nil? (:page/tag db)))))
