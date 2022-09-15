@@ -5,7 +5,9 @@
             [frontsorter.attributes :as attrs]
             
             [inside-out.forms :as forms]
-            [frontsorter.tagform.create :as tagform])
+            [frontsorter.tagform.create :as tagform]
+            [frontsorter.router :as router]
+            [frontsorter.item :as item])
   (:require-macros [inside-out.reagent :refer [with-form]]))
 
 (defn addpanel []
@@ -49,6 +51,7 @@
     @(subscribe [:tag-edit-info])
     (partial edit-tag-form close)]])
 
+
 (defn tag-info []
   (let [{:tag/keys [name description
                     itemcount usercount votecount]
@@ -86,8 +89,12 @@
 
 (defn item [item]
   [c/hoveritem ^{:key (:xt/id item)}
-   {:on-click #(let [url (str "/t/" "/i/" (:xt/id item))]
-                 (set! js/window.location.href url))
+   {:on-click #(let [route @(subscribe [:current-route]) ]
+                 (dispatch [::router/navigate
+                            ::router/tag-item-view
+                            (assoc (:path-params route)
+                                   :itemid (:xt/id item))
+                            (:query-params route)]))
     :key (:xt/id item)}
    
    (when (:elo item)
@@ -180,7 +187,7 @@
         ""
         [attrs/attributes-panel]])
 
-     (when true
+     (when @(subscribe [:pair-loaded?])
        [c/pairvoter])
      
      [:div.threepanels
@@ -198,7 +205,8 @@
          "itemranking"
          [sortedlist :unsorted :unsorted-count]])
       
-      (when @(subscribe [:votes-not-empty])
+      (when (and @(subscribe [:votes-not-empty])
+                 (not @(subscribe [:frontsorter.item/loaded?])))
         [c/collapsible-cage
          false
          (str "MY VOTES (" @(subscribe [:votes-count]) ") on attribute "
@@ -206,9 +214,10 @@
          "votinglistpanel"
          [votelist]])
       
-      (when false [c/collapsible-cage
-                   true
-                   "item matchup"
-                   "itemranking"
-                   [votelist]])]]))
+      (when @(subscribe [:frontsorter.item/loaded?])
+        [c/collapsible-cage
+         true
+         "item matchup"
+         "itemranking"
+         [item/ranklist]])]]))
 

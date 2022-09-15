@@ -7,6 +7,7 @@
             [frontsorter.events]
             [frontsorter.subs]
             [frontsorter.attributes]
+            [frontsorter.item]
             [frontsorter.views :as views]))
 
 (defn render-tag [tag]

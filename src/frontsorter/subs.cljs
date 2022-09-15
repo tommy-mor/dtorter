@@ -9,6 +9,14 @@
 (reg-sub :tag :page/tag)
 (reg-sub :tag-loaded? (fn [db] (not (nil? (:page/tag db)))))
 
+(reg-sub :pair-loaded?
+         :<- [:tag]
+         (fn [tag]
+           (not (nil? (:pair tag)))))
+
+(comment (-> @(subscribe [:pair-loaded?])))
+
+
 (reg-sub :left :<- [:tag] (comp :left :pair))
 
 (reg-sub :right :<- [:tag] (comp :left :pair))

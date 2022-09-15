@@ -3,39 +3,29 @@
    [reagent.dom :as d]
    [re-frame.core :as rf :refer [dispatch dispatch-sync subscribe]]
    [day8.re-frame.http-fx]
-   [frontsorter.views :as views]
    [frontsorter.events]
    [frontsorter.common :as c]
    [frontsorter.subs]
-   [frontsorter.attributes :as attrs]))
+   [frontsorter.attributes :as attrs]
+   [martian.re-frame :as martian]))
 
-(rf/reg-sub ::not-empty  (comp not nil? :page/tag))
-(comment (rf/reg-event-fx "TODO PICK UP HERE {{{{{}}}}}"))
-
-
-
-
+(js/console.log "loaded?")
+(rf/reg-sub ::item (comp :item :page/tag))
+(rf/reg-sub ::loaded?
+            :<- [::item]
+            (comp not nil?))
 
 ;; only called from js
 ;; TODO move these
 ;; views --
 
-(defn back []
-  (let [name @(subscribe [:name])]
-    [:a {:href (str "/t/")} " << " name]))
-
-#_(defn item-edit [show]
+#_ (defn item-edit [show]
   (let [callback #(reset! show false)]
     [:> foo/ItemCreator {:inputList (c/fields-from-format @(subscribe [:format]))
                          :editItem @(subscribe [:item :item])
                          :editCallback callback}]))
 
 (defn itemv []
-  #_[c/editable
-   nil
-   (:edit_item @show) ;; TODO
-   item-edit
-     [c/itemview (:format (:settings @tag)) @item 10 false (:type (:settings @tag))]]
   [c/editable
    nil ;; title
    (:edit_item @(subscribe [:show]))
@@ -43,13 +33,14 @@
    [c/itemview :item]])
 
 (defn votepanel [rowitem]
-  (let [vote @(subscribe [:vote-on rowitem])
+  (let [itemid (:xt/id @(subscribe [::item]))
+        vote @(subscribe [:vote-on rowitem])
         [mag mag2] (c/calcmag vote (:xt/id rowitem))
         ignoreitem (or @(subscribe [:item :item])
                        @(subscribe [:item :left]))
         editfn #(dispatch [:voteonpair vote ignoreitem rowitem])
         delfn #(dispatch [:delete-vote vote])]
-    (if (= (:xt/id rowitem) js/itemid)
+    (if (= (:xt/id rowitem) itemid)
       [:td "--"]
       (if vote
         [:tr.vote
@@ -64,13 +55,13 @@
 
 
 (defn rowitem [rowitem]
-  (let [show @(subscribe [:show])]
+  (let [itemid (:xt/id @(subscribe [::item]))]
     [:tr 
      [:td (.toFixed (:elo rowitem) 2)]
      ;; customize by type (display url for links?)
      
      [:td (:item/votecount rowitem)]
-     [:td [:b (if (= js/itemid (:xt/id rowitem))
+     [:td [:b (if (= itemid (:xt/id rowitem))
                 (:item/name rowitem)
                 " ")]]
      [votepanel rowitem]
@@ -84,7 +75,7 @@
             (cond
               (and right
                    (= id (:xt/id right))) [:b name]
-              (= id js/itemid) "--"
+              (= id itemid) "--"
               true name))]]))
 
 (defn ranklist []
@@ -111,7 +102,6 @@
          "MATCHUPS"
          [ranklist]]])
   [:div
-   [back]
    (case @(subscribe [:item-stage])
      :itemview [itemv]
      :voting [c/pairvoter :cancelevent [:cancelvote]])
@@ -121,8 +111,4 @@
     [ranklist]]])
 
 
-(defn mount-root []
-  (d/render [home-page] (.getElementById js/document "app")))
 
-(defn ^:export init! []
-  (mount-root))

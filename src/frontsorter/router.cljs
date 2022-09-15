@@ -19,6 +19,13 @@
      :path-params {:id string?}
      :controllers [{:identity identity
                     :start (fn [match]
+                             (re-frame/dispatch [:refresh-state {::match match}]))}]}]
+   ["t/:id/i/:itemid"
+    {:name ::tag-item-view
+     :path-params {:id string? :itemid string?}
+     :controllers [{:identity identity
+                    :start (fn [match]
+                             (def r match)
                              (re-frame/dispatch [:refresh-state {::match match}]))}]}]])
 (def router (rf/router routes))
 ;; Events
