@@ -66,7 +66,7 @@
       (if (= name "gh issues")
         [:a {:style {:background "red"
                      :float "right"}
-             :href (str "/githubrefresh/" js/tagid) }
+             :href (str "/githubrefresh/") }
          " REFRESH "])
       (comment [:a {:style {:background "green"
                             :float "right"}
@@ -86,7 +86,7 @@
 
 (defn item [item]
   [c/hoveritem ^{:key (:xt/id item)}
-   {:on-click #(let [url (str "/t/" js/tagid "/i/" (:xt/id item))]
+   {:on-click #(let [url (str "/t/" "/i/" (:xt/id item))]
                  (set! js/window.location.href url))
     :key (:xt/id item)}
    
@@ -204,5 +204,11 @@
          (str "MY VOTES (" @(subscribe [:votes-count]) ") on attribute "
               @(subscribe [:current-attribute]))
          "votinglistpanel"
-         [votelist]])]]))
+         [votelist]])
+      
+      (when false [c/collapsible-cage
+                   true
+                   "item matchup"
+                   "itemranking"
+                   [votelist]])]]))
 

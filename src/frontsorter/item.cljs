@@ -9,7 +9,8 @@
    [frontsorter.subs]
    [frontsorter.attributes :as attrs]))
 
-(dispatch-sync [:init-db {}])
+(rf/reg-sub ::not-empty  (comp not nil? :page/tag))
+(comment (rf/reg-event-fx "TODO PICK UP HERE {{{{{}}}}}"))
 
 
 
@@ -21,7 +22,7 @@
 
 (defn back []
   (let [name @(subscribe [:name])]
-    [:a {:href (str "/t/" js/tagid)} " << " name]))
+    [:a {:href (str "/t/")} " << " name]))
 
 #_(defn item-edit [show]
   (let [callback #(reset! show false)]
@@ -73,7 +74,7 @@
                 (:item/name rowitem)
                 " ")]]
      [votepanel rowitem]
-     [:td (let [url (str "/t/" js/tagid "/i/" (:xt/id rowitem))
+     [:td (let [url (str "/t/" "/i/" (:xt/id rowitem))
                 name [:div
                       {:onClick (fn [] (set! js/window.location.href url))}
                       (:item/name rowitem)]

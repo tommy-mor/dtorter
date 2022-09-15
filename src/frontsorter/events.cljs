@@ -128,32 +128,6 @@
       (assoc :item (-> db :pair :left))
       (dissoc :pair :percent)))
 
-(comment (reg-event-fx
-          :vote
-          (fn [{:keys [db]} _]
-            {:db (if js/itemid
-                   (cancel-vote db)
-                   db)
-             :dispatch [:mutate
-                        :vote
-                        (if js/itemid qs/vote-item qs/vote)
-                        (merge (appdb-args db)
-                               {:vote_info {:tagid js/tagid
-                                            :left_item (-> db :pair :left :id)
-                                            :right_item (-> db :pair :right :id)
-                                            :attribute (-> db :current-attribute)
-                                            :magnitude (-> db :percent)}})
-                        [::refresh-db]]}))
-
-         (reg-event-fx
-          :add-item
-          (fn [{:keys [db]} [_ item]]
-            {:dispatch [:mutate
-                        :add-item
-                        qs/add-item
-                        (merge (appdb-args db) {:item_info (merge {:tagid js/tagid} item)})
-                        [::refresh-db]]})))
-
 (martian/init (str js/window.location.origin "/api/swagger.json"))
 ;; TODO implement the piggyback as martian/re-frame middleware AND pedestal middleware :smiling_imp:
 
@@ -233,7 +207,6 @@
  :delete-item-success
  interceptor-chain
  (fn [db _]
-   (set! js/window.location (str "/t/" js/tagid))
    (js/console.log "should never get here")
    db))
 
