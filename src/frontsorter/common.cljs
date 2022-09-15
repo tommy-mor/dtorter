@@ -55,10 +55,7 @@
 
 ;; TODO get rid fo format map here, can dislpay any item. format restriction happens only on server
 (defn itemview [side]
-  (def side side)
-  side
   (let [item @(subscribe [side])]
-    (def item item)
     [:div.item 
      {:class (case side :right "rightitem" :left "leftitem" "")
       :style (when (not (= side :item))
@@ -71,12 +68,12 @@
        [:<> 
         [:br]
         [:pre {:style {:color "red"
-                       :white-space "pre-line"}} (:paragraph (:content item))]])] ))
+                       :white-space "pre-line"}} (:paragraph (:content item))]])]))
 
 (defn smallbutton [text fn & [style]]
   [:a {:on-click #(do (.preventDefault %)
                       (fn))
-       :style style :class "sideeffect" :href "#"} text])
+       :style {:cursor "pointer"} :class "sideeffect"} text])
 
 (defn hoveritem [keys & children]
   (let [hovered (atom false)]

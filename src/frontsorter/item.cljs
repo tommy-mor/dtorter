@@ -15,6 +15,25 @@
             :<- [::item]
             (comp not nil?))
 
+(rf/reg-event-db
+ ::vote-on-pair
+ frontsorter.events/interceptor-chain
+ (fn [db [_ vote leftitem rightitem]]
+   (js/console.log "left" leftitem)
+   (js/console.log "right" rightitem)
+   (js/console.log "vote" vote)
+   (def leftitem leftitem)
+   (def rightitem rightitem)
+   (def a db)
+   (-> a :page/tag
+       :pair)
+   (-> a :page/tag :pair)
+   (-> db
+       (assoc-in [:page/tag :pair] {:left leftitem
+                                    :right rightitem})
+       (assoc-in [:percent] (first
+                             (frontsorter.common/calcmag vote (:id leftitem)))))))
+
 ;; only called from js
 ;; TODO move these
 ;; views --
@@ -36,9 +55,8 @@
   (let [itemid (:xt/id @(subscribe [::item]))
         vote @(subscribe [:vote-on rowitem])
         [mag mag2] (c/calcmag vote (:xt/id rowitem))
-        ignoreitem (or @(subscribe [:item :item])
-                       @(subscribe [:item :left]))
-        editfn #(dispatch [:voteonpair vote ignoreitem rowitem])
+        ignoreitem @(subscribe [::item])
+        editfn #(dispatch [::vote-on-pair vote ignoreitem rowitem])
         delfn #(dispatch [:delete-vote vote])]
     (if (= (:xt/id rowitem) itemid)
       [:td "--"]
@@ -70,7 +88,7 @@
                       {:onClick (fn [] (set! js/window.location.href url))}
                       (:item/name rowitem)]
                 id (:xt/id rowitem)
-                right @(subscribe [:item :right])]
+                right @(subscribe [:right])]
             (def right right)
             (cond
               (and right

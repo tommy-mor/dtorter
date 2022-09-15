@@ -64,7 +64,8 @@
      "TAG"
      (= user-id (:xt/id owner))
      tag-edit
-     [:div {:style {:padding-left "10px"}}
+     [:div {:style {:padding-left "10px"}
+            :on-click #(dispatch [::router/navigate ::router/tag-view {:id (:xt/id tag)}])}
       
       (if (= name "gh issues")
         [:a {:style {:background "red"

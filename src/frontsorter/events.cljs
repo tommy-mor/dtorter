@@ -192,7 +192,7 @@
  (fn [{:keys [db]}
       [_ new-user]]
    {:dispatch [::router/navigate
-               ::router/tag-view
+               (-> db :current-route :data :name)
                (-> db :current-route :path-params)
                (let [query (-> db :current-route :query-params)]
                  (cond
@@ -227,17 +227,6 @@
 
 
 ;; for item page
-(reg-event-db
- :voteonpair
- interceptor-chain
- (fn [db [_ vote leftitem rightitem]]
-   (-> db
-       (assoc :pair {:left leftitem
-                     :right rightitem}
-              :percent (first
-                        (frontsorter.common/calcmag vote (:id leftitem))))
-       (dissoc :item))))
-
 (reg-event-db
  :cancelvote
  interceptor-chain

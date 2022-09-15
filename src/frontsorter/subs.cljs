@@ -19,7 +19,7 @@
 
 (reg-sub :left :<- [:tag] (comp :left :pair))
 
-(reg-sub :right :<- [:tag] (comp :left :pair))
+(reg-sub :right :<- [:tag] (comp :right :pair))
 
 (reg-sub :percent :percent)
 
@@ -30,10 +30,6 @@
              :left (/ (max 0 (- 50 percent)) 2)
              0)))
 
-(reg-sub :item (fn [db [_ side]] 
-                 (if-let [x (side db)]
-                   x
-                   ((comp side :pair) db))))
 ;; add panel subs
 
 ;; (reg-sub :format #(-> % :tag :settings :format))
@@ -82,15 +78,6 @@
          (tap> [plum-vote pom-vote]))
 
 
-
-(reg-sub :item-stage
-         (fn [db _]
-           (cond
-             (and (:pair db)
-                  (not (:item db))) :voting
-             (and (:item db)
-                  (not (:pair db))) :itemview
-             true (js/console.log "bad state"))))
 
 (reg-sub :tag-edit-info
          #(select-keys % [:tag/name :tag/description :owner :xt/id]))

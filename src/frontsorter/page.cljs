@@ -21,7 +21,6 @@
 
 (defn app []
   [:div
-   [:pre (pr-str @(subscribe [::router/current-route]))]
    (doall (for [tag @(subscribe [:page/tags]) ]
             [render-tag (assoc tag :key (:xt/id tag))]))
    (when @(subscribe [:tag-loaded?]) [views/tag-page])])

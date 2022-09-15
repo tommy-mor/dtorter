@@ -36,7 +36,7 @@
               events/interceptor-chain
               (fn [{:keys [db]} [_ attribute]]
                 {:dispatch [::router/navigate
-                            ::router/tag-view
+                            (-> db :current-route :data :name)
                             (-> db :current-route :path-params)
                             (merge
                              (-> db :current-route :query-params)
