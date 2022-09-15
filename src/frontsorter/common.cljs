@@ -29,43 +29,44 @@
                  (if ((keyword k) format)
                    k)))))
 
-(defn url-displayer [side]
-  (let [format @(subscribe [:url-format])
-        [url embedurl] @(subscribe [:urls side])]
-    (cond
-      ((keyword "any website") format) [:a {:href url
-                                            :target "_blank"} url]
-      ((keyword "image link") format)  [:img {:src url
-                                              :style {:max-width "100%"}}]
-      (or ((keyword "youtube") format)
-          ((keyword "youtube with timestamp") format))
-      [:div {:style {:padding-bottom "56.25%"
-                     :position "relative"
-                     :width "100%"
-                     :height 0}} [:iframe {:src embedurl :style {:height "100%"
-                                                                 :width "100%"
-                                                                 :position "absolute"
-                                                                 :top 0
-                                                                 :left 0
-                                                                 }
-                                           :allow-full-screen true}]]
-      ((keyword "spotify") format) [spotify-player embedurl]
-      
-      true [:span "unknown format"])))
+(comment (defn url-displayer [side]
+           (let [format @(subscribe [:url-format])
+                 [url embedurl] @(subscribe [:urls side])]
+             (cond
+               ((keyword "any website") format) [:a {:href url
+                                                     :target "_blank"} url]
+               ((keyword "image link") format)  [:img {:src url
+                                                       :style {:max-width "100%"}}]
+               (or ((keyword "youtube") format)
+                   ((keyword "youtube with timestamp") format))
+               [:div {:style {:padding-bottom "56.25%"
+                              :position "relative"
+                              :width "100%"
+                              :height 0}} [:iframe {:src embedurl :style {:height "100%"
+                                                                          :width "100%"
+                                                                          :position "absolute"
+                                                                          :top 0
+                                                                          :left 0
+                                                                          }
+                                                    :allow-full-screen true}]]
+               ((keyword "spotify") format) [spotify-player embedurl]
+               
+               true [:span "unknown format"]))))
 
 ;; TODO get rid fo format map here, can dislpay any item. format restriction happens only on server
 (defn itemview [side]
   (def side side)
   side
-  (let [item @(subscribe [:item side])]
+  (let [item @(subscribe [side])]
+    (def item item)
     [:div.item 
      {:class (case side :right "rightitem" :left "leftitem" "")
       :style (when (not (= side :item))
                {:transform (str "translateY(-" @(subscribe [:side-height side]) "px)")})}
      (when (:item/name item)
        [:h1 {:style {:margin-bottom "4px"}} (:item/name item)])
-     (when (:url item)
-       [url-displayer side])
+     (comment (when (:url item)
+                [url-displayer side]))
      (when (:paragraph name)
        [:<> 
         [:br]
@@ -156,8 +157,6 @@
     
     [collapsible-cage true "VOTE" "votingaddpanel"
      [:div.votearena
-      {:style @(subscribe [:pair-arena-style])}
-      
       [itemview :left]
       [itemview :right]
       

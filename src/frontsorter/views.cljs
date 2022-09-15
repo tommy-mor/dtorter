@@ -200,7 +200,7 @@
       
       (when @(subscribe [:votes-not-empty])
         [c/collapsible-cage
-         true
+         false
          (str "MY VOTES (" @(subscribe [:votes-count]) ") on attribute "
               @(subscribe [:current-attribute]))
          "votinglistpanel"

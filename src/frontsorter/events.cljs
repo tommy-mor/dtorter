@@ -160,7 +160,7 @@
 (reg-event-fx
  :refresh-state
  interceptor-chain
- (fn [{:keys [db]} [_ match]]
+ (fn [{:keys [db]} [_ {::router/keys [match]}]]
    (let [db (cond-> db match (assoc :current-route match))]
      {:dispatch [::martian/request
                  :tag/sorted          
@@ -174,15 +174,15 @@
    (if  (= (:interface.filter/attribute db)
            :interface.filter/no-attribute)
      {:dispatch [:error "must specify attribute before voting"]}
-     {:db (if js/itemid (cancel-vote db) db)
+     {:db (if (:page/item db) (cancel-vote db) db)
       :dispatch [::martian/request
                  :vote/new
-                 {:vote/left-item (-> db :pair :left :xt/id)
-                  :vote/right-item (-> db :pair :right :xt/id)
-                  :vote/attribute (-> db :interface.filter/attribute)
-                  :vote/tag js/tagid
+                 {:vote/left-item (-> db :page/tag :pair :left :xt/id)
+                  :vote/right-item (-> db :page/tag :pair :right :xt/id)
+                  :vote/attribute (-> db :page/tag :interface.filter/attribute)
+                  :vote/tag (-> db :page/tag :xt/id)
                   :vote/magnitude (:percent db)
-                  :owner js/userid}
+                  :owner (-> db :session/user-id)}
                  
                  [:refresh-state]
                  [::http-failure]]})))

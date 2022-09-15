@@ -19,7 +19,7 @@
      :path-params {:id string?}
      :controllers [{:identity identity
                     :start (fn [match]
-                             (re-frame/dispatch [:refresh-state match]))}]}]])
+                             (re-frame/dispatch [:refresh-state {::match match}]))}]}]])
 (def router (rf/router routes))
 ;; Events
 
@@ -31,7 +31,6 @@
 (re-frame/reg-event-db
  ::navigated
  (fn [db [_ new-match]]
-   (js/console.log "navgiated query-params" (-> new-match :query-params))
    (assoc db :current-route new-match)))
 
 
@@ -44,7 +43,6 @@
 (re-frame/reg-fx
  ::navigate!
  (fn [[_ k params query]]
-   (js/console.log "navigate fx" k params query)
    (rfe/push-state k params query)))
 
 (defn href
@@ -75,7 +73,6 @@
         (re-frame/dispatch [::navigated new-match])))))
 
 (defn init-routes! []
-  (js/console.log "initializing routes")
   (rfe/start!
    router
    on-navigate

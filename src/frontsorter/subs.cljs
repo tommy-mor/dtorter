@@ -13,27 +13,7 @@
 
 (reg-sub :right :<- [:tag] (comp :left :pair))
 
-(reg-sub :percent :<- [:tag] :percent)
-
-(reg-sub :pair
-         (fn [query-v _]
-           [(subscribe [:left]) (subscribe [:right]) (subscribe [:percent])])
-
-         
-         (fn [[left right percent] _]
-           {:left left
-            :right right
-            :percent percent}))
-
-; this is slightly wrong, because css is a little closer to view
-; than computed subscriptions like to be (closer to data)
-(reg-sub :pair-arena-style :<- [:format]
-         (fn [format _]
-           (if (or (-> format :url :youtube)
-                   (-> format :url ((keyword "youtube with timestamp"))))
-             {:width "150%"
-              :transform "translate(-16.6%, 0)"}
-             {})))
+(reg-sub :percent :percent)
 
 (reg-sub :side-height :<- [:percent]
          (fn [percent [_ side]]
@@ -46,18 +26,9 @@
                  (if-let [x (side db)]
                    x
                    ((comp side :pair) db))))
-(reg-sub :urls
-         (fn [[_ side]] (subscribe [:item side]))
-         (fn [item [_ side]]
-           ((juxt :url :embedurl) (item :content))))
-
-(reg-sub :url-format :<- [:format] #(:url %))
-
 ;; add panel subs
 
 ;; (reg-sub :format #(-> % :tag :settings :format))
-(reg-sub :format (constantly {:name true}))
-
 ;; ranklist subs
 
 (reg-sub :sorted :<- [:tag] :tag.filtered/sorted)
