@@ -65,7 +65,9 @@
                :put {:parameters {:body spec}
                      :handler
                      (fn [{:keys [resource node body-params] :as ctx}]
-                       (xt/submit-tx node [[::xt/put (assoc body-params :xt/id (-> ctx :path-params :id))]])
+                       (xt/submit-tx node [[::xt/put (assoc body-params
+                                                            :xt/id (-> ctx :path-params :id)
+                                                            :type swagger-tag)]])
                        {:status 204 :body "received"})
                      :summary (str "update/replace a " swagger-tag)
                      :operationId (keyword swagger-tag "put")}

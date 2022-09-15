@@ -80,6 +80,7 @@
 
 
 (reg-sub :tag-edit-info
+         :<- [:tag]
          #(select-keys % [:tag/name :tag/description :owner :xt/id]))
 
 

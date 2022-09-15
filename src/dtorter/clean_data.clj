@@ -37,18 +37,28 @@
          (def title->tag (into {} (map (juxt :title identity) d/tags)))
 
          (def users (resp :user/list-all))
+         (defn lookup-user [name]
+           (:xt/id (ffirst (xt/q (xt/db dtorter.http/node) '{:find [(pull u [*])]
+                                                             :where [ [u :user/name name]]
+                                                             :in [name]}
+                                 name))))
+         (def tommy
+           (or
+            (lookup-user "tommy")
+            (resp :user/new
+                  {:user/name "tommy"
+                   :user/password "tommy1"})))
+         (def blobbed
+           (or (lookup-user "tommy")
+               (resp :user/new
+                     {:user/name "blobbed"
+                      :user/password "blobbed1"})))
          
-         (comment (def tommy (or (:xt/id (ffirst (xt/q (xt/db dtorter.http/node) '{:find [(pull u [*])]
-                                                                                   :where [ [u :user/name "tommy"]]})))
-                                 (resp :user/new
-                                       {:user/name "tommy"
-                                        :user/password "tommy1"})))
-                  (def blobbed (resp :user/new
-                                     {:user/name "blobbed"
-                                      :user/password "blobbed1"}))
-                  (def eli (resp :user/new
-                                 {:user/name "eli"
-                                  :user/password "eli1"})))
+         (def eli
+           (or (lookup-user "eli")
+               (resp :user/new
+                     {:user/name "eli"
+                      :user/password "eli1"})))
 
          (def olduser->newuser {(name->userid "tommy") tommy
                                 (name->userid "blobbed") blobbed})

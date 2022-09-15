@@ -56,3 +56,12 @@
 	@apply bg-blue-500 hover:bg-blue-700;
 
 }
+
+.tagform {
+	input {
+		background-color: lightgray;
+		width: 100%;
+		border: 1px;
+		margin: 3px;
+	}
+}

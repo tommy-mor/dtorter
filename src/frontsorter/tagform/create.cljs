@@ -12,9 +12,12 @@
 (defn sync-state [atom]
   #(reset! atom (-> % .-target .-value)))
 
-(def m)
+(defn keybinds [finish]
+  #(when (and (= (.-keyCode %) 13)
+              (.-ctrlKey %))
+     (finish)))
 
-(defn new-tag-form [initial-state finish-function]
+(defn new-tag-form [initial-state finish-function delete-function]
   (let [state (r/atom initial-state)]
     (fn []
       (let [title (r/cursor state [:tag/name])
@@ -22,40 +25,23 @@
         [:div.tagform
          [:input {:type :text :value @title
                   :on-change (sync-state title)
+                  :on-key-down (keybinds #(finish-function @state))
                   :placeholder "title"}]
+         [:br]
          [:input {:type :text :value @description
                   :on-change (sync-state description)
+                  :on-key-down (keybinds #(finish-function @state))
                   :placeholder "description"} ]
-         [:pre (pr-str @state)]
+         [:br]
+         
          [:button {:on-click #(finish-function @state)}
-          "submit" ]]))))
+          "submit" ]
+         [:button {:style {:color "red"
+                           :float "right"}
+                   :on-click #(when (js/confirm "are you sure?")
+                                  (delete-function @state))}
+          "delete" ]]))))
 
-(defn submit-tag-form [state]
-  (go
-    (let [url (<! (martian/response-for m :tag/new
-                                        (assoc state :owner js/userid)))]
-      (when (:success url)
-        (set! js/window.location
-              (str "/t/" (-> url :body :xt/id)))))))
 
-(defn new-item-form []
-  [:h1 "new item uwu"])
 
-(defn load-martian []
-  (go
-    (def m (<! (martian-http/bootstrap-openapi (str js/window.location.origin "/api/swagger.json"))))))
 
-(defn ^:export init! []
-  (load-martian)
-  
-  (d/render [:div
-             [c/collapsible-cage
-              false
-              "new item"
-              ""
-              [new-item-form]]
-             [c/collapsible-cage
-              false
-              "new tag"
-              ""
-              [new-tag-form {} submit-tag-form ]]] (.getElementById js/document "app")))

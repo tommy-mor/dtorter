@@ -10,9 +10,6 @@
                           :spotify
                           {:entries [frontsorter.spotify] :depends-on #{:shared}}
                           
-                          :item
-                          {:entries [frontsorter.item] :depends-on #{:shared}}
-                          
                           :edit-tag
                           {:entries [frontsorter.tagform.edit] :depends-on #{:shared}}
                           

@@ -42,14 +42,19 @@
 
 
 (defn edit-tag-form [close state]
-  (dispatch-sync [:edit-tag state])
+  (dispatch-sync [:tag/edit state])
+  (reset! close false))
+
+(defn delete-tag-form [close state]
+  (dispatch-sync [:tag/delete state])
   (reset! close false))
 
 (defn tag-edit [close]
-  [:div (comment {:on-click #(reset! close false)})
+  [:div
    [tagform/new-tag-form
     @(subscribe [:tag-edit-info])
-    (partial edit-tag-form close)]])
+    (partial edit-tag-form close)
+    (partial delete-tag-form close)]])
 
 
 (defn tag-info []

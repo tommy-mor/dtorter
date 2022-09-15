@@ -162,13 +162,29 @@
                  [::http-failure]]})))
 
 (reg-event-fx
- :edit-tag
+ :tag/edit
  (fn [{:keys [db]} [_ state]]
    (def stae state)
    {:dispatch [::martian/request
                :tag/put  (assoc state :id (:xt/id state))
                [:refresh-state]
                [::http-failure]]}))
+(reg-event-fx
+ :tag/delete
+ (fn [{:keys [db]} [_ state]]
+   {:dispatch [::martian/request
+               :tag/delete {:id (:xt/id state)}
+               [::martian/request
+                :tag/list-all
+                {}
+                [:tag.after/list-all]]
+               [::http-failure]]}))
+(reg-event-fx
+ :tag.after/list-all
+ (fn [{:keys [db]} [_ {:keys [body]}]]
+   {:db (-> db
+            (assoc :page/tags body)
+            (dissoc :page/tag))}))
 
 (reg-event-fx
  :delete-vote
