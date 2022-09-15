@@ -217,8 +217,16 @@
  interceptor-chain
  (fn [{:keys [db]}
       [_ new-user]]
-   {:db (assoc db :interface.filter/user new-user)
-    :dispatch [:refresh-state [:left :right]]}))
+   {:dispatch [::router/navigate
+               ::router/tag-view
+               (-> db :current-route :path-params)
+               (let [query (-> db :current-route :query-params)]
+                 (cond
+                   (= new-user :interface.filter/all-users)
+                   (dissoc query :user)
+
+                   true
+                   (assoc query :user new-user)))]}))
 
 
 (reg-event-db
