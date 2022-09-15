@@ -63,7 +63,6 @@
      [votepanel rowitem]
      [:td (let [url (str "/t/" "/i/" (:xt/id rowitem))
                 name [:div
-                      {:onClick (fn [] (set! js/window.location.href url))}
                       (:item/name rowitem)]
                 id (:xt/id rowitem)
                 right @(subscribe [:right])]
