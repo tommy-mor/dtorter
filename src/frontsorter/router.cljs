@@ -66,6 +66,7 @@
  ::navigate-secret!
  (fn [[_ k params query]]
    (let [url (href k params query)]
+     (js/console.log "secretly navigating to" url)
      (.replaceState js/window.history nil "" url)
      (re-frame/dispatch [::navigated (rf/match-by-path router url)]))))
 

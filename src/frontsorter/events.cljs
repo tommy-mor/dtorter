@@ -51,7 +51,8 @@
      
      
      (if (and current-query desired-query
-              (not= current-query desired-query))
+              (not= current-query desired-query)
+              (not (empty? desired-query)))
        (-> ctx
            (assoc-in [:effects ::router/navigate-secret!]
                      [:nav
@@ -100,7 +101,8 @@
    ;; TODO add errors to error element
    (def payload payload)
    
-   {:db (merge db {:page/tag (assoc body :percent 50)})}))
+   {:db (merge db {:page/tag body
+                   :percent 50})}))
 
 (reg-event-db
  :error
@@ -148,7 +150,7 @@
    (if  (= (:interface.filter/attribute db)
            :interface.filter/no-attribute)
      {:dispatch [:error "must specify attribute before voting"]}
-     {:db (if (:page/item db) (cancel-vote db) db)
+     {:db db
       :dispatch [::martian/request
                  :vote/new
                  {:vote/left-item (-> db :page/tag :pair :left :xt/id)
