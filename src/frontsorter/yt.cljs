@@ -13,16 +13,19 @@
   {:client-id "331497482324-ofis5vjjnn8jmgq2np8f7ralnpndqthm.apps.googleusercontent.com"
    :client-secret "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"})
 
-(def tokens (or (let [tokens (http/parse-query-params
+(defn yt-url [id]
+  (str "https://youtube.com/watch?v=" id))
+
+(def tokens (or (http/parse-query-params
+                 (js/localStorage.getItem "yt-oauth"))
+                
+                (let [tokens (http/parse-query-params
                               (subs js/window.location.hash 1))]
                   (js/localStorage.setItem "yt-oauth" (subs js/window.location.hash 1))
                   (set! js/window.location.hash "")
                   (if (:access_token tokens)
                     tokens
-                    nil))
-                
-                (http/parse-query-params
-                 (js/localStorage.getItem "yt-oauth"))))
+                    nil))))
 
 
 
@@ -42,6 +45,7 @@
 (def videos (r/atom []))
 (def pagetoken (r/atom nil))
 (def yttag (r/atom nil))
+(def existing-videos (r/atom nil))
 
 "
 
@@ -62,7 +66,17 @@ rn:
   then add button to add every item in the tag
   and also color indicator if video is added alrdy
 
-"
+
+
+not sure how to design this...
+  things to think about:
+    need a unique constraint on the url
+    i definitely want the mutually exclusive rule thing for towatch/watched...
+    i want playlist interface...
+       should all the api calls be on the client, or on the backend.
+
+
+ "
 
 (defn login-with-google []
   (js/console.log "ss")
@@ -88,14 +102,13 @@ rn:
 (defn video [ytvv]
   (def ytvv ytvv)
   [:div {:style {:display "flex"}}
-   [:button {:on-click #(rf/dispatch [::add-video ytvv])}"add"]
+   (when-not (@existing-videos (yt-url (:id ytvv)))
+     [:button {:on-click #(rf/dispatch [::add-video ytvv])}"add"])
    [:img {:src (-> ytvv :snippet :thumbnails :default :url)}]
-   [:a {:href (str "https://youtube.com/watch?v=" (-> ytvv :id))}(-> ytvv :snippet :title)]
+   [:a {:href (yt-url (:id ytvv))}(-> ytvv :snippet :title)]
    [:p "----"]
    [:p (-> ytvv :snippet :channelTitle)]])
 
-(defn look-for-tag []
-  (rf/dispatch [::find-yttag]))
 
 (rf/reg-event-fx
  ::find-yttag
@@ -121,21 +134,33 @@ rn:
                    [::tag-created]
                    [::events/http-failure]]}
        (do
-         (js/console.log "erhm")
          (reset! yttag (first search))
-         {})))))
+         {:dispatch [::martian/request
+                     :tag/items
+                     {:id (:xt/id @yttag)}
+                     [::tag-items]
+                     [::events/http-failure]]})))))
+
+(rf/reg-event-fx
+ ::tag-items
+ (fn [{:keys [db]} [_ {:keys [body]}]]
+   (reset! existing-videos (set (map :item/url body)))
+   {}))
 
 (rf/reg-event-fx
  ::add-video
  (fn [{:keys [db]} [_ video]]
-   (def video video)
    {:dispatch [::martian/request
                :item/new
                {:item/name (-> video :snippet :title)
                 :item/url (str "https://youtube.com/watch?v=" (-> video :id))
                 :item/tags [(:xt/id @yttag)]
                 :owner @(rf/subscribe [:session/user-id])}
-               [::added-video]
+               [::martian/request
+                :tag/items
+                {:id (:xt/id @yttag)}
+                [::tag-items]
+                [::events/http-failure]]
                [::events/http-failure]]}))
 
 (rf/reg-event-fx
@@ -145,10 +170,11 @@ rn:
 
 (defn ytv
   []
-  (when-not @yttag (look-for-tag))
+  (when-not @yttag (rf/dispatch [::find-yttag]))
   [:div
    [:p "youtbe api :)"]
    (when @yttag [(resolve 'frontsorter.page/render-tag) @yttag])
+   [:p (str (count @existing-videos) " existing videos")]
    [:ul (doall (for [v @videos]
                  [:li [video v]]))]
    
