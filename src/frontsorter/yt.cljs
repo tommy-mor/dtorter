@@ -51,12 +51,20 @@
   (js/console.log "ss")
   (set! js/window.location (str "https://accounts.google.com/o/oauth2/v2/auth?" qs)))
 
+(defn video [ytvv]
+  (def ytvv ytvv)
+  [:div {:style {:display "flex"}}
+   [:img {:src (-> ytvv :snippet :thumbnails :default :url)}]
+   [:a {:href (str "https://youtube.com/watch?v=" (-> ytvv :id))}(-> ytvv :snippet :title)]
+   [:p "----"]
+   [:p (-> ytvv :snippet :channelTitle)]])
+
 (defn ytv
   []
   [:div
    [:p "youtbe api :)"]
    [:ul (doall (for [v @videos]
-                 [:li (pr-str (-> v :snippet (select-keys [:title :channelTitle])))]))]
+                 [:li [video v]]))]
    (when (nil? tokens)
      [:button {:on-click login-with-google}
       "login with google"])
