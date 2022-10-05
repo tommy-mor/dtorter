@@ -15,6 +15,7 @@
    ;;TODO make this same exact router as cljs one
    ["/" spa-handler]
    ["/t/*" (assoc spa-handler :name :tag-page)]
+   ["/intg/youtube" (assoc spa-handler :name :yt-page)]
    (login/login-routes)
 
    (comment ["/t/:id/i/:itemid"
