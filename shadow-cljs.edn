@@ -27,4 +27,4 @@
                           
                           :tdsl-todo
                           {:entries [frontdsl.todopage] :depends-on #{:shared :tdsl}}}
-                :devtools   {:after-load frontsorter.item/mount-root}}}}
+                :devtools   {:after-load frontsorter.page/render}}}}

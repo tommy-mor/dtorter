@@ -50,6 +50,19 @@
         [:td [c/smallbutton "vote" editfn]]))))
 
 
+(defn item-edit [close]
+  (pr-str "uhh" close))
+
+(defn itempanel []
+  (def item @(subscribe [::item]))
+  [c/editable
+   "ITEM"
+   (= (:owner item)
+      @(subscribe [:session/user-id]))
+   item-edit
+   [:div
+    [:p (:item/name item)]]])
+
 (defn rowitem [rowitem]
   (let [itemid (:xt/id @(subscribe [::item]))]
     [:tr 

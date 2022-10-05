@@ -30,15 +30,16 @@
      [:<>
       (doall (for [tag @(subscribe [:page/tags])]
                [render-tag (assoc tag :key (:xt/id tag))]))
-      (when @(subscribe [:tag-loaded?]) [views/tag-page])])
-   
-   ])
+      (when @(subscribe [:tag-loaded?]) [views/tag-page])])])
 
+
+(defn render []
+  (d/render [app]
+            (.getElementById js/document "app")))
 
 (defn ^:export init! [initial-state]
   (dispatch-sync [:init-db-str initial-state])
   (router/init-routes!)
-  (d/render [app]
-            (.getElementById js/document "app")))
+  (render))
 
 

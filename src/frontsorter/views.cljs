@@ -196,6 +196,9 @@
      (when @(subscribe [:pair-loaded?])
        [c/pairvoter])
      
+     (when @(subscribe [:frontsorter.item/loaded?])
+       [item/itempanel])
+     
      [:div.threepanels
       (when @(subscribe [:sorted-not-empty])
         [c/collapsible-cage
