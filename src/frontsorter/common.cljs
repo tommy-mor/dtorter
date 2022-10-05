@@ -53,22 +53,28 @@
                
                true [:span "unknown format"]))))
 
-;; TODO get rid fo format map here, can dislpay any item. format restriction happens only on server
+(defn itempanel [item]
+  [:div.item
+
+   [:h1 {:style {:margin-bottom "4px"}} (:item/name item)]   ])
+
+(comment (when (:item/name item))
+         (comment (when (:url item)
+                    [url-displayer side]))
+         (when (:paragraph name)
+           [:<> 
+            [:br]
+            [:pre {:style {:color "red"
+                           :white-space "pre-line"}} (:paragraph (:content item))]]))
+
 (defn itemview [side]
   (let [item @(subscribe [side])]
     [:div.item 
      {:class (case side :right "rightitem" :left "leftitem" "")
       :style (when (not (= side :item))
                {:transform (str "translateY(-" @(subscribe [:side-height side]) "px)")})}
-     (when (:item/name item)
-       [:h1 {:style {:margin-bottom "4px"}} (:item/name item)])
-     (comment (when (:url item)
-                [url-displayer side]))
-     (when (:paragraph name)
-       [:<> 
-        [:br]
-        [:pre {:style {:color "red"
-                       :white-space "pre-line"}} (:paragraph (:content item))]])]))
+     
+     [itempanel item]]))
 
 (defn smallbutton [text fn & [style]]
   [:a {:on-click #(do (.preventDefault %)

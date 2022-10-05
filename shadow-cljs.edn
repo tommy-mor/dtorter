@@ -13,9 +13,6 @@
                           :edit-tag
                           {:entries [frontsorter.tagform.edit] :depends-on #{:shared}}
                           
-                          :app
-                          {:entries [frontsorter.tag]  :depends-on #{:shared}}
-                          
                           :graph
                           {:entries [frontsorter.graph] :depends-on #{:shared}}
                           

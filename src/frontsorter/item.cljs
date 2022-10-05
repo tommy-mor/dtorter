@@ -54,14 +54,13 @@
   (pr-str "uhh" close))
 
 (defn itempanel []
-  (def item @(subscribe [::item]))
-  [c/editable
-   "ITEM"
-   (= (:owner item)
-      @(subscribe [:session/user-id]))
-   item-edit
-   [:div
-    [:p (:item/name item)]]])
+  (let [item @(subscribe [::item])]
+    [c/editable
+     "ITEM"
+     (= (:owner item)
+        @(subscribe [:session/user-id]))
+     item-edit
+     [c/itempanel item]]))
 
 (defn rowitem [rowitem]
   (let [itemid (:xt/id @(subscribe [::item]))]

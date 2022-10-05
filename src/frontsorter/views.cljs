@@ -69,7 +69,7 @@
      "TAG"
      (= user-id (:xt/id owner))
      tag-edit
-     [:div {:style {:padding-left "10px"}
+     [:div.tag {:style {:padding-left "10px"}
             :on-click #(dispatch [::router/navigate ::router/tag-view {:id (:xt/id tag)}])}
       
       (if (= name "gh issues")
@@ -77,10 +77,7 @@
                      :float "right"}
              :href (str "/githubrefresh/") }
          " REFRESH "])
-      (comment [:a {:style {:background "green"
-                            :float "right"}
-                    :href (str "/t/" "/graph") }
-                " graph "])
+      
       [:h1 name]
       [:i description]
       [:br]
