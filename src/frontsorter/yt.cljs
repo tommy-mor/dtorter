@@ -88,6 +88,7 @@ rn:
 (defn video [ytvv]
   (def ytvv ytvv)
   [:div {:style {:display "flex"}}
+   [:button {:on-click #(rf/dispatch [::add-video ytvv])}"add"]
    [:img {:src (-> ytvv :snippet :thumbnails :default :url)}]
    [:a {:href (str "https://youtube.com/watch?v=" (-> ytvv :id))}(-> ytvv :snippet :title)]
    [:p "----"]
@@ -123,6 +124,24 @@ rn:
          (js/console.log "erhm")
          (reset! yttag (first search))
          {})))))
+
+(rf/reg-event-fx
+ ::add-video
+ (fn [{:keys [db]} [_ video]]
+   (def video video)
+   {:dispatch [::martian/request
+               :item/new
+               {:item/name (-> video :snippet :title)
+                :item/url (str "https://youtube.com/watch?v=" (-> video :id))
+                :item/tags [(:xt/id @yttag)]
+                :owner @(rf/subscribe [:session/user-id])}
+               [::added-video]
+               [::events/http-failure]]}))
+
+(rf/reg-event-fx
+ ::added-video
+ (fn [{:keys [db]} _]
+   {}))
 
 (defn ytv
   []
