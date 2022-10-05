@@ -19,11 +19,20 @@
     (:tag/name tag)]])
 
 
+(defn ytv [] [:p "epic youtube page"])
+
 (defn app []
   [:div
-   (doall (for [tag @(subscribe [:page/tags]) ]
-            [render-tag (assoc tag :key (:xt/id tag))]))
-   (when @(subscribe [:tag-loaded?]) [views/tag-page])])
+   [:div.tag-small {:style {:color "red"}
+                    :on-click #(dispatch [::router/navigate ::router/yt-view])}
+    "youtube"]
+   (case (-> @(subscribe [::router/current-route]) :data :name)
+     ::router/yt-view [ytv]
+     [:<>
+      (doall (for [tag @(subscribe [:page/tags])]
+               [render-tag (assoc tag :key (:xt/id tag))]))
+      (when @(subscribe [:tag-loaded?]) [views/tag-page])])])
+
 
 (defn ^:export init! [initial-state]
   (dispatch-sync [:init-db-str initial-state])

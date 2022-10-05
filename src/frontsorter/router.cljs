@@ -26,7 +26,11 @@
      :controllers [{:identity identity
                     :start (fn [match]
                              (def r match)
-                             (re-frame/dispatch [:refresh-state {::match match}]))}]}]])
+                             (re-frame/dispatch [:refresh-state {::match match}]))}]}]
+   ["intg/youtube"
+    {:name ::yt-view
+     :controllers []}]])
+
 (def router (rf/router routes))
 ;; Events
 
