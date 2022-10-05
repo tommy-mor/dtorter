@@ -3,7 +3,8 @@
   
   (:require [cljs-http.client :as http]
             [cljs.core.async :refer [<!]]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [reagent.core :as r]))
 
 (def settings
   {:client-id "331497482324-ofis5vjjnn8jmgq2np8f7ralnpndqthm.apps.googleusercontent.com"
@@ -32,12 +33,19 @@
                                      :response_type "token"
                                      :scope (str/join " " yt-scopes)}))
 
-(comment)
+(def videos (r/atom []))
+(def pagetoken (r/atom nil))
 
 (defn make-yt-request []
-  (go (http/get (str "https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true&access_token="
-                     (:access_token tokens))
-                {:with-credentials? false})))
+  (go (let [resp (-> (<! (http/get "https://www.googleapis.com/youtube/v3/videos"
+                                   {:with-credentials? false
+                                    :query-params (cond-> {:access_token (:access_token tokens)
+                                                           :part "snippet"
+                                                           :myRating "like"}
+                                                    @pagetoken (assoc :pageToken @pagetoken))}))
+                     :body)]
+        (swap! videos into (:items resp))
+        (reset! pagetoken (:nextPageToken resp)))))
 
 (defn login-with-google []
   (js/console.log "ss")
@@ -47,6 +55,8 @@
   []
   [:div
    [:p "youtbe api :)"]
+   [:ul (doall (for [v @videos]
+                 [:li (pr-str (-> v :snippet (select-keys [:title :channelTitle])))]))]
    (when (nil? tokens)
      [:button {:on-click login-with-google}
       "login with google"])
