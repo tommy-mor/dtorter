@@ -35,8 +35,7 @@
                       :parameters {:body spec}
                       :handler (fn [req]
                                  (let [{:keys [node body-params]} req
-                                       uuid (or (:xt/id body-params)
-                                                (str (java.util.UUID/randomUUID)))]
+                                       uuid (str (java.util.UUID/randomUUID))]
                                    (xt/submit-tx node [[::xt/put (assoc body-params
                                                                         :xt/id uuid
                                                                         :type (keyword swagger-tag))]])

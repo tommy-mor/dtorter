@@ -1,7 +1,8 @@
 (ns frontsorter.common
   (:require
    [re-frame.core :refer [subscribe dispatch dispatch-sync]]
-   [reagent.core :refer [atom]]))
+   [reagent.core :refer [atom]]
+   [clojure.string :as str]))
 
 (defn collapsible-cage [open title cls & children]
   (let [collapsed (atom (not open))]
@@ -29,14 +30,19 @@
                  (if ((keyword k) format)
                    k)))))
 
-(comment (defn url-displayer [side]
-           (let [format @(subscribe [:url-format])
-                 [url embedurl] @(subscribe [:urls side])]
-             (cond
-               ((keyword "any website") format) [:a {:href url
-                                                     :target "_blank"} url]
-               ((keyword "image link") format)  [:img {:src url
-                                                       :style {:max-width "100%"}}]
+(defn youtube-embedurl [fullurl]
+  (str/replace fullurl "https://youtube.com/watch?v=" "https://youtube.com/embed/"))
+
+(defn url-displayer [url]
+  (let [format true
+        embedurl true]
+    (comment (cond
+               true [:a {:href url
+                         :target "_blank"} url]
+               ((keyword "image link") format)
+               [:img {:src url
+                      :style {:max-width "100%"}}]
+               
                (or ((keyword "youtube") format)
                    ((keyword "youtube with timestamp") format))
                [:div {:style {:padding-bottom "56.25%"
@@ -51,12 +57,29 @@
                                                     :allow-full-screen true}]]
                ((keyword "spotify") format) [spotify-player embedurl]
                
-               true [:span "unknown format"]))))
+               true [:span "unknown format"])))
+  (cond
+    (str/starts-with? url "https://youtube.com")
+    [:div {:style {:padding-bottom "56.25%"
+                   :position "relative"
+                   :width "100%"
+                   :height 0}}
+     [:iframe {:src (youtube-embedurl url) :style {:height "100%"
+                                                   :width "100%"
+                                                   :position "absolute"
+                                                   :top 0
+                                                   :left 0
+                                                   }
+               :allow-full-screen true}]]))
 
 (defn itempanel [item]
+  (def item item)
+  item
   [:div.item
 
-   [:h1 {:style {:margin-bottom "4px"}} (:item/name item)]   ])
+   [:h1 {:style {:margin-bottom "4px"}} (:item/name item)]
+   (when-let [url (:item/url item)]
+     [url-displayer url])])
 
 (comment (when (:item/name item))
          (comment (when (:url item)

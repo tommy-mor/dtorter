@@ -121,8 +121,9 @@
   (def id->item (:id->item args))
   (def itemid->elo (into {} (map (juxt :xt/id :elo) sorted)))
 
-  (if (and (empty? voteditems) (empty? unvoteditems))
-    {:left nil :right nil}
+  (if (< (+ (count voteditems) (count unvoteditems))
+         2)
+    nil
     (do
       
       ;; item->{votes}

@@ -16,16 +16,15 @@
 (defn yt-url [id]
   (str "https://youtube.com/watch?v=" id))
 
-(def tokens (or (http/parse-query-params
-                 (js/localStorage.getItem "yt-oauth"))
-                
-                (let [tokens (http/parse-query-params
+(def tokens (or (let [tokens (http/parse-query-params
                               (subs js/window.location.hash 1))]
-                  (js/localStorage.setItem "yt-oauth" (subs js/window.location.hash 1))
-                  (set! js/window.location.hash "")
-                  (if (:access_token tokens)
-                    tokens
-                    nil))))
+                  (when (:access_token tokens)
+                    (js/localStorage.setItem "yt-oauth" (subs js/window.location.hash 1))
+                    (set! js/window.location.hash "")
+                    tokens))
+                
+                (http/parse-query-params
+                 (js/localStorage.getItem "yt-oauth"))))
 
 
 
@@ -58,16 +57,6 @@ want to try index first design...
 add a MAKE LIKED PLAYLIST TAG button.
 
 
-
-rn:
-  use martian to find all my tags
-  find the tag that says YTLKIED.
-  if it does not find it, then create it.
-  then add button to add every item in the tag
-  and also color indicator if video is added alrdy
-
-
-
 not sure how to design this...
   things to think about:
     need a unique constraint on the url
@@ -97,7 +86,9 @@ not sure how to design this...
           200 (do
                 (swap! videos into (:items resp))
                 (reset! pagetoken (:nextPageToken resp)))
-          401 (login-with-google)))))
+          401 (do
+                (login-with-google)
+                (js/console.log "uh"))))))
 
 (defn video [ytvv]
   (def ytvv ytvv)

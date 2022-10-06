@@ -40,14 +40,12 @@
 
 (defn tag-info-calc [db query logged-in-user {:keys [attribute user] :as query-params} itemid]
   (let [[tag owner votes items] query]
-    
-    (when (and (not *testing*) (some nil? [tag owner votes items]))
+    (def items items)
+    (when (and (not *testing*) (some nil? [tag owner votes]))
       (throw (ex-info "query failed" {:query query})))
     
-    
-    
     (let [votes (or (:vote/_tag votes) [])
-          items (or (:item/_tags items) [])
+          items (or (map first items) [])
           itemid->items (into {} (map (juxt :xt/id identity) items))
 
           freqs (frequencies (map :vote/attribute votes))
@@ -64,9 +62,7 @@
           unvoted-items (or (get stuff true) [])
           id->item (into {} (map (juxt :xt/id identity) items))
           sorted (sorted-calc voted-items filteredvotes)
-          userids (distinct (map :owner votes))
-          
-          ]
+          userids (distinct (map :owner votes))]
       (def rawinfo (merge tag {:interface/owner (dissoc owner :user/password-hash)
                                :tag/votes votes
                                :tag/items items
@@ -107,8 +103,9 @@
 
 
 (defn tag-info [req]
-  (def t req)
   (def req req)
+  (def tagid (-> req :path-params :id))
+  (def db (-> req :node xt/db))
   (let [{:keys [node path-params query-params]} req
         params (merge path-params query-params)
         tagid (:id params)
@@ -119,11 +116,19 @@
                                 (pull tid [*])
                                 (pull owner [*])
                                 (pull tid [{:vote/_tag [*]}])
-                                (pull tid [{:item/_tags [*]}])
+                                items
                                 :in tid
                                 :where
                                 [tid :owner owner]
-                                [tid :tag/name _]]
+                                [tid :type :tag]
+                                [(q {:find [(pull item [*])]
+                                     :in [tid]
+                                     :where [                                           
+                                             [memb :type :membership]
+                                             [memb :tag tid]
+                                             [memb :item item]]}
+                                    tid)
+                                 items]]
                            tagid))
         params (assoc params
                       :attribute (or (:attribute params)
@@ -133,7 +138,6 @@
     (tag-info-calc db query logged-in-user params itemid)))
 
 (defn unsorted-calc [items votes voted-ids]
-  (def voted-ids)
   (filter #(not (voted-ids (:id %)))
           items)) 
 

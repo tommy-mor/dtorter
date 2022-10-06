@@ -98,6 +98,8 @@
                                            :tag/description (:description tag)
                                            :owner tommy}))
 
+               fruits
+
                (def oldid->newid (into {} (for [item items]
                                             [(:id item) (resp :item/new {:item/name (:name item)
                                                                          :item/tags [fruits]
@@ -118,7 +120,10 @@
 
          (import-tag "ways to laugh while texting"
                      ["tommy" "blobbed"]
-                     "humor level"))
+                     "humor level")
+         
+         (for [blog (filter #(clojure.string/includes? % "blog") (-> title->tag keys))]
+           (title->tag blog)))
 
 (defn ghissue->item [tommy tagid issue]
   {:item/name (str "gh#" (:number issue) ": " (:title issue))

@@ -29,9 +29,9 @@
 (s/def :tag/itemcount int?)
 ;; add elo
 ;; TODO make sure that :un is correct
-(s/def ::item (s/keys :req [:item/name :item/tags]
+(s/def ::item (s/keys :req [:item/name]
                       :req-un [::owner]
-                      :opt [:xt/id :item/url :item/paragraph]))
+                      :opt [:xt/id :item/url :item/paragraph :item/tags]))
 
 (s/def :item/name string?)
 (s/def :item/owner uuid-str)

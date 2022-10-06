@@ -5,7 +5,8 @@
    [shared.specs :as sp]
    [dtorter.queries :as queries]
    [clojure.spec.alpha :as s]
-   [dtorter.hashing :as hashing]))
+   [dtorter.hashing :as hashing]
+   [clojure.string :as str]))
 
 (def no-changes {:all identity :individual identity :extra-routes []})
 
@@ -86,8 +87,39 @@
              (dissoc :get)
              (assoc-in [:post :interceptors] [vote-upsert]))})
 
+(def add-item
+  {:operationId :item/new
+   :summary "create an item (on a tag)"
+   :parameters {:body ::sp/item}
+   :handler
+   (fn [req]
+     (let [{:keys [node body-params]} req]
+       (def node node)
+       (def req req)
+       (def body-params body-params)
+       (def uuid (str (java.util.UUID/randomUUID)))
+
+       (xt/submit-tx node (into (vec (for [tag (:item/tags body-params)]
+                                       [::xt/put {:xt/id (str (java.util.UUID/randomUUID))
+                                                  :type :membership
+                                                  :tag tag
+                                                  :item uuid
+                                                  :owner (:owner body-params)}]))
+                                [
+                                                                                   [::xt/put
+                                                                                    (-> body-params
+                                                                                        (assoc :xt/id uuid :type :item)
+                                                                                        (dissoc :item/tags))]]))
+       
+       (when (and (:item/url body-params) (str/includes? (:item/url body-params) "youtube"))
+         (throw (Exception. "TODO add youtube special support")))
+       
+       {:status 201 :body {:xt/id uuid}}))})
+
 (def item
-  {:all #(dissoc % :get)})
+  {:all #(-> %
+             (dissoc :get)
+             (assoc :post add-item))})
 
 ;; todo add response spec checking in reitit...
 (def tag
@@ -100,6 +132,9 @@
             :handler (fn [req]
                        (let [{:keys [node path-params]} req
                              tid (:id path-params)]
+
+                         (def req req)
+                         (def tid (-> req :path-params :id))
                          {:status 200
                           :body (map first
                                      (xt/q
@@ -107,7 +142,9 @@
                                                      (pull iid [*])
                                                      :in tid
                                                      :where
-                                                     [iid :item/tags tid]] tid))}))}}]
+                                                     [memb :type :membership]
+                                                     [memb :tag tid]
+                                                     [memb :item iid]] tid))}))}}]
     ["/:id/sorted"
      {:get {:operationId :tag/sorted
             :summary "get all the calculated information about a tag"
