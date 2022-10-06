@@ -3,9 +3,7 @@
 
 
 
-(def uuid-regex #"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
-
-(def uuid-str (s/and string? #(re-matches uuid-regex %)))
+(def uuid-str (s/and string? #(< (count %) 50) #(> (count %) 4)))
 
 (s/def :xt/id uuid-str)
 
