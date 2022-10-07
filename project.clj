@@ -2,6 +2,7 @@
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [net.mikera/core.matrix "0.62.0"]
                  [net.mikera/vectorz-clj "0.48.0"]
+                 [org.clojure/core.async "1.5.648"]
 
                  [io.pedestal/pedestal.service "0.5.5"]
                  [io.pedestal/pedestal.jetty "0.5.5"]
@@ -48,7 +49,10 @@
 
 
                  [medley "1.4.0"]
+                 [com.github.jpmonettas/flow-storm-inst "RELEASE"]
+                 [com.github.jpmonettas/flow-storm-dbg "RELEASE"]
                  ]
+  :managed-dependencies [[org.clojure/core.async "1.5.648"]]
   :plugins [
             [cider/cider-nrepl "0.28.3"]]
   :injections [(require 'sc.api)]
@@ -56,5 +60,4 @@
   :repositories [["sonatype snapshots" {:url "https://s01.oss.sonatype.org/content/repositories/snapshots"}]]
   :source-paths ["src"]
   
-  :main dtorter.core
-  :aot [dtorter.core])
+  :main dtorter.core)

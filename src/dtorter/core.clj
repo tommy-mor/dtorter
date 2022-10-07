@@ -1,8 +1,10 @@
 (ns dtorter.core
-  (:require [dtorter.http :as http]
+  (:require [clojure.core.async :as async]
+            [dtorter.http :as http]
             [nrepl.server :as nrepl-server]
             [cider.nrepl :refer [cider-nrepl-handler]])
   (:gen-class))
+
 
 (defn -main [& args]
   (println "welcome to my uberjar")
