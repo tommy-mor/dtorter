@@ -16,6 +16,7 @@
    ["/" spa-handler]
    ["/t/*" (assoc spa-handler :name :tag-page)]
    ["/intg/youtube" (assoc spa-handler :name :yt-page)]
+   ["/change_theme" {:post {:handler c/change-theme-handler}}]
    (login/login-routes)
 
    (comment ["/t/:id/i/:itemid"

@@ -1,7 +1,10 @@
 (ns dtorter.views.common
   (:require [reitit.core :as r]
             [clojure.string :as str]
-            [hiccup.core :refer [html]]))
+            [hiccup.core :refer [html]]
+            [babashka.fs :as fs]
+            [xtdb.api :as xt]
+            [ring.util.response :as ring-resp]))
 
 (defn rurl-for
   ([ctx name] (rurl-for ctx name {}))
@@ -26,9 +29,28 @@
                                          (assoc-in [:headers "Content-Type"] "text/html"))))
               ctx))})
 
+(defn find-theme [node userid]
+  (ffirst (xt/q (xt/db node) '{:find [(pull theme [*])] :in [userid]
+                                      :where [[theme :user userid]
+                                              [theme :theme path]]}
+                userid)))
+
+(defn change-theme-handler [req]
+  (def req req)
+  (tap> req)
+  (xt/submit-tx (:node req)
+                [[::xt/put
+                  {:xt/id (or (:xt/id (find-theme (:node req)
+                                                  (-> req :session :user-id)))
+                              (str (java.util.UUID/randomUUID)))
+                   :user (-> req :session :user-id)
+                   :theme ((:params req) "theme")}]])
+  (ring-resp/redirect (-> req :headers (get "referer"))))
+
 (defn layout [{:keys [request response] :as ctx} inner]
   (let [title (:title response)
-        session (-> request :session)]
+        session (-> request :session)
+        themes (map #(str/replace % "resources/public" "") (fs/glob "resources/public/css" "*.css"))]
 
     (def ctx ctx)
     [:html
@@ -64,7 +86,12 @@
          [:a.currentpage {:href (rurl-for ctx :register)} "make account"]
          [:span (prn-str session)]])]
      [:div.mainbody
-      inner]]))
+      inner]
+     [:form {:action "/change_theme" :method "post"}
+      [:select {:name "theme"}
+       (for [x themes]
+                       [:option {:value x} x])]
+      [:input {:type "submit"}]]]))
 
 
 
