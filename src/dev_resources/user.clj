@@ -2,9 +2,16 @@
   (:require
    [clojure.core.async :as async]))
 
-(println "srtrsth")
-(require '[flow-storm.api :as fs-api]
-         )
+(require '[flow-storm.api :as fs-api])
+
+
+(comment
+  (fs-api/local-connect))
+
+
+
+
+
 
 
 

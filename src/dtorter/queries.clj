@@ -38,7 +38,8 @@
   (reverse (for [[elo item] (math/getranking (vec items) (vec votes))]
              (assoc item :elo elo))))
 
-(defn tag-info-calc [db query logged-in-user {:keys [attribute user] :as query-params} itemid]
+(defn tag-info-calc
+  [db query logged-in-user {:keys [attribute user] :as query-params} itemid]
   (let [[tag owner votes items] query]
     (def items items)
     (when (and (not *testing*) (some nil? [tag owner votes]))

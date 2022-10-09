@@ -98,37 +98,26 @@
        (def req req)
        (def body-params body-params)
        (def uuid (if (and (:item/url body-params) (str/starts-with? (:item/url body-params) "https://youtube.com"))
-                   (str "yt" (str/replace (:item/url body-params) "https://youtube.com/watch?v=" ""))
+                   (str "yt_" (str/replace (:item/url body-params) "https://youtube.com/watch?v=" ""))
                    (str (java.util.UUID/randomUUID))))
-       
-       "
-{CONFUSED}
 
-not sure what to do for youtube primary keys
-
-one thing i like is just keeping its (:id yttvv) for ex. DUziUNg8LTw . this wont overlap with my ids... or twitter or anything like that.
-
-maybe keep entire url? its kinda hard to deal with that.. but maybe not as long as its always at end of url...
-
-lets do the thing of just stealing their primary keys (maybe adding yt in front if it overlaps with another one) and then later have a sorter.isnt.online/url/https://youtube.com/watch?v=arstarst route which is special.
-
-
-
-
-"
-       (throw (Exception. "we need to look up the uuid and see if it already exists. in that case, only add the membership"))
-       (xt/submit-tx node (into (vec (for [tag (:item/tags body-params)]
-                                       [::xt/put {:xt/id (str (java.util.UUID/randomUUID))
-                                                  :type :membership
-                                                  :tag tag
-                                                  :item uuid
-                                                  :owner (:owner body-params)}]))
-                                [
-                                 [::xt/put
-                                  (-> body-params
-                                      (assoc :xt/id uuid :type :item)
-                                      (dissoc :item/tags))]]))
-       
+       (let [doc (xt/entity (xt/db node) uuid)
+             membership
+             (vec (for [tag (:item/tags body-params)]
+                    [::xt/put {:xt/id (str (java.util.UUID/randomUUID))
+                               :type :membership
+                               :tag tag
+                               :item uuid
+                               :owner (:owner body-params)}]))]
+         (if doc
+           (xt/submit-tx node membership)
+           (xt/submit-tx node
+                         (into membership
+                               [
+                                [::xt/put
+                                 (-> body-params
+                                     (assoc :xt/id uuid :type :item)
+                                     (dissoc :item/tags))]]))))
        {:status 201 :body {:xt/id uuid}}))})
 
 (def item
