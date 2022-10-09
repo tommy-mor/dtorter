@@ -1,0 +1,55 @@
+@import 'topbar';
+@import 'cage';
+@import 'config';
+@import 'voting';
+@import 'items';
+@import 'tag';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+body {
+    font: normal 1em $font-stack;
+    margin: 0;
+    margin: auto;
+    width: auto;
+}
+
+.mainbody {
+    padding: 5px;
+    h1 {
+        margin: 0px;
+    }
+    li {
+        list-style-type: none;
+    }
+}
+
+
+/* inputs */
+
+.addinput {
+    font-size: large;
+}
+
+.editinput {
+    font-size: large;
+    grid-column-start: 1;
+    grid-column-end: 3;
+}
+
+a.nolink:after {
+    content: none;
+}
+
+.permissionform {
+    background-color: #ebebeb;
+    width: fit-content;
+    margin-left: 30px;
+}
+
+.format-picker {
+    width: fit-content;
+    margin-left: 30px;
+    display: flex;
+    flex-wrap: no-wrap;
+}

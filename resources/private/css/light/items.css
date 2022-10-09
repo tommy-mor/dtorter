@@ -1,0 +1,29 @@
+@import 'config';
+
+/* item list */
+
+.itemranking {
+	background: $item-color-weak;
+	border: $border-many; 
+	border-color: $item-color-strong;
+	border-style: $border-many-style;
+}
+
+.itempanel {
+	background: $item-color-weak;
+}
+
+.item {
+	background: $item-color-medium;
+	cursor: pointer;
+	@apply border-solid rounded-full;
+}
+
+.hovered {
+	outline: $item-color-strong thick ridge;
+}
+
+.rightcorner {
+	float: right;
+}
+

@@ -1,0 +1,27 @@
+/* this is in its own file, so other things can be read after it, overriding color attribute */
+
+/* cage */
+
+.threepanels {
+	display: flex;
+	flex-direction: row;
+}
+
+.cageparent {
+	margin: 10px;
+    border-width: 0px;
+    border-style: dashed;
+    border-radius: 2px;
+    padding: 5px;
+	width: 400px;
+	height: fit-content;
+	/*
+	outline: solid;
+outline-color: lightblue;
+	outline-thickness: 1px;*/
+}
+
+.cagetitle {
+	cursor: pointer;
+	white-space: pre;
+}

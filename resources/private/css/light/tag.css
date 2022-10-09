@@ -1,0 +1,67 @@
+@import 'config';
+
+.frontpage-tag-container {
+	@apply space-y-1;
+}
+
+.tag {
+	background: $tag-color-weaker;
+}
+
+.tag-small {
+	background: $tag-color-weaker;
+	width: fit-content;
+	border-width: 1;
+	padding: 2px;
+	border-left-color: mediumpurple;
+	border-left-width: medium;
+	border-style: outset;
+
+}
+
+.tag-small:hover {
+	border-style: inset;
+}
+
+.mapparent {
+	display: flex;
+	flex-direction: row;
+	div {
+		pre {
+			@apply text-sm text-slate-400;
+		}
+
+		span {
+			@apply text-lg;
+		}
+	}
+}
+
+.frontpage-tag-container {
+	width: 100%;
+}
+
+.frontpagetag {
+	margin: 10px;
+	margin-right: 0;
+	padding: 3px;
+	display: flex;
+}
+
+.frontpagelist {
+	padding: 0px;
+}
+
+.btn {
+	@apply bg-blue-500 hover:bg-blue-700;
+
+}
+
+.tagform {
+	input {
+		background-color: lightgray;
+		width: 100%;
+		border: 1px;
+		margin: 3px;
+	}
+}

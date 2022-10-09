@@ -36,8 +36,6 @@
                 userid)))
 
 (defn change-theme-handler [req]
-  (def req req)
-  (tap> req)
   (xt/submit-tx (:node req)
                 [[::xt/put
                   {:xt/id (or (:xt/id (find-theme (:node req)
@@ -50,15 +48,17 @@
 (defn layout [{:keys [request response] :as ctx} inner]
   (let [title (:title response)
         session (-> request :session)
-        themes (map #(str/replace % "resources/public" "") (fs/glob "resources/public/css" "*.css"))]
+        themes (map #(str/replace % "resources/public" "") (fs/glob "resources/public/css" "*.css"))
+        chosen-theme (or (:theme (find-theme (-> ctx :request :node)
+                                             (-> ctx :request :session :user-id)))
+                         "/css/dark.css")]
 
-    (def ctx ctx)
     [:html
      [:head
       [:meta {:charset "utf-8"}]
       [:meta {:name "viewport"
               :content "width=device-width, initial-scale=1.0"}]
-      [:link {:href "/css/site.css"
+      [:link {:href chosen-theme
               :rel "stylesheet"
               :type "text/css"}]
       [:script {:src "/js/shared.js"
@@ -90,7 +90,7 @@
      [:form {:action "/change_theme" :method "post"}
       [:select {:name "theme"}
        (for [x themes]
-                       [:option {:value x} x])]
+         [:option {:value x} x])]
       [:input {:type "submit"}]]]))
 
 
