@@ -4,7 +4,7 @@
                           (shell "npm i")
                           #_(shell "./node_modules/.bin/shadow-cljs compile app --pseudo-names")
                           (shell "bb build-css")
-                          (shell "./node_modules/.bin/shadow-cljs release app"))
+                          (shell "./node_modules/.bin/shadow-cljs compile app"))
          watch-css (shell "./node_modules/.bin/postcss 
                                 -o ./resources/public/css/dark.css
                                 ./resources/private/css/dark/site.css --watch")
