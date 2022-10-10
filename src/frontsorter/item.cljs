@@ -9,11 +9,21 @@
    [frontsorter.attributes :as attrs]
    [martian.re-frame :as martian]))
 
-(js/console.log "loaded?")
 (rf/reg-sub ::item (comp :item :page/tag))
 (rf/reg-sub ::loaded?
             :<- [::item]
             (comp not nil?))
+
+(rf/reg-sub ::toplevel-item :page/item)
+(rf/reg-sub ::toplevel-item-loaded?
+            :<- [::toplevel-item]
+            map?)
+
+(-> @(subscribe [:all])
+    keys)
+
+@(subscribe [::toplevel-item-loaded?])
+@(subscribe [::toplevel-item])
 
 (rf/reg-event-db
  ::vote-on-pair
@@ -24,6 +34,35 @@
                                     :right rightitem})
        (assoc-in [:percent] (first
                              (frontsorter.common/calcmag vote (:id leftitem)))))))
+(rf/reg-event-db
+ ::unload-item
+ frontsorter.events/interceptor-chain
+ (fn [db _]
+   (js/console.log "unloading item :)")
+   (dissoc db :page/item)))
+
+(rf/reg-event-fx
+ ::load-item
+ frontsorter.events/interceptor-chain
+ (fn [{:keys [db]} [_ match]]
+   (tap> db)
+   (let [itemid (-> match
+                    :frontsorter.router/match
+                    :path-params
+                    :itemid)]
+     (js/console.log itemid)
+     {:db (dissoc db :page/tag)
+      :dispatch [::martian/request
+                 :item/get
+                 {:id itemid}
+                 [::item-loaded]
+                 [:frontsorter.events/http-failure]]})))
+(rf/reg-event-fx
+ ::item-loaded
+ frontsorter.events/interceptor-chain
+ (fn [{:keys [db]} [_ {body :body}]]
+   {:db (assoc db :page/item body)}))
+
 
 ;; only called from js
 ;; TODO move these
@@ -54,7 +93,8 @@
   (pr-str "uhh" close))
 
 (defn itempanel []
-  (let [item @(subscribe [::item])]
+  (let [item (or @(subscribe [::item])
+                 @(subscribe [::toplevel-item]))]
     [c/editable
      "ITEM"
      (= (:owner item)

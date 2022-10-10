@@ -7,7 +7,7 @@
             [frontsorter.events]
             [frontsorter.subs]
             [frontsorter.attributes]
-            [frontsorter.item]
+            [frontsorter.item :as item]
             [frontsorter.views :as views]
             [frontsorter.yt :as yt]))
 
@@ -19,7 +19,6 @@
    [:a {:on-click #(dispatch [::router/navigate ::router/tag-view {:id (:xt/id tag)}])}
     (:tag/name tag)]])
 
-
 (defn app []
   [:div
    [:div.tag-small {:style {:color "red"}
@@ -30,7 +29,8 @@
      [:<>
       (doall (for [tag @(subscribe [:page/tags])]
                [render-tag (assoc tag :key (:xt/id tag))]))
-      (when @(subscribe [:tag-loaded?]) [views/tag-page])])])
+      (when @(subscribe [:tag-loaded?]) [views/tag-page])
+      (when @(subscribe [::item/toplevel-item-loaded?]) [item/itempanel])])])
 
 
 (defn render []
