@@ -51,7 +51,8 @@
                  [medley "1.4.0"]
                  [com.github.jpmonettas/flow-storm-inst "RELEASE"]
                  [com.github.jpmonettas/flow-storm-dbg "RELEASE"]
-                 ]
+                 
+                 [com.wsscode/pathom3 "2022.08.29-alpha"]]
   :managed-dependencies [[org.clojure/core.async "1.5.648"]]
   :plugins [
             [cider/cider-nrepl "0.28.3"]]
