@@ -68,7 +68,6 @@
   (xt/pull db '[*] id))
 
 (def item-attributes [:item/id :owner :item/name :item/name :item/url])
-
 (pco/defresolver tag->items
   [{:keys [db]} {:keys [:tag/id]}]
   {::pco/output [{:tag/items item-attributes}]}
@@ -81,12 +80,27 @@
                                               [item :type :item]]}
                                     id)))})
 
+(def vote-attributes [:owner :vote/left-item :vote/right-item :vote/magnitude :vote/attribute
+                      :vote/tag])
+
+(pco/defresolver tag->votes
+  [{:keys [db]} {:keys [:tag/id]}]
+  {::pco/output [{:tag/votes vote-attributes}]}
+  {:tag/votes (fix (map first (xt/q db
+                                    '{:find [(pull vote [*])]
+                                      :in [tag]
+                                      :where [
+                                              [vote :type :vote]
+                                              [vote :vote/tag tag]]}
+                                    id)))})
+
 
 (def env (pci/register [uid->user
                         username->uid
                         uid->tags
                         tag->items
-                        tid->tag]))
+                        tid->tag
+                        tag->votes]))
 
 (comment
   (p.eql/process (assoc env :db (xt/db dtorter.http/node))
@@ -106,9 +120,13 @@
                first
                :tag/id))
   
+  (map :item/name (:tag/items (p.eql/process (assoc env :db (xt/db dtorter.http/node))
+                                             {:tag/id tid}
+                                             [:tag/items :tag/name])))
+  
   (p.eql/process (assoc env :db (xt/db dtorter.http/node))
                  {:tag/id tid}
-                 [:tag/items :tag/name]))
+                 [:tag/votes]))
 
 
 
