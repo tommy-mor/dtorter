@@ -32,7 +32,6 @@
                       :opt [:xt/id :item/url :item/paragraph :item/tags]))
 
 (s/def :item/name string?)
-(s/def :item/owner uuid-str)
 (s/def :item/tags (s/coll-of uuid-str))
 (s/def :item/url string?)
 (s/def :item/paragraph string?)
