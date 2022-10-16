@@ -9,7 +9,7 @@
 
 (m/set-current-implementation :vectorz)
 
-(def ^:dynamic *epsilon* 0.00000001)
+(def ^:dynamic *epsilon* 0.00001)
 (def ^:dynamic *padding* 0.05)
 
 (defn stationary [arr]

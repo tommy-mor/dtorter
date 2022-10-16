@@ -23,107 +23,121 @@
                (or "localhost" "sorter.isnt.online")
                ":8080/api/swagger.json"))
 
-(comment (def m (martian-http/bootstrap-openapi host))
-         (def resp (partial resp-m m))
-         (def userid->name (into {} (map (juxt :id :username) d/users)))
-         (def name->userid (into {} (map (juxt :username :id) d/users)))
+(defn load-db []
+  (def m (martian-http/bootstrap-openapi host))
+  (def resp (partial resp-m m))
+  (def userid->name (into {} (map (juxt :id :username) d/users)))
+  (def name->userid (into {} (map (juxt :username :id) d/users)))
 
-         (def itemid->item (into {} (map (juxt :id identity) d/items)))
-         (def title->id (into {} (map (juxt :title :id) d/tags)))
+  (def itemid->item (into {} (map (juxt :id identity) d/items)))
+  (def title->id (into {} (map (juxt :title :id) d/tags)))
 
-         (def user->votecount (into {} (for [ [id c] (frequencies (map :user_id d/votes))]
-                                         [ (userid->name id) c])))
+  (def user->votecount (into {} (for [ [id c] (frequencies (map :user_id d/votes))]
+                                  [ (userid->name id) c])))
 
-         (def title->tag (into {} (map (juxt :title identity) d/tags)))
+  (def title->tag (into {} (map (juxt :title identity) d/tags)))
 
-         (def users (resp :user/list-all))
-         (defn lookup-user [name]
-           (:xt/id (ffirst (xt/q (xt/db dtorter.http/node) '{:find [(pull u [*])]
-                                                             :where [ [u :user/name name]]
-                                                             :in [name]}
-                                 name))))
-         (def tommy
-           (or
-            (lookup-user "tommy")
-            (resp :user/new
-                  {:user/name "tommy"
-                   :user/password "tommy1"})))
-         (def blobbed
-           (or (lookup-user "tommy")
-               (resp :user/new
-                     {:user/name "blobbed"
-                      :user/password "blobbed1"})))
-         
-         (def eli
-           (or (lookup-user "eli")
-               (resp :user/new
-                     {:user/name "eli"
-                      :user/password "eli1"})))
+  (def users (resp :user/list-all))
+  
+  (defn lookup-user [name]
+    (:xt/id (ffirst (xt/q (xt/db dtorter.http/node) '{:find [(pull u [*])]
+                                                      :where [ [u :user/name name]]
+                                                      :in [name]}
+                          name))))
+  (def tommy
+    (or
+     (lookup-user "tommy")
+     (resp :user/new
+           {:user/name "tommy"
+            :user/password "tommy1"})))
+  (def blobbed
+    (or (lookup-user "tommy")
+        (resp :user/new
+              {:user/name "blobbed"
+               :user/password "blobbed1"})))
+  
+  (def eli
+    (or (lookup-user "eli")
+        (resp :user/new
+              {:user/name "eli"
+               :user/password "eli1"})))
 
-         (def olduser->newuser {(name->userid "tommy") tommy
-                                (name->userid "blobbed") blobbed})
+  (def olduser->newuser {(name->userid "tommy") tommy
+                         (name->userid "blobbed") blobbed})
 
-         (defn gather-votes [tagname users]
-           (def tagname tagname)
-           (def users users)
+  (defn gather-votes [tagname users]
+    (def tagname tagname)
+    (def users users)
 
-           (def votes (->> d/votes
-                           (filter (comp (partial = (title->id tagname)) :tag_id))
-                           (filter (comp (set (map name->userid users)) :user_id))))
-           votes)
+    (def votes (->> d/votes
+                    (filter (comp (partial = (title->id tagname)) :tag_id))
+                    (filter (comp (set (map name->userid users)) :user_id))))
+    votes)
 
-         (defn gather-items [votes]
-           (->> votes
-                (map (juxt :item_a :item_b))
-                flatten
-                distinct
-                (map itemid->item)))
+  (defn gather-items [votes]
+    (->> votes
+         (map (juxt :item_a :item_b))
+         flatten
+         distinct
+         (map itemid->item)))
 
-         (defn import-tag [tagname users attribute]
-           (def existing-tags (resp :tag/list-all))
-           
-           (if (some (comp #{tagname} :tag/name) existing-tags)
-             "tag already exists, not doing anything"
-             (do 
-               
-               (def votes (gather-votes tagname users))
-               (def items (gather-items votes))
-               
-               (defn olditem->item [old]
-                 old)
+  (defn import-tag [tagname users attribute]
+    (def existing-tags (resp :tag/list-all))
+    
+    (if (some (comp #{tagname} :tag/name) existing-tags)
+      "tag already exists, not doing anything"
+      (do 
+        
+        (def votes (gather-votes tagname users))
+        (def items (gather-items votes))
+        
+        (defn olditem->item [old]
+          old)
 
-               (def tag (title->tag tagname))
+        (def tag (title->tag tagname))
 
-               (def fruits (resp :tag/new {:tag/name (:title tag)
-                                           :tag/description (:description tag)
-                                           :owner tommy}))
+        (def fruits (resp :tag/new {:tag/name (:title tag)
+                                    :tag/description (:description tag)
+                                    :owner tommy}))
 
-               fruits
+        fruits
 
-               (def oldid->newid (into {} (for [item items]
-                                            [(:id item) (resp :item/new {:item/name (:name item)
-                                                                         :item/tags [fruits]
-                                                                         :owner tommy})])))
+        (def oldid->newid (into {} (for [item items]
+                                     [(:id item) (resp :item/new {:item/name (:name item)
+                                                                  :item/tags [fruits]
+                                                                  :owner tommy})])))
 
-               (doall (for [vote votes]
-                        (resp :vote/new
-                              {:vote/left-item (-> vote :item_a oldid->newid)
-                               :vote/right-item (-> vote :item_b oldid->newid)
-                               :vote/magnitude (min 100 (max 0 (-> vote :magnitude)))
-                               :vote/attribute attribute
-                               :vote/tag fruits
-                               :owner (olduser->newuser (:user_id vote))}))))))
+        (doall (for [vote votes]
+                 (resp :vote/new
+                       {:vote/left-item (-> vote :item_a oldid->newid)
+                        :vote/right-item (-> vote :item_b oldid->newid)
+                        :vote/magnitude (min 100 (max 0 (-> vote :magnitude)))
+                        :vote/attribute attribute
+                        :vote/tag fruits
+                        :owner (olduser->newuser (:user_id vote))}))))))
 
 
-         (import-tag "Fruits" ["tommy" "blobbed"]
-                     "deliciousness")
+  (import-tag "Fruits" ["tommy" "blobbed"]
+              "deliciousness")
 
-         (import-tag "ways to laugh while texting"
-                     ["tommy" "blobbed"]
-                     "humor level")
-         
-         (for [blog (filter #(clojure.string/includes? % "blog") (-> title->tag keys))]
-           (title->tag blog)))
+  (import-tag "ways to laugh while texting"
+              ["tommy" "blobbed"]
+              "humor level")
+  
+  (import-tag "meats"
+              ["tommy" "blobbed"]
+              "deliciousness")
+  
+  (import-tag "owen books"
+              ["tommy"]
+              "enjoyment")
+  
+  (for [blog (filter #(clojure.string/includes? % "blog") (-> title->tag keys))]
+    (title->tag blog)))
+
+(comment
+  (load-db))
+
 
 (defn ghissue->item [tommy tagid issue]
   {:item/name (str "gh#" (:number issue) ": " (:title issue))
