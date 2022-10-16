@@ -85,21 +85,21 @@
 (defn itempanel []
   (let [item (or @(subscribe [::item])
                  @(subscribe [::toplevel-item]))]
-    [c/itempanel item]))
+    [:div.cageparent.item [c/itempanel item]]))
 
 (defn rowitem [rowitem]
-  (let [itemid (:xt/id @(subscribe [::item]))]
+  (let [item @(subscribe [::item])
+        itemid (:xt/id item)]
     [:tr 
      [:td (.toFixed (:elo rowitem) 2)]
      ;; customize by type (display url for links?)
      
      [:td (:item/votecount rowitem)]
-     [:td [:b (if (= itemid (:xt/id rowitem))
-                (:item/name rowitem)
-                " ")]]
+     [:td (if (= itemid (:xt/id rowitem))
+            [:b (:item/name rowitem)]
+            (:item/name item))]
      [votepanel rowitem]
-     [:td (let [url (str "/t/" "/i/" (:xt/id rowitem))
-                name [:div
+     [:td (let [name [:div
                       (:item/name rowitem)]
                 id (:xt/id rowitem)
                 right @(subscribe [:right])]
@@ -116,8 +116,6 @@
   
   (let [sorted @(subscribe [:sorted])]
     [:table
-     [:thead
-      [:tr [:th "elo"] [:th "#votes"] [:th ""]]]
      [:tbody
       (doall (for [n sorted]
                [rowitem (-> n

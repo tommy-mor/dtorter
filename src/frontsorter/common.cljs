@@ -47,7 +47,7 @@
 
 (defn itempanel [item]
   (def item item)
-  [:div.item {:on-click #(dispatch [::router/navigate
+  [:div {:on-click #(dispatch [::router/navigate
                                     ::router/item-view
                                     {:itemid (:xt/id item)}])}
 

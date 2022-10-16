@@ -89,7 +89,7 @@
     [c/mini-slider (:vote/magnitude i)]]
    [:td (-> i :vote/right-item :item/name)]
    (if (= (:owner i) js/userid)
-     [:td [c/smallbutton "x" #(dispatch [:delete-vote i])]])])
+     [:td [c/smallbutton "x" #(dispatch [:vote/delete i])]])])
 
 (defn votelist []
 
