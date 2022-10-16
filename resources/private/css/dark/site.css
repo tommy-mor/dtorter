@@ -12,6 +12,7 @@ body {
     margin: 0;
     margin: auto;
     width: auto;
+    background-color: whitesmoke;
 }
 
 .mainbody {
@@ -52,4 +53,14 @@ a.nolink:after {
     margin-left: 30px;
     display: flex;
     flex-wrap: no-wrap;
+}
+
+select {
+    /* color: blue; */
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    vertical-align: middle;
+    margin: auto 2px;
+    padding: 0.2rem 0.6rem;
 }
