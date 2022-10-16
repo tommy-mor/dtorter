@@ -19,12 +19,6 @@
             :<- [::toplevel-item]
             map?)
 
-(-> @(subscribe [:all])
-    keys)
-
-@(subscribe [::toplevel-item-loaded?])
-@(subscribe [::toplevel-item])
-
 (rf/reg-event-db
  ::vote-on-pair
  frontsorter.events/interceptor-chain
@@ -64,8 +58,7 @@
    {:db (assoc db :page/item body)}))
 
 
-;; only called from js
-;; TODO move these
+;; only called from js ;; TODO move these
 ;; views --
 
 (defn votepanel [rowitem]
@@ -74,7 +67,7 @@
         [mag mag2] (c/calcmag vote (:xt/id rowitem))
         ignoreitem @(subscribe [::item])
         editfn #(dispatch [::vote-on-pair vote ignoreitem rowitem])
-        delfn #(dispatch [:delete-vote vote])]
+        delfn #(dispatch [:vote/delete vote])]
     (if (= (:xt/id rowitem) itemid)
       [:td "--"]
       (if vote
@@ -89,18 +82,10 @@
         [:td [c/smallbutton "vote" editfn]]))))
 
 
-(defn item-edit [close]
-  (pr-str "uhh" close))
-
 (defn itempanel []
   (let [item (or @(subscribe [::item])
                  @(subscribe [::toplevel-item]))]
-    [c/editable
-     "ITEM"
-     (= (:owner item)
-        @(subscribe [:session/user-id]))
-     item-edit
-     [c/itempanel item]]))
+    [c/itempanel item]))
 
 (defn rowitem [rowitem]
   (let [itemid (:xt/id @(subscribe [::item]))]

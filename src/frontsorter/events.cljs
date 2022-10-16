@@ -10,11 +10,6 @@
    [cognitect.transit :as transit]
    [frontsorter.router :as router]))
 
-;; {{two problems}}
-;; the order of the events is such that ::current-route is empty for first
-;; :refresh-state
-
-;; its not sending the martian request because it needs attribute argument
 
 ;; spec checking from
 ;; https://github.com/day8/re-frame/blob/master/examples/todomvc/src/todomvc/events.cljs#L49
@@ -125,11 +120,6 @@
    ))
 
 
-(defn cancel-vote [db]
-  (-> db
-      (assoc :item (-> db :pair :left))
-      (dissoc :pair :percent)))
-
 (martian/init (str js/window.location.origin "/api/swagger.json"))
 ;; TODO implement the piggyback as martian/re-frame middleware AND pedestal middleware :smiling_imp:
 
@@ -189,7 +179,7 @@
             (dissoc :page/tag))}))
 
 (reg-event-fx
- :delete-vote
+ :vote/delete
  (fn [{:keys [db]} [_ vote]]
    {:dispatch [::martian/request
                :vote/delete
@@ -219,54 +209,4 @@
 
                    true
                    (assoc query :user new-user)))]}))
-
-
-(reg-event-db
- :delete-item-success
- interceptor-chain
- (fn [db _]
-   (js/console.log "should never get here")
-   db))
-
-#_(defn dispatch [query-kw-str rest]
-  (re-frame.core/dispatch
-   (into [(keyword query-kw-str)]
-         (js->clj rest :keywordize-keys true))))
-
-(defn ^:export add_item [item callback]
-  (re-frame.core/dispatch [:add-item (js->clj item :keywordize-keys true) callback]))
-
-(defn ^:export edit_item [item callback]
-  (re-frame.core/dispatch [:edit-item (js->clj item :keywordize-keys true) callback]))
-
-(defn ^:export delete_item [item callback]
-  (re-frame.core/dispatch [:delete-item (js->clj item :keywordize-keys true) callback]))
-
-
-
-;; for item page
-(reg-event-db
- :cancelvote
- interceptor-chain
- (fn [db _]
-   (cancel-vote db)))
-
-
-
-
-
-
-
-
-
-
-
-
-;; attribute system
-
-
-
-
-
-;; jail
 

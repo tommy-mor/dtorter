@@ -2,8 +2,7 @@
   (:require [dtorter.views.front-page :as fp]
             [clojure.string :as str]
             [dtorter.views.login :as login]
-            [dtorter.views.common :as c]
-            [dtorter.views.tag :as tag]))
+            [dtorter.views.common :as c]))
 
 (def spa-handler {:name :front-page
                   :get {:handler (fn [req] {:status 200

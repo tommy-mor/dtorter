@@ -29,8 +29,10 @@
      [:<>
       (doall (for [tag @(subscribe [:page/tags])]
                [render-tag (assoc tag :key (:xt/id tag))]))
-      (when @(subscribe [:tag-loaded?]) [views/tag-page])
-      (when @(subscribe [::item/toplevel-item-loaded?]) [item/itempanel])])])
+      (when @(subscribe [:tag-loaded?])
+        [views/tag-page])
+      (when @(subscribe [::item/toplevel-item-loaded?])
+        [item/itempanel])])])
 
 
 (defn render []

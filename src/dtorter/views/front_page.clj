@@ -6,7 +6,6 @@
             [dtorter.hashing :as hashing]
             [dtorter.queries :as queries]
             [cheshire.core :as json]
-            [dtorter.views.tag :as tag]
             [dtorter.views.common :as common]
 
             [tdsl.show]

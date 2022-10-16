@@ -16,8 +16,6 @@
 (reg-sub :raw-attributes
          :<- [:tag]
          :interface/attributes)
-(comment @(subscribe [:current-attribute])
-         @(subscribe [:raw-attributes]))
 
 (reg-sub :attributes
          :<- [:current-attribute]

@@ -8,22 +8,6 @@
             [frontsorter.router :as router]
             [frontsorter.item :as item]))
 
-(defn edit-tag-form [close state]
-  (dispatch-sync [:tag/edit state])
-  (reset! close false))
-
-(defn delete-tag-form [close state]
-  (dispatch-sync [:tag/delete state])
-  (reset! close false))
-
-(defn tag-edit [close]
-  [:div
-   [tagform/new-tag-form
-    @(subscribe [:tag-edit-info])
-    (partial edit-tag-form close)
-    (partial delete-tag-form close)]])
-
-
 (defn tag-info []
   (let [{:tag/keys [name description
                     itemcount usercount votecount]
@@ -31,31 +15,22 @@
          :as tag} @(subscribe [:tag])
         user-id @(subscribe [:session/user-id])]
     (def tag tag)
-    [c/editable
+    [:div.tag.cageparent {:style {:padding-left "10px"}
+               :on-click #(dispatch [::router/navigate ::router/tag-view {:id (:xt/id tag)}])}
      
-     "TAG"
-     (= user-id (:xt/id owner))
-     tag-edit
-     [:div.tag {:style {:padding-left "10px"}
-                :on-click #(dispatch [::router/navigate ::router/tag-view {:id (:xt/id tag)}])}
-      
-      (if (= name "gh issues")
-        [:a {:style {:background "red"
-                     :float "right"}
-             :href (str "/githubrefresh/") }
-         " REFRESH "])
-      
-      [:h1 name]
-      [:i description]
-      [:br]
-      "created by user " [:a (:user/name owner)]
-      [:br]
-      [:b itemcount] " items "
-      [:b votecount] " votes by " [:b usercount] " users"
-      
-      
-      ;; TODO make this use correct plurality/inflection
-      ]]))
+     (if (= name "gh issues")
+       [:a {:style {:background "red"
+                    :float "right"}
+            :href (str "/githubrefresh/") }
+        " REFRESH "])
+     
+     [:h1 name]
+     [:i description]
+     [:br]
+     "created by user " [:a (:user/name owner)]
+     [:br]
+     [:b itemcount] " items "
+     [:b votecount] " votes by " [:b usercount] " users"]))
 
 (defn item [item]
   [c/hoveritem ^{:key (:xt/id item)}
@@ -143,13 +118,6 @@
      [errors]
      [tag-info]
      
-     (when (:add_items show) ;; TODO convert everything reading show dict to be a sub
-       [c/collapsible-cage
-        true
-        "ADD"
-        "itempanel"
-        [addpanel]])
-
      (when true
        [c/collapsible-cage
         true

@@ -25,40 +25,12 @@
             :width 300 :height 80
             :allowtransparency "true" :allow "encrypted-media"}])
 
-(defn fields-from-format [format]
-  (vec (filter identity
-               (for [k ["name" "url" "paragraph"]]
-                 (if ((keyword k) format)
-                   k)))))
-
 (defn youtube-embedurl [fullurl]
   (str/replace fullurl "https://youtube.com/watch?v=" "https://youtube.com/embed/"))
 
 (defn url-displayer [url]
   (let [format true
-        embedurl true]
-    (comment (cond
-               true [:a {:href url
-                         :target "_blank"} url]
-               ((keyword "image link") format)
-               [:img {:src url
-                      :style {:max-width "100%"}}]
-               
-               (or ((keyword "youtube") format)
-                   ((keyword "youtube with timestamp") format))
-               [:div {:style {:padding-bottom "56.25%"
-                              :position "relative"
-                              :width "100%"
-                              :height 0}} [:iframe {:src embedurl :style {:height "100%"
-                                                                          :width "100%"
-                                                                          :position "absolute"
-                                                                          :top 0
-                                                                          :left 0
-                                                                          }
-                                                    :allow-full-screen true}]]
-               ((keyword "spotify") format) [spotify-player embedurl]
-               
-               true [:span "unknown format"])))
+        embedurl true])
   (cond
     (str/starts-with? url "https://youtube.com")
     [:div {:style {:padding-bottom "56.25%"
@@ -75,7 +47,6 @@
 
 (defn itempanel [item]
   (def item item)
-  item
   [:div.item {:on-click #(dispatch [::router/navigate
                                     ::router/item-view
                                     {:itemid (:xt/id item)}])}
@@ -84,16 +55,7 @@
    (when-let [url (:item/url item)]
      [url-displayer url])])
 
-(comment (when (:item/name item))
-         (comment (when (:url item)
-                    [url-displayer side]))
-         (when (:paragraph name)
-           [:<> 
-            [:br]
-            [:pre {:style {:color "red"
-                           :white-space "pre-line"}} (:paragraph (:content item))]]))
-
-(defn itemview [side]
+(defn item-in-vote [side]
   (let [item @(subscribe [side])]
     [:div.item 
      {:class (case side :right "rightitem" :left "leftitem" "")
@@ -119,40 +81,6 @@
                :class (if @hovered "item hovered" "item")
                })
        children])))
-
-
-(defn editable [title is-editable edit-body body]
-  (let [edit (atom false)]
-    (fn [title is-editable edit-body body]
-      [:div.cageparent
-       [:div.cagetitle title
-        (if is-editable
-          [:div.rightcorner {:on-click #(reset! edit true)} "edit"])]
-       
-       (if @edit [edit-body edit] body)])))
-
-(defn editable-link [title is-editable url body]
-  [:div.cageparent.tag
-   [:div.cagetitle title
-    (if is-editable
-      [:div.rightcorner {:on-click #(set! js/window.location.href url)} "edit"])]
-   body] )
-
-(defn editpage [stateatom showatom submitfn deletefn]
-  
-  [:div.votearena
-   (into [:<>]
-         (for [[attr v] @stateatom]
-           ^{:key attr}
-           [:input.editinput {:type "text" :value v
-                              :on-change #(let [v (-> % .-target .-value)]
-                                            (swap! stateatom assoc attr v))
-                              :on-key-down #(condp = (.-which %)
-                                              13 (submitfn)
-                                              nil)}]))
-   [smallbutton "submit" submitfn]
-   [smallbutton "cancel" #(reset! showatom false)]
-   [smallbutton "delete" deletefn {:color "red"}]])
 
 
 ;; slider stuff
@@ -186,8 +114,8 @@
     
     [collapsible-cage true "VOTE" "votingaddpanel"
      [:div.votearena
-      [itemview :left]
-      [itemview :right]
+      [item-in-vote :left]
+      [item-in-vote :right]
       
       [slider]
       

@@ -119,7 +119,7 @@
                                        (views/routes (common-interceptors
                                                       resolver node))}
                                       (enable-graphql resolver)
-                                      (enable-ide resolver)
+                                      (enable-iue resolver)
                                       ::server/routes
                                       route/expand-routes)))
       
