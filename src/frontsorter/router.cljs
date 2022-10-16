@@ -19,6 +19,7 @@
      :path-params {:id string?}
      :controllers [{:identity identity
                     :start (fn [match]
+                             (js/console.log "entering route")
                              (re-frame/dispatch [:refresh-state {::match match}]))}]}]
    ["t/:id/i/:itemid"
     {:name ::tag-item-view
@@ -27,6 +28,14 @@
                     :start (fn [match]
                              (def r match)
                              (re-frame/dispatch [:refresh-state {::match match}]))}]}]
+   ["i/:itemid"
+    {:name ::item-view
+     :path-params {:itemid string?}
+     :controllers [{:identity identity
+                    :start (fn [match]
+                             (re-frame/dispatch [:frontsorter.item/load-item {::match match}]))
+                    :stop (fn [match]
+                            (re-frame/dispatch [:frontsorter.item/unload-item]))}]}]
    ["intg/youtube"
     {:name ::yt-view
      :controllers []}]])
@@ -81,7 +90,7 @@
   (let [old-match (re-frame/subscribe [::current-route])]
     (when new-match
       (let [cs (rfc/apply-controllers (:controllers @old-match) new-match)
-            m (assoc new-match :controllers cs)]
+            new-match (assoc new-match :controllers cs)]
         (re-frame/dispatch [::navigated new-match])))))
 
 (defn init-routes! []

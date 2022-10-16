@@ -78,7 +78,7 @@
 (s/def :tag.filtered/sorted (s/coll-of ::item))
 (s/def :tag/item-vote-counts (s/map-of uuid-str int?))
 (s/def :interface/attributes (s/map-of string? int?))
-(s/def :interface/users (s/coll-of ::user))
+;; (s/def :interface/users (s/coll-of ::user))
 
 ;; todo maybe have different specs (mostly same)
 ;; that are for the api call, and one for the frontend database
@@ -94,7 +94,8 @@
                                :tag/item-vote-counts
                                :interface/attributes
                                :interface/owner
-                               :interface/users]
+                              ;;  :interface/users
+                               ]
                          :opt [:interface.filter/user ; because they stored in the url
                                :interface.filter/attribute]
                          :req-un [::owner]))

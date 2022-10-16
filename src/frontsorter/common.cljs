@@ -2,7 +2,8 @@
   (:require
    [re-frame.core :refer [subscribe dispatch dispatch-sync]]
    [reagent.core :refer [atom]]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [frontsorter.router :as router]))
 
 (defn collapsible-cage [open title cls & children]
   (let [collapsed (atom (not open))]
@@ -75,7 +76,9 @@
 (defn itempanel [item]
   (def item item)
   item
-  [:div.item
+  [:div.item {:on-click #(dispatch [::router/navigate
+                                    ::router/item-view
+                                    {:itemid (:xt/id item)}])}
 
    [:h1 {:style {:margin-bottom "4px"}} (:item/name item)]
    (when-let [url (:item/url item)]

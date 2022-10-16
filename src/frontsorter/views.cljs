@@ -37,7 +37,7 @@
      (= user-id (:xt/id owner))
      tag-edit
      [:div.tag {:style {:padding-left "10px"}
-            :on-click #(dispatch [::router/navigate ::router/tag-view {:id (:xt/id tag)}])}
+                :on-click #(dispatch [::router/navigate ::router/tag-view {:id (:xt/id tag)}])}
       
       (if (= name "gh issues")
         [:a {:style {:background "red"

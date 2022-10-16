@@ -15,6 +15,7 @@
    ;;TODO make this same exact router as cljs one
    ["/" spa-handler]
    ["/t/*" (assoc spa-handler :name :tag-page)]
+   ["/i/*" (assoc spa-handler :name :item-page)]
    ["/intg/youtube" (assoc spa-handler :name :yt-page)]
    ["/change_theme" {:post {:handler c/change-theme-handler}}]
    (login/login-routes)
