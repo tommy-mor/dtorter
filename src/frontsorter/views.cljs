@@ -4,42 +4,9 @@
             [frontsorter.common :as c]
             [frontsorter.attributes :as attrs]
             
-            [inside-out.forms :as forms]
             [frontsorter.tagform.create :as tagform]
             [frontsorter.router :as router]
-            [frontsorter.item :as item])
-  (:require-macros [inside-out.reagent :refer [with-form]]))
-
-(defn addpanel []
-  (with-form [item {:name ?name
-                    :url ?url
-                    :description ?desc}
-              :required [?name]]
-    (let [format @(subscribe [:format])
-          submit #(dispatch [:add-item @item])]
-      [:div
-       [:input.addinput
-        {:value @?name
-         :on-change (fn [e] (reset! ?name (.. e -target -value)))
-         :placeholder "name of item"}]
-       [:br]
-       (when (:url format)
-         [:<> [:input.addinput
-               {:value @?url
-                :on-change (fn [e] (reset! ?url (.. e -target -value)))
-                :placeholder "https://example.com"}]]
-         [:br])
-       (when (:description format)
-         [:<> [:textarea.addinput
-               {:value @?desc
-                :on-change (fn [e] (reset! ?desc (.. e -target -value)))
-                :placeholder "this website is about ...."}]]
-         [:br])
-       [:button {:on-click submit} "add item"] 
-       [:pre (prn-str @item)]
-       [:pre (prn-str (forms/messages ?name))]])))
-
-
+            [frontsorter.item :as item]))
 
 (defn edit-tag-form [close state]
   (dispatch-sync [:tag/edit state])

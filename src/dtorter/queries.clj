@@ -58,9 +58,10 @@
                                 votes)
           item-vote-counts (get-voted-ids filteredvotes)
           items (map #(assoc % :item/votecount (item-vote-counts (:xt/id %))) items)
-          stuff (group-by #(nil? (item-vote-counts (:xt/id %))) items)
-          voted-items (or (get stuff false) [])
-          unvoted-items (or (get stuff true) [])
+          
+          {voted-items false unvoted-items true :or {voted-items [] unvoted-items []}}
+          (group-by #(nil? (item-vote-counts (:xt/id %))) items)
+          
           id->item (into {} (map (juxt :xt/id identity) items))
           sorted (sorted-calc voted-items filteredvotes)
           userids (distinct (map :owner votes))]
