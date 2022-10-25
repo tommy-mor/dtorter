@@ -6,10 +6,11 @@
                           (shell "bb build-css")
                           (shell "./node_modules/.bin/shadow-cljs compile app"))
          watch-css (shell "./node_modules/.bin/postcss 
-                                -o ./resources/public/css/dark.css
-                                ./resources/private/css/dark/site.css --watch")
+                                -o ./resources/public/css/bootstrap.css
+                                ./resources/private/css/bootstrap/site.css --watch")
          build-jar (shell "lein uberjar")
          build-css (doseq [d (fs/list-dir "resources/private/css/")]
+		     (println d)
                      (shell (str "./node_modules/.bin/postcss -o ./resources/public/css/"
                                  (fs/file-name d) ".css     "
                                  "./" d "/site.css")))}}

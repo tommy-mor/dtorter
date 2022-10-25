@@ -48,7 +48,9 @@
 (defn layout [{:keys [request response] :as ctx} inner]
   (let [title (:title response)
         session (-> request :session)
-        themes ["/css/dark.css" "/css/light.css"]
+        themes ["/css/dark.css"
+                "/css/light.css"
+                "/css/bootstrap.css"]
         chosen-theme (or (:theme (find-theme (-> ctx :request :node)
                                              (-> ctx :request :session :user-id)))
                          "/css/dark.css")]
