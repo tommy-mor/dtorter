@@ -1,7 +1,7 @@
 (ns dtorter.views.common
   (:require [reitit.core :as r]
             [clojure.string :as str]
-            [hiccup.core :refer [html]]
+            [hiccup.page :refer [html5]]
             [babashka.fs :as fs]
             [xtdb.api :as xt]
             [ring.util.response :as ring-resp]))
@@ -22,7 +22,7 @@
             (if (contains? response :html)
               (let [html-body (->> response
                                    :html
-                                   html
+                                   html5
                                    (str "\n"))]
                 (assoc ctx :response (-> response
                                          (assoc :body html-body)
@@ -55,6 +55,7 @@
                                              (-> ctx :request :session :user-id)))
                          "/css/dark.css")]
 
+    
     [:html
      [:head
       [:meta {:charset "utf-8"}]
