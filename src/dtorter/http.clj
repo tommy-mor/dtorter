@@ -31,8 +31,7 @@
             [shared.specs :as sp]
             [dtorter.views.routes :as views]
             [crypto.random :as random]
-            [tdsl.show]
-            [dtorter.clean-data :as clean]))
+            [tdsl.show]))
 
 (defonce cookies (middlewares/session {:store (cookie/cookie-store {:key (random/bytes 16)})}))
 

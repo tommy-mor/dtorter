@@ -5,6 +5,15 @@
    [clojure.string :as str]
    [frontsorter.router :as router]))
 
+(defn render-tag [tag]
+  (def tag tag)
+  (def size (Math/sqrt (* 10 (+ (:item/_tags tag) (:vote/_tag tag)))))
+  [:div.tag-small
+   {:style {:font-size (max size 12)
+            :height "fit-content"}}
+   [:a {:on-click #(dispatch [::router/navigate ::router/tag-view {:id (:xt/id tag)}])}
+    (:tag/name tag)]])
+
 (defn collapsible-cage [open title cls & children]
   (let [collapsed (atom (not open))]
     (fn [open title cls & children]

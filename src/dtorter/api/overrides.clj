@@ -123,7 +123,32 @@
 (def item
   {:all #(-> %
              (dissoc :get)
-             (assoc :post add-item))})
+             (assoc :post add-item))
+   :extra-routes
+   [["/:id/memberships"
+     {:get {:operationId :item/memberships
+            :summary "get all the tags that this item is in"
+            :parameters {:path {:id string?}}
+            :interceptors [(document-interceptor ::sp/item)]
+            :handler (fn [req]
+                       (def req req)
+                       {:status 200
+                        :body (map second (xt/q (xt/db (:node req))
+                                                '{:find [(pull owner [:user/name :xt/id])
+                                                         (pull tag [*])]
+                                                  :in [item]
+                                                  :where [[memb :type :membership]
+                                                          [memb :item item]
+                                                          [memb :tag tag]
+                                                          [memb :owner owner]]}
+                                                (-> req :path-params :id)))})}
+      :post {:operationId :item/join-tag
+             :summary "add an item to a new tag"
+             :parameters {:path {:id string?}}
+             :handler (fn [req]
+                        (def req req)
+                        {:status 200
+                         :body {:done "yep"}})} }]]})
 
 ;; todo add response spec checking in reitit...
 (def tag

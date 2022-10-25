@@ -2,6 +2,7 @@
   (:require
    [reagent.dom :as d]
    [re-frame.core :as rf :refer [dispatch dispatch-sync subscribe]]
+   [reagent.core :as r]
    [day8.re-frame.http-fx]
    [frontsorter.events]
    [frontsorter.common :as c]
@@ -55,7 +56,13 @@
  ::item-loaded
  frontsorter.events/interceptor-chain
  (fn [{:keys [db]} [_ {body :body}]]
-   {:db (assoc db :page/item body)}))
+   {:db (assoc db :page/item body)
+    :dispatch
+    [::martian/request
+     :item/memberships
+     {:id (:xt/id body)}
+     [::membership-loaded]
+     [:frontsorter.events/http-failure]]}))
 
 
 ;; only called from js ;; TODO move these
@@ -82,10 +89,63 @@
         [:td [c/smallbutton "vote" editfn]]))))
 
 
+(defn neighbor [{:tag/keys [name] :as tag}]
+  (def tag tag)
+  [:div.tag-small
+   {:on-click #(dispatch [:frontsorter.router/navigate
+                          :frontsorter.router/membership-view
+                          {:itemid (:xt/id @(subscribe [::toplevel-item]))
+                           :tagid (:xt/id tag)}])}
+   [:a name]])
+
+
+(rf/reg-sub ::memberships ::memberships)
+
+(rf/reg-event-fx
+ ::membership-loaded
+ (fn [{:keys [db]} [_ {:keys [body]}]]
+   {:db (assoc db ::memberships body)})
+                 )
+(defn add-to-tag []
+  (let [collapsed (r/atom false)
+        tags-dont-show (set (map :xt/id @(subscribe [::memberships])))
+        item @(subscribe [::toplevel-item])]
+    (fn []
+      (if @collapsed
+        [:div (for [tag @(subscribe [:page/tags])]
+                (do
+                  (js/console.log tag)
+                  (when-not (tags-dont-show (:xt/id tag))
+                    [:div {:style {:display "flex"}}
+                     [:div.tag-small (:tag/name tag)]
+                     [:button {:on-click
+                                     #(dispatch [::martian/request
+                                                 :item/join-tag
+                                                 {:id (:xt/id item)
+                                                  :tagid (:xt/id tag)
+                                                  :owner @(subscribe [:session/user-id])}
+                                                 ["AOIESRNAOIRETSN TODO!!!!!!!!!!!!!!"]])}
+                      "add"]])))]
+        [:div {:on-click #(swap! collapsed not)}
+         "click to add this item to another tag"]))))
+
+(defn neighborlist []
+  ;; me when i commit atrocities:
+  (when (-> @(subscribe [:current-route]) :data :name #{:frontsorter.router/item-view})
+    [:div
+     [:p "this item is in tags: "]
+     (doall (for [membership @(subscribe [::memberships])]
+              [neighbor membership]))
+     
+     [add-to-tag]]))
+
+
 (defn itempanel []
   (let [item (or @(subscribe [::item])
                  @(subscribe [::toplevel-item]))]
-    [:div.cageparent.item [c/itempanel item]]))
+    [:div {:style {:display "flex"}}
+     [:div.cageparent.item [c/itempanel item]]
+     [neighborlist]]))
 
 (defn rowitem [rowitem]
   (let [item @(subscribe [::item])

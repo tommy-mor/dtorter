@@ -7,7 +7,8 @@
             [reagent.core :as r]
             [re-frame.core :as rf]
             [frontsorter.events :as events]
-            [martian.re-frame :as martian]))
+            [martian.re-frame :as martian]
+            [frontsorter.common :as c]))
 
 (def settings
   {:client-id "331497482324-ofis5vjjnn8jmgq2np8f7ralnpndqthm.apps.googleusercontent.com"
@@ -164,7 +165,7 @@ not sure how to design this...
   (when-not @yttag (rf/dispatch [::find-yttag]))
   [:div
    [:p "youtbe api :)"]
-   (when @yttag [(resolve 'frontsorter.page/render-tag) @yttag])
+   (when @yttag [c/render-tag @yttag])
    [:p (str (count @existing-videos) " existing videos")]
    [:ul (doall (for [v @videos]
                  [:li [video v]]))]

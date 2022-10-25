@@ -112,6 +112,16 @@
   (s/keys :opt-un [:tag.query/attribute
                    :tag.query/user
                    :tag.query/itemid]))
+
+(s/def :membership/item string?)
+(s/def :membership/tag string?)
+
+(s/def ::membership
+  (s/keys :req-un [:membership/item
+                   :membership/tag
+                   ::owner]))
+
+
 ;; transient state of webapp
 
 ;; TODO add format map to this system (unless its useless cause we want to handle on server)

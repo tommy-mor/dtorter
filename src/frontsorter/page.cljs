@@ -9,15 +9,8 @@
             [frontsorter.attributes]
             [frontsorter.item :as item]
             [frontsorter.views :as views]
-            [frontsorter.yt :as yt]))
-
-(defn render-tag [tag]
-  (def tag tag)
-  (def size (Math/sqrt (* 10 (+ (:item/_tags tag) (:vote/_tag tag)))))
-  [:div.tag-small
-   {:style {:font-size (max size 12)}}
-   [:a {:on-click #(dispatch [::router/navigate ::router/tag-view {:id (:xt/id tag)}])}
-    (:tag/name tag)]])
+            [frontsorter.yt :as yt]
+            [frontsorter.membership :as membership]))
 
 (defn app []
   [:div
@@ -26,9 +19,10 @@
     "youtube"]
    (case (-> @(subscribe [::router/current-route]) :data :name)
      ::router/yt-view [yt/ytv]
+     ::router/membership-view [membership/show-membership]
      [:<>
       (doall (for [tag @(subscribe [:page/tags])]
-               [render-tag (assoc tag :key (:xt/id tag))]))
+               [c/render-tag (assoc tag :key (:xt/id tag))]))
       (when @(subscribe [:tag-loaded?])
         [views/tag-page])
       (when @(subscribe [::item/toplevel-item-loaded?])

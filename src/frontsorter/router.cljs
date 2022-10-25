@@ -36,6 +36,17 @@
                              (re-frame/dispatch [:frontsorter.item/load-item {::match match}]))
                     :stop (fn [match]
                             (re-frame/dispatch [:frontsorter.item/unload-item]))}]}]
+   
+   ["i/:itemid/t/:tagid"
+    {:name ::membership-view
+     :path-params {:itemid string? :tagid string?}
+     :controllers [{:identity identity
+                    :start (fn [match]
+                             (re-frame/dispatch [:frontsorter.item/load-item {::match match}])
+                             (re-frame/dispatch [:frontsorter.membership/load-tag {::match match}]))
+                    :stop (fn [match]
+                            (re-frame/dispatch [:frontsorter.item/unload-item])
+                            (re-frame/dispatch [:frontsorter.membership/unload-tag {::match match}]))}]}]
    ["intg/youtube"
     {:name ::yt-view
      :controllers []}]])
