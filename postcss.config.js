@@ -4,5 +4,6 @@ module.exports = {
 		'postcss-import': {},
   		'postcss-simple-vars': {},
 		autoprefixer: {},
+		'@csstools/postcss-sass': {}
 	}
 }

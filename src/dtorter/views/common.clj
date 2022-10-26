@@ -59,35 +59,39 @@
     [:html
      [:head
       [:meta {:charset "utf-8"}]
-      [:meta {:name "viewport"
-              :content "width=device-width, initial-scale=1.0"}]
-      [:link {:href chosen-theme
-              :rel "stylesheet"
-              :type "text/css"}]
+      [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
+      [:link {:href chosen-theme :rel "stylesheet" :type "text/css"}]
+      
       [:script {:src "/js/shared.js"
                 :type "text/javascript"}]
+      
       [:script {:type "text/javascript"}
        (str "var userid = '" (-> ctx :request :session :user-id) "';")]
+      
 
-      [:meta {:name "viewport" :content "width=device-width,initial-scale=1"}]
       [:title (or (str title ", sorter") "sorter")]]
      [:div.topbar
-      [:div.topleft
-       [:span "sorter"]
-       [:a.currentpage {:href (rurl-for ctx :front-page)} "home"]
-       (when (= "tommy" (:user-name session))
-         (list [:a.currentpage {:href (rurl-for ctx :tdsl-page {:base "tdsl"})} "tdsl"]
-               [:a.currentpage {:href (rurl-for ctx :todo-page {:base "todo"})} "todo"]))
-
-       (when false [:a.currentpage {:href 3 #_(url-for :users-page)} "users"])]
-      (if-let [username (:user-name session)]
-        [:div.topright
-         [:a.currentpage {:href (rurl-for ctx :logoff)} "logoff"]
-         [:span (:user-name session)]]
-        [:div.topright
-         [:a.currentpage {:href (rurl-for ctx :login)} "login"]
-         [:a.currentpage {:href (rurl-for ctx :register)} "make account"]
-         [:span (prn-str session)]])]
+      [:header.toppanel
+       [:div.topleft
+        [:span "sorter"]]
+       [:div.topmiddle
+        [:ul.topmiddle-list
+         [:li
+          [:a.currentpage {:href (rurl-for ctx :front-page)} "home"]
+          (when (= "tommy" (:user-name session))
+            (list [:a.currentpage {:href (rurl-for ctx :tdsl-page {:base "tdsl"})} "tdsl"]
+                  [:a.currentpage {:href (rurl-for ctx :todo-page {:base "todo"})} "todo"]))]]]
+       
+       (if-let [username (:user-name session)]
+         [:div.topright
+          [:ul
+           [:span (:user-name session)]
+           [:a {:href (rurl-for ctx :logoff)} "logoff"]]]
+         [:div.topright
+          [:ul
+           [:a.currentpage {:href (rurl-for ctx :login)} "login"]
+           [:a.currentpage {:href (rurl-for ctx :register)} "make account"]
+           [:span (prn-str session)]]])]]
      [:div.mainbody
       inner]
      [:form {:action "/change_theme" :method "post"}

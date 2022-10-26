@@ -19,7 +19,7 @@ src/gen/
 .cpcache
 *.swp
 *.port
-resources/public/css/*.css
+resources/public/css/*
 sorter-xtdb/
 .calva/
 .clj-kondo/
