@@ -46,7 +46,8 @@
     (fn []
       (let [current-attribute @(subscribe [:current-attribute])
             attributes @(subscribe [:attributes])]
-        [:div {:style {:display "flex"}} "you are voting on"
+        [:div
+         {:style {:display "flex"}} "voting on"
          (if (and (not (empty? attributes))
                   (not @editing)
                   (not (#{:interface.filter/no-attribute} current-attribute)))
@@ -55,7 +56,8 @@
                            (case new-attr
                              "[add new attribute]" (reset! editing true)
                              (dispatch-sync [:attribute-selected new-attr])))
-             :value current-attribute}
+             :value current-attribute
+             :style {:height "fit-content"}}
             (for [[attribute attributecount] (sort-by second attributes)]
               [:option {:value attribute
                         :key attribute} (str (name attribute) " (" attributecount " votes)")])

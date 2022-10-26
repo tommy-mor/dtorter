@@ -121,17 +121,21 @@
 (defn pairvoter [& {:keys [cancelevent]}]
   (let []
     
-    [collapsible-cage true "VOTE" "votingaddpanel"
-     [:div.votearena
-      [item-in-vote :left]
-      [item-in-vote :right]
-      
-      [slider]
-      
-      [button "submit" :vote]
-      
-      (when cancelevent
-        [button "cancel" :cancelvote :class "cancelbutton"])]] ))
+    [:div.votearena.row
+     [:div.col
+      [item-in-vote :left]]
+     [:div.col
+      [item-in-vote :right]]
+     
+     [:div.row
+      [:div.col [slider]]]
+     
+     [:div.row
+      [:div.col [:div.btn.btn-primary {:on-click #(dispatch [:vote])}
+                 "submit"]]]
+     
+     (when cancelevent
+       [button "cancel" :cancelvote :class "cancelbutton"])] ))
 
 
 ;; not a view, a function for converting attributes dict to a list

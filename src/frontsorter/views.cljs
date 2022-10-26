@@ -15,22 +15,19 @@
          :as tag} @(subscribe [:tag])
         user-id @(subscribe [:session/user-id])]
     (def tag tag)
-    [:div.tag.cageparent {:style {:padding-left "10px"}
-               :on-click #(dispatch [::router/navigate ::router/tag-view {:id (:xt/id tag)}])}
+    [:div.tag {:on-click #(dispatch [::router/navigate ::router/tag-view {:id (:xt/id tag)}])}
      
-     (if (= name "gh issues")
-       [:a {:style {:background "red"
-                    :float "right"}
-            :href (str "/githubrefresh/") }
-        " REFRESH "])
-     
-     [:h1 name]
-     [:i description]
-     [:br]
-     "created by user " [:a (:user/name owner)]
-     [:br]
-     [:b itemcount] " items "
-     [:b votecount] " votes by " [:b usercount] " users"]))
+     [:div.card-header "tag"]
+     [:div.card-body
+      
+      
+      [:h5 name]
+      [:i description]
+      [:br]
+      "created by user " [:a (:user/name owner)]
+      [:br]
+      [:b itemcount] " items "
+      [:b votecount] " votes by " [:b usercount] " users"]]))
 
 (defn item [item]
   [c/hoveritem ^{:key (:xt/id item)}
@@ -116,17 +113,16 @@
      
 
      [errors]
-     [tag-info]
+     [:div.row
+      [:div.col [tag-info]]
+      [:div.col
+       [:div.tag
+        [:div.card-header
+         [attrs/attributes-panel]]
+        [:div.card-body
+         (when @(subscribe [:pair-loaded?])
+           [c/pairvoter])]]]]
      
-     (when true
-       [c/collapsible-cage
-        true
-        "ATTRIBUTE"
-        ""
-        [attrs/attributes-panel]])
-
-     (when @(subscribe [:pair-loaded?])
-       [c/pairvoter])
      
      (when @(subscribe [:frontsorter.item/loaded?])
        [item/itempanel])

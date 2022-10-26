@@ -1,75 +1,44 @@
 @import "bootstrap";
+@import "./navbar.sass";
 
-/* header, copied from https://getbootstrap.com/docs/5.2/examples/headers/# */
-
-.topbar {
+.main {
 	@extend .container;
 }
 
-.toppanel {
-	@extend .d-flex;
-	@extend .flex-wrap;
-	@extend .align-items-center;
-	@extend .justify-content-center;
-	@extend .justify-content-md-between;
-	@extend .py-3;
-	@extend .mb-4;
-	@extend .border-bottom;
+.tag-table {
+	@extend .table;
+	@extend .table-sm;
+	@extend .table-bordered;
+	@extend .table-responsive;
+	@extend .table-hover;
+}
+
+.tag {
+	@extend .card;
+}
+
+.tag-body {
+	@extend .card-body;
+}
+
+.slider {
+	background: #eee;
+	width: 100%;
+	appearance: none;
+	height: 20px;
+}
+
+.slider::-webkit-slider-thumb {
+	appearance: none;
+	width: 20px;
+	height: 20px;
+	background: pink;
 }
 
 
-
-.topleft {
-	@extend .d-flex;
-	@extend .align-items-center;
-	@extend .col-md-3;
-	span {
-		background: pink;
-	}
-}
-
-.topmiddle {
-	@extend .d-flex;
-	@extend .justify-content-center;
-	@extend .col-md-3;
-	ul {
-		@extend .nav;
-		@extend .col-12;
-		@extend .col-md-auto;
-		@extend .mb-2;
-		@extend .justify-content-center;
-		@extend .mb-md-0;
-		li {
-			@extend .d-flex;
-		}
-	}
-
-}
-
-.currentpage {
-	@extend .nav-link;
-	@extend .px-2;
-	@extend .link-dark;
-}
-
-
-.topright {
-	@extend .col-md-3;
-	@extend .text-end;
-	ul {
-		@extend .nav;
-		@extend .col-12;
-		@extend .col-md-auto;
-		@extend .mb-2;
-		@extend .mb-md-0;
-		@extend .text-end;
-		@extend .justify-content-end;
-	}
-	a {
-		@extend .btn;
-		@extend .btn-outline-primary;
-	}
-	span {
-		@extend .nav-link;
-	}
+.slider::-moz-range-thumb {
+	appearance: none;
+	width: 20px;
+	height: 20px;
+	background: pink;
 }

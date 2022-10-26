@@ -21,8 +21,21 @@
      ::router/yt-view [yt/ytv]
      ::router/membership-view [membership/show-membership]
      [:<>
-      (doall (for [tag @(subscribe [:page/tags])]
-               [c/render-tag (assoc tag :key (:xt/id tag))]))
+      [:table.tag-table
+       [:thead
+        [:tr [:td "Name"] [:td "Description"] [:td "Items"] [:td "Votes"]]]
+       [:tbody
+        (doall (for [tag @(subscribe [:page/tags])]
+                 (do
+                   (def tag tag)
+                   [:tr {:on-click #(dispatch [::router/navigate
+                                               ::router/tag-view
+                                               {:id (:xt/id tag)}])
+                         :style {:cursor "pointer"}}
+                    [:td (:tag/name tag)]
+                    [:td (:tag/description tag)]
+                    [:td (:vote/_tag tag)]
+                    [:td (:item/_tags tag)]])))]]
       (when @(subscribe [:tag-loaded?])
         [views/tag-page])
       (when @(subscribe [::item/toplevel-item-loaded?])

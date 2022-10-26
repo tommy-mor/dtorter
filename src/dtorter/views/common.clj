@@ -92,7 +92,7 @@
            [:a.currentpage {:href (rurl-for ctx :login)} "login"]
            [:a.currentpage {:href (rurl-for ctx :register)} "make account"]
            [:span (prn-str session)]]])]]
-     [:div.mainbody
+     [:main.main
       inner]
      [:form {:action "/change_theme" :method "post"}
       [:select {:name "theme"}
