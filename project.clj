@@ -51,7 +51,8 @@
                  [medley "1.4.0"]
                  [com.github.jpmonettas/flow-storm-inst "RELEASE"]
                  [com.github.jpmonettas/flow-storm-dbg "RELEASE"]
-                 ]
+                 
+                 [hato "0.9.0"]]
   :managed-dependencies [[org.clojure/core.async "1.5.648"]]
   :plugins [
             [cider/cider-nrepl "0.28.3"]]

@@ -130,22 +130,33 @@
          "click to add this item to another tag"]))))
 
 (defn neighborlist []
-  ;; me when i commit atrocities:
-  (when (-> @(subscribe [:current-route]) :data :name #{:frontsorter.router/item-view})
-    [:div
-     [:p "this item is in tags: "]
+  [:div
+   [:p "this item is in tags: "]
+   [:table.tag-table
+    [:tbody
      (doall (for [membership @(subscribe [::memberships])]
-              [neighbor membership]))
-     
-     [add-to-tag]]))
+              [:tr [neighbor membership]]))]]
+   
+   [add-to-tag]])
 
+
+(defn bare-itempanel []
+  (let [item (or @(subscribe [::item])
+                 @(subscribe [::toplevel-item]))]
+    [c/itempanel item]))
 
 (defn itempanel []
   (let [item (or @(subscribe [::item])
                  @(subscribe [::toplevel-item]))]
-    [:div {:style {:display "flex"}}
-     [:div.cageparent.item [c/itempanel item]]
-     [neighborlist]]))
+    [:div.col
+     [:div.card
+      [:div.card-header "item"]
+      [:div.card-body
+       [:div.cageparent.item [c/itempanel item]]]]
+     [:div.card.mt-2
+      [:div.card-header "memberships"]
+      [:div.card-body
+       [neighborlist]]]]))
 
 (defn rowitem [rowitem]
   (let [item @(subscribe [::item])
@@ -175,7 +186,7 @@
   ;; (js/console.log (clj->js  @rank))
   
   (let [sorted @(subscribe [:sorted])]
-    [:table
+    [:table.tag-table
      [:tbody
       (doall (for [n sorted]
                [rowitem (-> n

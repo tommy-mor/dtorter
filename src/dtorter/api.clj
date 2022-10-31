@@ -9,7 +9,6 @@
             [dtorter.api.overrides :as overrides]
             [dtorter.api.common :refer [document-interceptor]]))
 
-
 (def swag-interceptor
   {:name :test-interceptor-does-nothing-yet
    :enter #(assoc % :swag 3)

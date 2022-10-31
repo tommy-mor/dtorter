@@ -24,24 +24,32 @@
    (def body body)
    (assoc db ::tag body)))
 
+(defn card [title body]
+  [:div.card
+   [:div.card-header title]
+   [:div.card-body body]])
+
 (defn small-item [i]
-  [:div.item  {:on-click #(dispatch [:frontsorter.router/navigate
-                                     :frontsorter.router/item-view
-                                     {:itemid (:xt/id i)}])}
-   [:p (:item/name i)]])
+  [card "item"
+   [:div.item  {:on-click #(dispatch [:frontsorter.router/navigate
+                                      :frontsorter.router/item-view
+                                      {:itemid (:xt/id i)}])}
+    [:p (:item/name i)]]])
 
 (defn small-tag [t]
-  [:div.tag
-   {:on-click #(dispatch [:frontsorter.router/navigate
-                          :frontsorter.router/tag-item-view
-                          {:id (:xt/id t)
-                           :itemid (:xt/id @(subscribe [:frontsorter.item/toplevel-item]))}])}
-   [:p (:tag/name t)]])
+  [card "tag"
+   [:div
+    {:on-click #(dispatch [:frontsorter.router/navigate
+                           :frontsorter.router/tag-item-view
+                           {:id (:xt/id t)
+                            :itemid (:xt/id @(subscribe [:frontsorter.item/toplevel-item]))}])}
+    [:p (:tag/name t)]]])
 
 (defn show-membership []
-  [:div "the item"
+  [:div
+   [:h1 "membership page"]
    [small-item @(subscribe [:frontsorter.item/toplevel-item])]
-   "is in tag"
+   "is a member of"
    [small-tag @(subscribe [::tag])]
 
    "TODO remove it?"

@@ -67,7 +67,7 @@
                    :value (:xt/id user)} (:user/name user)])]]
 
      
-     [:table
+     [:table.tag-table
       [:thead
        [:tr [:th ""] [:th ""] [:th ""]]]
       [:tbody
@@ -90,7 +90,7 @@
 
 (defn votelist []
 
- [:table
+ [:table.tag-table
    [:thead
     [:tr [:th "left"] [:th "pts"] [:th "right"] [:th "pts"]]]
    [:tbody
@@ -113,7 +113,7 @@
      
 
      [errors]
-     [:div.row
+     [:div.row.gy-2
       [:div.col [tag-info]]
       [:div.col
        [:div.tag
@@ -124,37 +124,41 @@
            [c/pairvoter])]]]]
      
      
-     (when @(subscribe [:frontsorter.item/loaded?])
-       [item/itempanel])
+     [:div.row.gy-2.mt-2
+      [:div.col (when @(subscribe [:frontsorter.item/loaded?])
+                  [:div.card
+                   [:div.card-header "selected item"]
+                   [:div.card-body
+                    [item/bare-itempanel]]])]]
      
-     [:div.threepanels
-      (when @(subscribe [:sorted-not-empty])
-        [c/collapsible-cage
-         true
-         "RANKING"
-         "itemranking"
-         [sortedlist :sorted :sorted-count]])
+     [:div.row.gy-2.mt-2
+      [:div.col (when @(subscribe [:sorted-not-empty])
+                  [:div.card
+                   [:div.card-header "items ranked"]
+                   [:div.card-body
+                    [sortedlist :sorted :sorted-count]]])]]
+     [:div.row.gy-2.mt-2
+      [:div.col
+       
+       (when @(subscribe [:unsorted-not-empty])
+         [:div.card
+          [:div.card-header "unranked items"]
+          [:div.card-body
+           [sortedlist :unsorted :unsorted-count]]])]]
       
-      (when @(subscribe [:unsorted-not-empty])
-        [c/collapsible-cage
-         true
-         "UNRANKED ITEMS"
-         "itemranking"
-         [sortedlist :unsorted :unsorted-count]])
-      
-      (when (and @(subscribe [:votes-not-empty])
-                 (not @(subscribe [:frontsorter.item/loaded?])))
-        [c/collapsible-cage
-         false
-         (str "MY VOTES (" @(subscribe [:votes-count]) ") on attribute "
-              @(subscribe [:current-attribute]))
-         "votinglistpanel"
-         [votelist]])
-      
-      (when @(subscribe [:frontsorter.item/loaded?])
-        [c/collapsible-cage
-         true
-         "item matchup"
-         "itemranking"
-         [item/ranklist]])]]))
+     [:div.row.gy-2.mt-2
+      [:div.col
+       (when @(subscribe [:votes-not-empty])
+         [:div.card
+          [:div.card-header "votes"]
+          [:div.card-body
+           [votelist]]])]]
+
+     [:div.row.gy-2.mt-2
+      [:div.col
+       (when @(subscribe [:frontsorter.item/loaded?])
+         [:div.card
+          [:div.card-header "item matchups"]
+          [:div.card-body
+           [item/ranklist]]])]]]))
 

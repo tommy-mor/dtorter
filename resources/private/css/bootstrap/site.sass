@@ -1,6 +1,37 @@
 @import "bootstrap";
 @import "./navbar.sass";
 
+
+$saturation: 100%;
+
+$strong-lightness: 50%;
+$strong-alpha: 1;
+
+$medium-lightness: 70%;
+$medium-alpha: 0.2;
+
+$weak-lightness: 88%;
+$weak-alpha: 0.3;
+$voting-color-hue: 40;
+$voting-color-strong: hsla($voting-color-hue, $saturation, $strong-lightness, $strong-alpha); 
+$voting-color-medium: hsla($voting-color-hue, $saturation, $medium-lightness, $medium-alpha);
+$voting-color-weak:   hsla($voting-color-hue, $saturation, $weak-lightness, $weak-alpha);
+
+.vote {
+    background: $voting-color-medium;
+}
+
+.mini-slider {
+    background: hsla($voting-color-hue, 100%, 70%, 0.3);
+    width: 100px;
+}
+
+.mini-slider-box {
+    background: hsla($voting-color-hue, 100%, 70%, 1.0);
+    width: 10px;
+    height: 10px;
+}
+
 .main {
 	@extend .container;
 }

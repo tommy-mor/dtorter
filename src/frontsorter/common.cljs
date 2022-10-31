@@ -134,6 +134,7 @@
       [:div.col [:div.btn.btn-primary {:on-click #(dispatch [:vote])}
                  "submit"]]]
      
+     ;; TODO
      (when cancelevent
        [button "cancel" :cancelvote :class "cancelbutton"])] ))
 
