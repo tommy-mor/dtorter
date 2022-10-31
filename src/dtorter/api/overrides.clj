@@ -144,11 +144,44 @@
                                                 (-> req :path-params :id)))})}
       :post {:operationId :item/join-tag
              :summary "add an item to a new tag"
-             :parameters {:path {:id string?}}
+             :parameters {:path {:id string?}
+                          :body {:tagid string? :owner string?}}
              :handler (fn [req]
                         (def req req)
-                        {:status 200
-                         :body {:done "yep"}})} }]]})
+                        ;; TODO add permission check
+                        (xt/submit-tx (:node req)
+                                      [[::xt/put
+                                        {:xt/id (str (java.util.UUID/randomUUID))
+                                         :type :membership
+                                         :tag (-> req :body-params :tagid)
+                                         :item (-> req :path-params :id)
+                                         :owner (-> req :body-params :owner)}]])
+                        {:status 201})}
+      :delete {:operationId :item/remove-from-tag
+               :summary "remove an item from a tag"
+               :parameters {:path {:id string?}
+                            :body {:tagid string?}}
+               :handler (fn [req]
+                          (def req req)
+                          ;; TODO add permission check
+                          (if-let [membership-id (ffirst (xt/q (xt/db (:node req))
+                                                               '{:find [e]
+                                                                 :in [item tagid]
+                                                                 :where [[e :type :membership]
+                                                                         [e :item item]
+                                                                         [e :tag tagid]
+                                                                         [e :owner owner]]}
+                                                               (-> req :path-params :id)
+                                                               (-> req :body-params :tagid)
+                                                               (-> req :session :user-id)))]
+                            (do
+                              (xt/submit-tx (:node req) [[::xt/delete membership-id]])
+                              {:status 204})
+                            {:status 500 :body "membership not found"}))}}]]})
+    
+      
+      
+  
 
 ;; todo add response spec checking in reitit...
 (def tag

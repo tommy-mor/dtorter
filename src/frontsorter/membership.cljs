@@ -51,6 +51,10 @@
    [small-item @(subscribe [:frontsorter.item/toplevel-item])]
    "is a member of"
    [small-tag @(subscribe [::tag])]
-
-   "TODO remove it?"
-   "TODO comments?"])
+   [:button.btn.btn-danger {:on-click #(dispatch [::martian/request
+                                                  :item/remove-from-tag
+                                                  {:id (:xt/id @(subscribe [:frontsorter.item/toplevel-item]))
+                                                   :tagid (:xt/id @(subscribe [::tag]))}
+                                                  [:idk-lol]
+                                                  [:frontsorter.events/http-failure]])}
+    "remove item from tag"]])
